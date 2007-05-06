@@ -1,4 +1,5 @@
 #include "protocol.h"
+#define UNUSED __attribute__((unused))
 
 GSList *haver_parse(char *str)
 {
@@ -29,4 +30,14 @@ GString *haver_format(GSList *msg)
 	}
 	g_slist_foreach(msg, (GFunc) each, buf);
 	return buf;
+}
+
+void haver_msg_free(GSList *msg)
+{
+	void each(GString *str, UNUSED int foo)
+	{
+		g_string_free(str, TRUE);
+	}
+	g_slist_foreach(msg, (GFunc)each, NULL);
+	g_slist_free(msg);
 }
