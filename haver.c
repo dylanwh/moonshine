@@ -3,24 +3,11 @@
 #include <slang.h>
 #include <stdlib.h>
 
-#include <gc.h>
 #include <glib.h>
-
 #include "protocol.h"
-#include "hacks.h"
 
 int main(int argc, char *argv[])
 {
-	hacks_init();
-	while (1) {
-		GSList *msg = haver_parse("foo\tbar\tbaz");
-		GString *str = haver_format(msg);
-		printf("%s\n", str->str);
-		GC_gcollect();
-	}
-	return 0;
-}
-
 /*	SLtt_get_terminfo ();
 	if (SLkp_init() == -1) {
 	    SLang_doerror ("SLkp_init failed.");
@@ -35,3 +22,5 @@ int main(int argc, char *argv[])
 /*	SLsmg_reset_smg ();
 	SLang_reset_tty ();*/
 
+	return 0;
+}

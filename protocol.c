@@ -30,4 +30,3 @@ GString *haver_format(GSList *msg)
 	g_slist_foreach(msg, (GFunc) each, buf);
 	return buf;
 }
-
