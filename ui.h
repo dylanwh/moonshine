@@ -1,17 +1,24 @@
-#ifndef _HAVER_UI_H
-#define _HAVER_UI_H
+/* vim: set ft=objc: */
+#ifndef _SPOON_UI_H
+#define _SPOON_UI_H
 #include <glib.h>
+#include <objc/Object.h>
 
-typedef struct {
+@interface SpoonUI: Object
+{
 	GString *topic;
 	GList *buffer;
 	GString *entry;
-} HaverUI;
+}
 
-HaverUI *haver_ui_new(void);
-void haver_ui_free(HaverUI *);
-void haver_ui_getkey(HaverUI *);
-void haver_ui_draw(HaverUI *);
+- (void) draw;
 
+/*
+SpoonUI *spoon_ui_new(void);
+void spoon_ui_free(SpoonUI *);
+void spoon_ui_getkey(SpoonUI *);
+void spoon_ui_draw(SpoonUI *);
+*/
+@end
 
 #endif

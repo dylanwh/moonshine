@@ -15,7 +15,7 @@ static volatile gboolean resized = FALSE;
 static void reset(void);
 static void on_resize(int sig);
 
-void haver_screen_init(void)
+void spoon_screen_init(void)
 {
 	SLtt_get_terminfo ();
 	if (SLkp_init() == -1) {
@@ -31,7 +31,7 @@ void haver_screen_init(void)
 	atexit(reset);
 }
 
-inline gboolean haver_screen_resized(void)
+inline gboolean spoon_screen_resized(void)
 {
 	if (resized) {
 		resized = FALSE;

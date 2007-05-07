@@ -1,2 +1,2 @@
-void haver_screen_init(void);
-inline gboolean haver_screen_resized(void);
+void spoon_screen_init(void);
+inline gboolean spoon_screen_resized(void);
