@@ -1,3 +1,4 @@
+
 //#include <glib.h>
 //#include <gnet.h>
 #include <slang.h>
@@ -6,19 +7,10 @@
 #include <glib.h>
 #include "protocol.h"
 
-static volatile gboolean slang_size_changed = FALSE;
-
-static void slang_init(void);
+static volatile gboolean size_changed = FALSE;
 static void slang_reset(void);
 static void slang_on_resize(int sig);
 static inline gboolean slang_has_resized(void);
-
-
-int main(int argc, char *argv[])
-{
-	slang_init();
-	return 0;
-}
 
 static void slang_init(void)
 {
@@ -58,4 +50,3 @@ static void slang_reset(void)
 	SLsmg_reset_smg ();
 	SLang_reset_tty ();
 }
-

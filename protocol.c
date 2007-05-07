@@ -1,10 +1,11 @@
+#include "haver.h"
 #include "protocol.h"
-#define UNUSED __attribute__((unused))
 
-GSList *haver_parse(char *str)
+GSList *haver_parse(GString *s)
 {
 	GSList *result = NULL;
 	guint start = 0;
+	gchar *str = s->str;
 
 	for (guint i = 0; str[i] != '\0'; i++) {
 		if (str[i] == '\t') {
