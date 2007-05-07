@@ -5,57 +5,27 @@
 
 #include <glib.h>
 #include "protocol.h"
+#include "screen.h"
+#include "ui.h"
 
-static volatile gboolean slang_size_changed = FALSE;
-
-static void slang_init(void);
-static void slang_reset(void);
-static void slang_on_resize(int sig);
-static inline gboolean slang_has_resized(void);
-
+static gboolean on_input(GIOChannel *input, GIOCondition cond, gpointer ui)
+{
+	if (cond & G_IO_IN) {
+		haver_ui_getkey((HaverUI *)ui);
+		return TRUE;
+	} else {
+		g_print("stdin error!");
+		return FALSE;
+	}
+}
 
 int main(int argc, char *argv[])
 {
-	slang_init();
+	haver_screen_init();
+	HaverUI *ui = haver_ui_new();
+	GMainLoop *loop   = g_main_loop_new(NULL, TRUE);
+	GIOChannel *input = g_io_channel_unix_new (fileno(stdin));
+	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, ui);
+	g_main_loop_run(loop);
 	return 0;
 }
-
-static void slang_init(void)
-{
-	SLtt_get_terminfo ();
-	if (SLkp_init() == -1) {
-	    SLang_doerror ("SLkp_init failed.");
-	    exit (1);
-	}
-	if (SLang_init_tty (-1, 0, 1) == -1) {
-	    SLang_doerror ("SLang_init_tty failed.");
-	    exit (1);
-	}
-	SLsignal (SIGWINCH, slang_on_resize);
-	SLsmg_init_smg ();
-	atexit(slang_reset);
-}
-
-static slang_on_resize(int sig)
-{
-	slang_size_changed = TRUE;
-	SLsignal (SIGWINCH, slang_on_resize);
-}
-
-static inline gboolean slang_resized(void)
-{
-	if (slang_size_changed) {
-		slang_size_changed = FALSE;
-		SLtt_get_screen_size();
-		SLsmg_reinit_smg();
-		return TRUE;
-	} else
-		return FALSE;
-}
-
-static void slang_reset(void)
-{
-	SLsmg_reset_smg ();
-	SLang_reset_tty ();
-}
-

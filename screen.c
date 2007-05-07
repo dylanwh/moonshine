@@ -3,16 +3,19 @@
 //#include <gnet.h>
 #include <slang.h>
 #include <stdlib.h>
-
 #include <glib.h>
+#include <signal.h>
+
 #include "protocol.h"
 
-static volatile gboolean size_changed = FALSE;
-static void slang_reset(void);
-static void slang_on_resize(int sig);
-static inline gboolean slang_has_resized(void);
+// Private variables
+static volatile gboolean resized = FALSE;
 
-static void slang_init(void)
+// Private Functions
+static void reset(void);
+static void on_resize(int sig);
+
+void haver_screen_init(void)
 {
 	SLtt_get_terminfo ();
 	if (SLkp_init() == -1) {
@@ -23,21 +26,15 @@ static void slang_init(void)
 	    SLang_doerror ("SLang_init_tty failed.");
 	    exit (1);
 	}
-	SLsignal (SIGWINCH, slang_on_resize);
+	SLsignal (SIGWINCH, on_resize);
 	SLsmg_init_smg ();
-	atexit(slang_reset);
+	atexit(reset);
 }
 
-static slang_on_resize(int sig)
+inline gboolean haver_screen_resized(void)
 {
-	slang_size_changed = TRUE;
-	SLsignal (SIGWINCH, slang_on_resize);
-}
-
-static inline gboolean slang_resized(void)
-{
-	if (slang_size_changed) {
-		slang_size_changed = FALSE;
+	if (resized) {
+		resized = FALSE;
 		SLtt_get_screen_size();
 		SLsmg_reinit_smg();
 		return TRUE;
@@ -45,7 +42,13 @@ static inline gboolean slang_resized(void)
 		return FALSE;
 }
 
-static void slang_reset(void)
+static void on_resize(int sig)
+{
+	resized = TRUE;
+	SLsignal (SIGWINCH, on_resize);
+}
+
+static void reset(void)
 {
 	SLsmg_reset_smg ();
 	SLang_reset_tty ();

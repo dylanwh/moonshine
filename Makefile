@@ -1,6 +1,6 @@
 include config.mk
 
-haver: protocol.o haver.o
+haver: screen.o ui.o protocol.o haver.o
 
 clean:
 	rm -f *.o haver

@@ -5,12 +5,13 @@
 typedef struct {
 	GString *topic;
 	GList *buffer;
-	GList *entry;
+	GString *entry;
 } HaverUI;
 
 HaverUI *haver_ui_new(void);
 void haver_ui_free(HaverUI *);
-void haver_ui_init(void);
-void haver_ui_reset(void);
+void haver_ui_getkey(HaverUI *);
+void haver_ui_draw(HaverUI *);
+
 
 #endif
