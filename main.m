@@ -5,13 +5,15 @@
 
 #include <glib.h>
 #include "common.h"
-#include "protocol.h"
+#include "term.h"
 #include "screen.h"
-#include "ui.h"
+#include "keyboard.h"
 
-static gboolean on_input(GIOChannel *input, GIOCondition cond, UNUSED gpointer data)
+static gboolean on_input(GIOChannel *input, GIOCondition cond, gpointer data)
 {
 	if (cond & G_IO_IN) {
+		id kb = (id)data;
+		[kb processKey];
 		return TRUE;
 	} else {
 		g_print("stdin error!");
@@ -21,12 +23,12 @@ static gboolean on_input(GIOChannel *input, GIOCondition cond, UNUSED gpointer d
 
 int main(int argc, char *argv[])
 {
-	spoon_screen_init();
-	id keymap = [KeyMapper new];
-
+	spoon_term_init();
 	GMainLoop *loop   = g_main_loop_new(NULL, TRUE);
 	GIOChannel *input = g_io_channel_unix_new (fileno(stdin));
-	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, ui);
+	id screen   = [Screen new];
+	id keyboard = [[Keyboard new] bind: screen];
+	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, keyboard);
 	g_main_loop_run(loop);
 	return 0;
 }

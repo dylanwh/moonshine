@@ -1,7 +1,8 @@
 include config.mk
 
-spoon: keymap.o screen.o ui.o protocol.o spoon.o
-
+spoon: keyboard.o screen.o term.o protocol.o main.o
+	@echo LD $@
+	@$(CC) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
 	@echo CC $<

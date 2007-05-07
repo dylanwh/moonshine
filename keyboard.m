@@ -1,12 +1,13 @@
 #include <objc/encoding.h>
 #include <slang.h>
-#include "keymap.h"
+#include "keyboard.h"
 
-@implementation KeyMap
+@implementation Keyboard
 - init
 {
-	map     = g_hash_table_new(g_int_hash, g_int_equal);
+	map     = g_hash_table_new(g_direct_hash, g_direct_equal);
 	handler = self;
+	[self define: "key_error"     as: SL_KEY_ERR ];
 	[self define: "key_up"        as: SL_KEY_UP ];
 	[self define: "key_down"      as: SL_KEY_DOWN ];
 	[self define: "key_left"      as: SL_KEY_LEFT ];
@@ -24,19 +25,22 @@
 	[self define: "key_undo"      as: SL_KEY_UNDO ];
 	[self define: "key_backspace" as: SL_KEY_BACKSPACE ];
 	[self define: "key_enter"     as: SL_KEY_ENTER ];
+	[self define: "key_enter"     as: '\r' ];
 	[self define: "key_ic"        as: SL_KEY_IC ];
 	[self define: "key_delete"    as: SL_KEY_DELETE ];
 	return self;
 }
 
-- (void) define: (char *)name as: (int)key
+- define: (char *)name as: (int)key
 {
 	g_hash_table_insert(map, GINT_TO_POINTER(key), name);
+	return self;
 }
 
-- (void) bind: obj
+- bind: obj
 {
 	handler = obj;
+	return self;
 }
 
 - (void) processKey
@@ -47,12 +51,19 @@
 
 	if (name && handler) {
 		sel = sel_get_uid(name);
+		if (sel) {
+			[handler perform: sel];
+		}
 	} else {
 		sel = @selector(key_other:);
-	}
-	if (sel) {
-		IMP func = [handler methodFor: sel];
-		func(handler, (SEL)sel, key);
+		if (sel) {
+			IMP func = [handler methodFor: sel];
+			if (func) {
+				func(handler, (SEL)sel, key);
+			} else {
+				[handler doesNotRecognize: sel];
+			}
+		}
 	}
 }
 

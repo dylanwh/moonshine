@@ -1,12 +1,7 @@
-
-//#include <glib.h>
-//#include <gnet.h>
 #include <slang.h>
 #include <stdlib.h>
 #include <glib.h>
 #include <signal.h>
-
-#include "protocol.h"
 
 // Private variables
 static volatile gboolean resized = FALSE;
@@ -15,7 +10,7 @@ static volatile gboolean resized = FALSE;
 static void reset(void);
 static void on_resize(int sig);
 
-void spoon_screen_init(void)
+void spoon_term_init(void)
 {
 	SLtt_get_terminfo ();
 	if (SLkp_init() == -1) {
@@ -31,7 +26,7 @@ void spoon_screen_init(void)
 	atexit(reset);
 }
 
-inline gboolean spoon_screen_resized(void)
+inline gboolean spoon_term_resized(void)
 {
 	if (resized) {
 		resized = FALSE;

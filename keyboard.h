@@ -4,14 +4,14 @@
 #import <objc/Object.h>
 #import <glib.h>
 
-@interface KeyMap: Object
+@interface Keyboard: Object
 {
 	GHashTable *map;
 	id handler;
 }
 
-- (void) define: (char *)name   as: (int)key;
-- (void) bind: object;
+- define: (char *)name as: (int)key;
+- bind: object;
 - (void) processKey;
 
 @end
