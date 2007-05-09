@@ -1,4 +1,4 @@
-#include "common.h"
+#include "config.h"
 #include "protocol.h"
 
 GSList *haver_parse(GString *s)

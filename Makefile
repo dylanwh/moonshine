@@ -15,4 +15,9 @@ spoon: keyboard.o screen.o term.o protocol.o main.o
 clean:
 	rm -f *.o spoon
 
+
+-include .depends
+.depends: $(wildcard *.c *.m)
+	gcc -MM $^ > $@
+
 .PHONY: clean

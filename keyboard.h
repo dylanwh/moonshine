@@ -1,17 +1,19 @@
 /* vim: set ft=objc: */
 #ifndef _SPOON_KEYMAP_H
 #define _SPOON_KEYMAP_H
-#import <objc/Object.h>
-#import <glib.h>
+#include <objc/Object.h>
+#include <slang.h>
+#include <glib.h>
+
+#include "config.h"
 
 @interface Keyboard: Object
 {
-	GHashTable *map;
-	id handler;
+	GPtrArray *keysyms;
+	SLkeymap_Type *keymap;
 }
 
-- define: (char *)name as: (int)key;
-- bind: object;
+- bind: (char *)keyspec  to: (id)object;
 - (void) processKey;
 
 @end

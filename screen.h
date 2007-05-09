@@ -1,20 +1,26 @@
-/* vim: set ft=objc: */
 #ifndef _SPOON_UI_H
 #define _SPOON_UI_H
 #include <glib.h>
-#include <objc/Object.h>
 
-@interface Screen: Object
-{
+typedef struct {
 	GString *topic;
 	GList *buffer;
 	GString *entry;
-}
+	guint entry_start;
+	guint entry_pos;
+} Screen;
 
-- (void) draw;
-//- (void) key_other: (int) key;
 
 
-@end
+Screen *spoon_screen_new(void);
+void spoon_screen_free(Screen *scr);
+
+void spoon_screen_print(Screen *scr, GString *msg);
+
+void spoon_screen_refresh(Screen *scr);
+
+void spoon_screen_keypress(Screen *scr, char c);
+void spoon_screen_backspace(Screen *scr);
+
 
 #endif

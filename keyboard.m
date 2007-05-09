@@ -1,61 +1,55 @@
 #include <objc/encoding.h>
-#include <slang.h>
 #include "keyboard.h"
+
+inline static int KEYSYM(guint i) { 
+	return i + 0x1000;
+}
+inline static int find_free_index(GPtrArray *a)
+{
+	for (int i = 0; i < a->len; i++) {
+		if (g_ptr_array_index(a, i) == NULL)
+			return i;
+	}
+
+	guint size = a->len;
+	g_ptr_array_set_size(a, size + 1);
+	return size;
+}
+
 
 @implementation Keyboard
 - init
 {
-	map     = g_hash_table_new(g_direct_hash, g_direct_equal);
-	handler = self;
-	[self define: "key_error"     as: SL_KEY_ERR ];
-	[self define: "key_up"        as: SL_KEY_UP ];
-	[self define: "key_down"      as: SL_KEY_DOWN ];
-	[self define: "key_left"      as: SL_KEY_LEFT ];
-	[self define: "key_right"     as: SL_KEY_RIGHT ];
-	[self define: "key_ppage"     as: SL_KEY_PPAGE ];
-	[self define: "key_npage"     as: SL_KEY_NPAGE ];
-	[self define: "key_home"      as: SL_KEY_HOME ];
-	[self define: "key_end"       as: SL_KEY_END ];
-	[self define: "key_a1"        as: SL_KEY_A1 ];
-	[self define: "key_a3"        as: SL_KEY_A3 ];
-	[self define: "key_b2"        as: SL_KEY_B2 ];
-	[self define: "key_c1"        as: SL_KEY_C1 ];
-	[self define: "key_c3"        as: SL_KEY_C3 ];
-	[self define: "key_redo"      as: SL_KEY_REDO ];
-	[self define: "key_undo"      as: SL_KEY_UNDO ];
-	[self define: "key_backspace" as: SL_KEY_BACKSPACE ];
-	[self define: "key_enter"     as: SL_KEY_ENTER ];
-	[self define: "key_enter"     as: '\r' ];
-	[self define: "key_ic"        as: SL_KEY_IC ];
-	[self define: "key_delete"    as: SL_KEY_DELETE ];
+	char k[4] = {0, 0, 0, 0};
+	keymap  = SLang_create_keymap("default", NULL);
+	keysyms = g_ptr_array_new();
+	for (int i = 0; i < 256; i++) {
+		k[0] = i;
+		SLkm_define_keysym(k, i, keymap);
+	}
 	return self;
 }
 
-- define: (char *)name as: (int)key
+- bind: (char *)keyspec to: object
 {
-	g_hash_table_insert(map, GINT_TO_POINTER(key), name);
-	return self;
-}
-
-- bind: obj
-{
-	handler = obj;
+	int i = find_free_index(keysyms);
+	SLkm_define_keysym(keyspec, KEYSYM(i), keymap);
+	g_ptr_array_index(keysyms, i) = (gpointer) object;
 	return self;
 }
 
 - (void) processKey
 {
-	int key    = SLkp_getkey();
-	char *name = g_hash_table_lookup(map, GINT_TO_POINTER(key));
-	SEL sel;
-
+	UNUSED int key    = SLkp_getkey();
+	UNUSED SEL sel;
+/*
 	if (name && handler) {
 		sel = sel_get_uid(name);
 		if (sel) {
 			[handler perform: sel];
 		}
 	} else {
-		sel = @selector(key_other:);
+		sel = @selector(keypress:);
 		if (sel) {
 			IMP func = [handler methodFor: sel];
 			if (func) {
@@ -64,7 +58,7 @@
 				[handler doesNotRecognize: sel];
 			}
 		}
-	}
+	}*/
 }
 
 @end

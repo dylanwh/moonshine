@@ -13,14 +13,8 @@ static void on_resize(int sig);
 void spoon_term_init(void)
 {
 	SLtt_get_terminfo ();
-	if (SLkp_init() == -1) {
-	    SLang_doerror ("SLkp_init failed.");
-	    exit (1);
-	}
-	if (SLang_init_tty (-1, 0, 1) == -1) {
-	    SLang_doerror ("SLang_init_tty failed.");
-	    exit (1);
-	}
+	g_assert(SLkp_init() != -1);
+	g_assert(SLang_init_tty (-1, 0, 1) != -1);
 	SLsignal (SIGWINCH, on_resize);
 	SLsmg_init_smg ();
 	atexit(reset);
