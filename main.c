@@ -14,19 +14,12 @@ static gboolean on_input(GIOChannel *input, GIOCondition cond, gpointer data)
 {
 	if (cond & G_IO_IN) {
 		Keyboard *kb = (Keyboard *)data;
-		Key k = spoon_keyboard_read(kb);
+		const char *k = spoon_keyboard_read(kb);
 		SLsmg_gotorc(0, 0);
-		switch (k.type) {
-			case KEY_TYPE_CHAR:
-				SLsmg_printf("char = %c\n", k.data.c);
-				break;
-			case KEY_TYPE_NAME:
-				SLsmg_printf("name = %s\n", k.data.name);
-				break;
-			case KEY_TYPE_ERROR:
-				SLsmg_printf("error: %s\n", k.data.name);
-				break;
-		}
+		if (k)
+			SLsmg_printf("key = %.10s", k);
+		else
+			SLsmg_printf("error");
 		SLsmg_refresh();
 		return TRUE;
 	} else {
@@ -42,6 +35,7 @@ int main(int argc, char *argv[])
 	GIOChannel *input  = g_io_channel_unix_new (fileno(stdin));
 	Keyboard *kb      = spoon_keyboard_new();
 
+	spoon_keyboard_defkey(kb, "\r", "ENTER");
 	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, kb);
 	g_main_loop_run(loop);
 	return 0;

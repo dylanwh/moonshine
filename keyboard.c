@@ -3,15 +3,11 @@
 #include "config.h"
 #include "keyboard.h"
 
-const int KEYSYM_BASE = 0x256;
 inline static void init_keymap(Keyboard *kb);
-inline static guint find_free_index(GPtrArray *a);
-inline static Key error_key(char *msg);
 
 Keyboard *spoon_keyboard_new(void)
 {
 	Keyboard *kb = g_new(Keyboard, 1);
-	kb->names    = g_ptr_array_new();
 	kb->keymap   = SLang_create_keymap("default", NULL);
 	init_keymap(kb);
 	return kb;
@@ -19,66 +15,19 @@ Keyboard *spoon_keyboard_new(void)
 
 void spoon_keyboard_defkey(Keyboard *kb, char *spec, char *name)
 {
-	guint idx = find_free_index(kb->names);
-	int keysym = KEYSYM_BASE + idx;
-	g_ptr_array_index(kb->names, idx) = (gpointer) g_strdup(name);
-	SLkm_define_keysym(spec, keysym, kb->keymap);
+	SLkm_define_keysym(spec, g_quark_from_string(name), kb->keymap);
 }
 
-Key spoon_keyboard_read(Keyboard *kb)
+const char *spoon_keyboard_read(Keyboard *kb)
 {
 	SLang_Key_Type *key = SLang_do_key(kb->keymap, (int (*)(void)) SLang_getkey);
 
 	if (key == NULL || key->type != SLKEY_F_KEYSYM) {
 		SLang_flush_input();
-		return error_key("cannot read key");
+		return NULL;
 	}
-	int keysym = key->f.keysym;
-
-	if (keysym < KEYSYM_BASE) {
-		Key k = {
-			.type = KEY_TYPE_CHAR,
-			.data = {
-				.c = (char) keysym,
-			},
-		};
-		return k;
-	} else {
-		int idx = keysym - KEYSYM_BASE;
-		char *name = g_ptr_array_index(kb->names, idx);
-		g_assert(name != NULL);
-		Key k = {
-			.type = KEY_TYPE_NAME,
-			.data = {
-				.name = name,
-			},
-		};
-		return k;
-	}
+	return g_quark_to_string(key->f.keysym);
 }
-
-inline static guint find_free_index(GPtrArray *a)
-{
-	for (int i = 0; i < a->len; i++) {
-		if (g_ptr_array_index(a, i) == NULL)
-			return i;
-	}
-
-	guint size = a->len;
-	g_ptr_array_set_size(a, size + 1);
-	return size;
-}
-
-inline static Key error_key(char *msg) {
-	Key k = {
-		.type = KEY_TYPE_ERROR,
-		.data = {
-			.error = msg,
-		},
-	};
-	return k;
-}
-
 
 inline static void init_keymap(Keyboard *kb)
 {
@@ -87,7 +36,7 @@ inline static void init_keymap(Keyboard *kb)
    	esc_seq[1] = 0;
    	for (int i = 1; i < 256; i++) {
    	   	esc_seq[0] = (char) i;
-   	   	SLkm_define_keysym(esc_seq, i, kb->keymap);
+   	   	SLkm_define_keysym(esc_seq, g_quark_from_string(esc_seq), kb->keymap);
    	}
 
    	/* Now add most common ones. */

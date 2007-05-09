@@ -1,7 +1,7 @@
 #include "config.h"
 #include "protocol.h"
 
-GSList *haver_parse(GString *s)
+const GSList *haver_parse(GString *s)
 {
 	GSList *result = NULL;
 	guint start = 0;
@@ -21,7 +21,7 @@ GSList *haver_parse(GString *s)
 	return g_slist_reverse(result);
 }
 
-GString *haver_format(GSList *msg)
+const GString *haver_format(GSList *msg)
 {
 	GString *buf = g_string_new("");
 	void each(GString *str, GString *buf) {
