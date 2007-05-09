@@ -41,7 +41,6 @@ int main(int argc, char *argv[])
 	GMainLoop  *loop   = g_main_loop_new(NULL, TRUE);
 	GIOChannel *input  = g_io_channel_unix_new (fileno(stdin));
 	Keyboard *kb      = spoon_keyboard_new();
-	spoon_keyboard_define(kb, "^X", "control-x");
 
 	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, kb);
 	g_main_loop_run(loop);
