@@ -1,21 +1,29 @@
 /* vim: set ft=objc: */
 #ifndef _SPOON_KEYMAP_H
 #define _SPOON_KEYMAP_H
-#include <objc/Object.h>
 #include <slang.h>
 #include <glib.h>
-
 #include "config.h"
 
-@interface Keyboard: Object
-{
-	GPtrArray *keysyms;
+typedef struct {
+	union {
+		char *name;
+		char c;
+		char *error;
+	} data;
+	enum { KEY_TYPE_NAME, KEY_TYPE_CHAR, KEY_TYPE_ERROR } type;
+} Key;
+
+typedef struct {
+	GPtrArray     *names;
 	SLkeymap_Type *keymap;
-}
+} Keyboard;
 
-- bind: (char *)keyspec  to: (id)object;
-- (void) processKey;
+Keyboard *spoon_keyboard_new(void);
+void spoon_keyboard_free(Keyboard *);
 
-@end
+void spoon_keyboard_define(Keyboard *kbm, char *keyspec, char *keyname);
+Key spoon_keyboard_read(Keyboard *kb);
+
 
 #endif
