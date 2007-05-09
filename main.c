@@ -16,9 +16,11 @@ static gboolean on_input(GIOChannel *input, GIOCondition cond, gpointer data)
 		Keyboard *kb = (Keyboard *)data;
 		const char *k = spoon_keyboard_read(kb);
 		SLsmg_gotorc(0, 0);
-		if (k)
+		if (k) {
+			if (*k == 'q')
+				exit(0);
 			SLsmg_printf("key = %.10s", k);
-		else
+		} else
 			SLsmg_printf("error");
 		SLsmg_refresh();
 		return TRUE;

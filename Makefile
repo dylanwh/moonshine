@@ -18,6 +18,6 @@ clean:
 
 -include .depends
 .depends: $(wildcard *.c *.m)
-	gcc -MM $^ > $@
+	@gcc -MM $^ > $@
 
 .PHONY: clean

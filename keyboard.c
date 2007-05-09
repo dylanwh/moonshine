@@ -9,12 +9,14 @@ Keyboard *spoon_keyboard_new(void)
 {
 	Keyboard *kb = g_new(Keyboard, 1);
 	kb->keymap   = SLang_create_keymap("default", NULL);
+	g_assert(kb->keymap != NULL);
 	init_keymap(kb);
 	return kb;
 }
 
 void spoon_keyboard_defkey(Keyboard *kb, char *spec, char *name)
 {
+	g_assert(strlen(name) > 1);
 	SLkm_define_keysym(spec, g_quark_from_string(name), kb->keymap);
 }
 
@@ -32,36 +34,11 @@ const char *spoon_keyboard_read(Keyboard *kb)
 inline static void init_keymap(Keyboard *kb)
 {
    	char esc_seq[10];
-
    	esc_seq[1] = 0;
    	for (int i = 1; i < 256; i++) {
    	   	esc_seq[0] = (char) i;
    	   	SLkm_define_keysym(esc_seq, g_quark_from_string(esc_seq), kb->keymap);
    	}
-
-   	/* Now add most common ones. */
-   	/*
-   	spoon_keyboard_defkey(kb, "^@", 0);
-   	spoon_keyboard_defkey(kb, "\033[A", SL_KEY_UP);
-   	spoon_keyboard_defkey(kb, "\033OA", SL_KEY_UP);
-   	spoon_keyboard_defkey(kb, "\033[B", SL_KEY_DOWN);
-   	spoon_keyboard_defkey(kb, "\033OB", SL_KEY_DOWN);
-   	spoon_keyboard_defkey(kb, "\033[C", SL_KEY_RIGHT);
-   	spoon_keyboard_defkey(kb, "\033OC", SL_KEY_RIGHT);
-   	spoon_keyboard_defkey(kb, "\033[D", SL_KEY_LEFT);
-   	spoon_keyboard_defkey(kb, "\033OD", SL_KEY_LEFT);
-   	spoon_keyboard_defkey(kb, "\033[F", SL_KEY_END);
-   	spoon_keyboard_defkey(kb, "\033OF", SL_KEY_END);
-   	spoon_keyboard_defkey(kb, "\033[H", SL_KEY_HOME);
-   	spoon_keyboard_defkey(kb, "\033OH", SL_KEY_HOME);
-   	spoon_keyboard_defkey(kb, "\033[2~", SL_KEY_IC);
-   	spoon_keyboard_defkey(kb, "\033[3~", SL_KEY_DELETE);
-   	spoon_keyboard_defkey(kb, "\033[5~", SL_KEY_PPAGE);
-   	spoon_keyboard_defkey(kb, "\033[6~", SL_KEY_NPAGE);
-   	spoon_keyboard_defkey(kb, "\033[7~", SL_KEY_HOME);
-   	spoon_keyboard_defkey(kb, "\033[8~", SL_KEY_END);
-   	*/
-
    	strcpy (esc_seq, "^(kX)");
    	for (int i = 0; i <= 9; i++)
    	{
