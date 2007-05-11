@@ -1,6 +1,6 @@
 include config.mk
 
-spoon: keyboard.o screen.o term.o protocol.o main.o
+spoon: closure.o keyboard.o screen.o term.o protocol.o main.o
 	@echo LD $@
 	@$(CC) $(LDFLAGS) -o $@ $^
 

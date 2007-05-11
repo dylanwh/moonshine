@@ -1,5 +1,6 @@
 #include <string.h>
 #include "config.h"
+#include "closure.h"
 #include "keyboard.h"
 
 inline static void init_keymap(Keyboard *kb);
@@ -8,7 +9,7 @@ Keyboard *spoon_keyboard_new(void)
 {
 	Keyboard *kb     = g_new(Keyboard, 1);
 	kb->keymap   = SLang_create_keymap("default", NULL);
-	kb->table    = g_hash_table_new(g_direct_hash, g_direct_equal);
+	kb->table    = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify)spoon_closure_free);
 	g_assert(kb->keymap != NULL);
 	init_keymap(kb);
 	return kb;
@@ -23,6 +24,16 @@ void spoon_keyboard_define(Keyboard *kb, char *spec, char *name)
 	SLkm_define_keysym(spec, g_quark_from_string(name), kb->keymap);
 }
 
+void spoon_keyboard_bind(Keyboard *kb, char *keyname, Closure *c)
+{
+	g_hash_table_insert(kb->table, (gpointer) g_intern_string(keyname), c);
+}
+
+void spoon_keyboard_bind_fallback(Keyboard *kb, Closure *c)
+{
+	kb->fallback = c;
+}
+
 const char *spoon_keyboard_read(Keyboard *kb)
 {
 	SLang_Key_Type *key = SLang_do_key(kb->keymap, (int (*)(void)) SLang_getkey);
@@ -32,6 +43,27 @@ const char *spoon_keyboard_read(Keyboard *kb)
 		return NULL;
 	}
 	return g_quark_to_string(key->f.keysym);
+}
+
+
+/* This function should be called as an GLib IO function */
+gboolean spoon_keyboard_on_input(GIOChannel *input, GIOCondition cond, gpointer data)
+{
+	if (cond & G_IO_IN) {
+		Keyboard *kb = (Keyboard *)data;
+		const char *s = spoon_keyboard_read(kb);
+		if (s) {
+			Closure *c = (Closure *) g_hash_table_lookup(kb->table, (gpointer)s);
+			if (c)
+				spoon_closure_call(c, (gpointer)s);
+			else if (kb->fallback)
+				spoon_closure_call(kb->fallback, (gpointer)s);
+		}
+		return TRUE;
+	} else {
+		g_print("stdin error!");
+		return FALSE;
+	}
 }
 
 inline static void init_keymap(Keyboard *kb)

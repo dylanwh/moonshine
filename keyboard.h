@@ -3,7 +3,9 @@
 #define _SPOON_KEYMAP_H
 #include <slang.h>
 #include <glib.h>
+
 #include "config.h"
+#include "closure.h"
 
 typedef struct {
 	SLkeymap_Type *keymap;
@@ -16,7 +18,10 @@ void spoon_keyboard_free(Keyboard *);
 
 void spoon_keyboard_define(Keyboard *kb, char *keyspec, char *keyname);
 void spoon_keyboard_bind(Keyboard *kb, char *keyname, Closure *c);
+void spoon_keyboard_bind_fallback(Keyboard *kb, Closure *c);
 
-const char *spoon_keyboard_read(Keyboard *kb);
+gboolean spoon_keyboard_on_input(GIOChannel *input, GIOCondition cond, gpointer data);
+
+//const char *spoon_keyboard_read(Keyboard *kb);
 
 #endif

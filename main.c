@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <gnet.h>
 #include <glib.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "term.h"
@@ -14,46 +15,55 @@
 #include <lauxlib.h>
 
 
-Screen *screen;
-Keyboard *keyboard;
-
-static gboolean on_input(GIOChannel *input, GIOCondition cond, UNUSED gpointer data)
-{
-	if (cond & G_IO_IN) {
-		const char *s = spoon_keyboard_read(keyboard);
-		if (!s) return TRUE;
-		if (s[1] == '\0')
-
-		return TRUE;
-	} else {
-		g_print("stdin error!");
-		return FALSE;
-	}
-}
-
-static gboolean on_idle(gpointer data)
-{
-	if (spoon_term_resized()) {
-		Screen *scr = (Screen *)data;
-		spoon_screen_refresh(scr);
-	}
-	return TRUE;
-}
-
-
 int main(int argc, char *argv[])
 {
 	/* Set data */
 	GMainLoop  *loop  = g_main_loop_new(NULL, TRUE);
 	GIOChannel *input = g_io_channel_unix_new (fileno(stdin));
-	keyboard = spoon_keyboard_new();
-	screen   = spoon_screen_new();
-	spoon_screen_refresh(screen);
-	lua_State *L      = lua_open();
-	luaL_openlibs(L);
+	Screen *scr       = spoon_screen_new();
+	Keyboard *kb      = spoon_keyboard_new();
 
-	g_idle_add(on_idle, screen);
-	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, NULL);
+
+	void on_keypress(gpointer env, gpointer arg)
+	{
+		Screen *scr = (Screen *)env;
+		char c = *(char *)arg;
+		if (isprint(c))
+			spoon_screen_addchar(scr, c);
+		spoon_screen_refresh(scr);
+	}
+
+	void on_backspace(gpointer env, UNUSED gpointer arg)
+	{
+		Screen *scr = (Screen *)env;
+		spoon_screen_backspace(scr);
+		spoon_screen_refresh(scr);
+	}
+
+	void on_enter(gpointer env, UNUSED gpointer arg)
+	{
+		Screen *scr = (Screen *)env;
+		spoon_screen_enter(scr);
+		spoon_screen_refresh(scr);
+	}
+	void on_exit(UNUSED gpointer env, UNUSED gpointer arg)
+	{
+		exit(0);
+	}
+
+	spoon_keyboard_define(kb, "\r", "ENTER");
+	spoon_keyboard_define(kb, "^x", "EXIT");
+	spoon_keyboard_bind_fallback(kb, spoon_closure_new(on_keypress, scr, NULL));
+	spoon_keyboard_bind(kb, "BACKSPACE", spoon_closure_new(on_backspace, scr, NULL));
+	spoon_keyboard_bind(kb, "ENTER", spoon_closure_new(on_enter, scr, NULL));
+	spoon_keyboard_bind(kb, "EXIT", spoon_closure_new(on_exit, NULL, NULL));
+
+	//Closure *backspace = spoon_closure_new(on_backspace, screen, NULL);
+
+	spoon_screen_refresh(scr);
+
+	g_idle_add(spoon_screen_on_idle, scr);
+	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, spoon_keyboard_on_input, kb);
 
 	g_main_loop_run(loop);
 	return 0;

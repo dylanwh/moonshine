@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "screen.h"
+#include "term.h"
 
 Screen *spoon_screen_new(void)
 {
@@ -32,10 +33,10 @@ void spoon_screen_refresh(Screen *scr)
 	SLsmg_gotorc(0, 0);
 	SLsmg_write_nstring(scr->topic->str, scr->topic->len);
 
-
 	/* show entry text */
 	SLsmg_gotorc(SLtt_Screen_Rows - 1, 0);
-	SLsmg_write_nstring(scr->entry->str, scr->entry->len);
+	SLsmg_write_nstring(scr->entry->str, SLtt_Screen_Cols);
+	SLsmg_gotorc(SLtt_Screen_Rows - 1, scr->entry->len);
 
 	/* finally, write to the real display */
 	SLsmg_refresh();
@@ -44,6 +45,12 @@ void spoon_screen_refresh(Screen *scr)
 void spoon_screen_print(Screen *scr, GString *msg)
 {
 	scr->buffer = g_list_prepend(scr->buffer, (gpointer)msg);
+}
+
+void spoon_screen_enter(Screen *scr)
+{
+	spoon_screen_print(scr, g_string_new(scr->entry->str));
+	g_string_truncate(scr->entry, 0);
 }
 
 void spoon_screen_addchar(Screen *scr, char c)
@@ -55,5 +62,17 @@ void spoon_screen_backspace(Screen *scr)
 {
 	g_string_truncate(scr->entry, scr->entry->len - 1);
 }
+
+
+
+gboolean spoon_screen_on_idle(gpointer data)
+{
+	if (spoon_term_resized()) {
+		Screen *scr = (Screen *)data;
+		spoon_screen_refresh(scr);
+	}
+	return TRUE;
+}
+
 
 

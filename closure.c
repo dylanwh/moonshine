@@ -12,11 +12,11 @@ Closure *spoon_closure_new(GFunc func, gpointer env, GDestroyNotify destroy)
 void spoon_closure_free(Closure *c)
 {
 	if (c->destroy)
-		c->destroy(env);
+		c->destroy(c->env);
 	g_free(c);
 }
 
-void *spoon_closure_call(Closure *c, gpointer arg)
+void spoon_closure_call(Closure *c, gpointer arg)
 {
 	c->func(c->env, arg);
 }

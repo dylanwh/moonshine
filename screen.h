@@ -21,6 +21,8 @@ void spoon_screen_refresh(Screen *scr);
 
 void spoon_screen_addchar(Screen *scr, char c);
 void spoon_screen_backspace(Screen *scr);
+void spoon_screen_enter(Screen *scr);
 
+gboolean spoon_screen_on_idle(gpointer data);
 
 #endif
