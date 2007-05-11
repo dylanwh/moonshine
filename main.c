@@ -66,6 +66,9 @@ int main(int argc, char *argv[])
 	spoon_signal_register(SIGINT, on_exit);
 	spoon_signal_register(SIGTERM, on_exit);
 	spoon_signal_register(SIGHUP, on_exit);
+	spoon_signal_register(SIGSTOP, on_exit);
+	spoon_signal_register(SIGABRT, on_exit);
+	spoon_signal_register(SIGQUIT, on_exit);
 	spoon_signal_register(SIGWINCH, on_resize);
 
 	spoon_signal_add_watch();

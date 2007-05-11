@@ -1,5 +1,6 @@
 #include <string.h>
 #include <glib.h>
+#include <stdlib.h>
 
 #include "config.h"
 #include "closure.h"
@@ -73,7 +74,10 @@ static gboolean on_input(
 		GIOCondition cond, 
 		gpointer data)
 {
-	if (cond & G_IO_IN) {
+	if (cond & G_IO_ERR || cond & G_IO_HUP || cond & G_IO_NVAL) {
+		g_print("Got IO error");
+		exit(1);
+	} else if (cond & G_IO_IN) {
 		Keyboard *kb = (Keyboard *)data;
 		const char *s = spoon_keyboard_read(kb);
 		if (s) {
@@ -85,7 +89,6 @@ static gboolean on_input(
 		}
 		return TRUE;
 	} else {
-		g_print("stdin error!");
 		return FALSE;
 	}
 }
