@@ -16,7 +16,10 @@ Keyboard *spoon_keyboard_new(void)
 
 void spoon_keyboard_defkey(Keyboard *kb, char *spec, char *name)
 {
-	g_assert(strlen(name) > 1);
+	g_assert(spec != NULL);
+	g_assert(name != NULL);
+	g_assert(*spec != '\0');
+	g_assert(*name != '\0');
 	SLkm_define_keysym(spec, g_quark_from_string(name), kb->keymap);
 }
 
@@ -36,6 +39,8 @@ inline static void init_keymap(Keyboard *kb)
    	char esc_seq[10];
    	esc_seq[1] = 0;
    	for (int i = 1; i < 256; i++) {
+   		if (i == 127)
+   			continue;
    	   	esc_seq[0] = (char) i;
    	   	SLkm_define_keysym(esc_seq, g_quark_from_string(esc_seq), kb->keymap);
    	}

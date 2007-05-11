@@ -19,7 +19,7 @@ void spoon_screen_print(Screen *scr, GString *msg);
 
 void spoon_screen_refresh(Screen *scr);
 
-void spoon_screen_keypress(Screen *scr, char c);
+void spoon_screen_addchar(Screen *scr, char c);
 void spoon_screen_backspace(Screen *scr);
 
 

@@ -46,7 +46,7 @@ void spoon_screen_print(Screen *scr, GString *msg)
 	scr->buffer = g_list_prepend(scr->buffer, (gpointer)msg);
 }
 
-void spoon_screen_keypress(Screen *scr, char c)
+void spoon_screen_addchar(Screen *scr, char c)
 {
 	g_string_append_c(scr->entry, c);
 }

@@ -9,20 +9,26 @@
 #include "term.h"
 #include "screen.h"
 #include "keyboard.h"
+#include "string.h"
 
-static gboolean on_input(GIOChannel *input, GIOCondition cond, gpointer data)
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+
+Screen *screen;
+Keyboard *keyboard;
+
+static gboolean on_input(GIOChannel *input, GIOCondition cond, UNUSED gpointer data)
 {
 	if (cond & G_IO_IN) {
-		Keyboard *kb = (Keyboard *)data;
-		const char *k = spoon_keyboard_read(kb);
+		const char *s = spoon_keyboard_read(keyboard);
 		SLsmg_gotorc(0, 0);
-		if (k) {
-			if (*k == 'q')
-				exit(0);
-			SLsmg_printf("key = %.10s", k);
-		} else
-			SLsmg_printf("error");
-		SLsmg_refresh();
+		if (s)
+			SLsmg_printf("key = %s", s);
+		if (s && *s == 'q')
+			exit(0);
+		spoon_screen_refresh(screen);
 		return TRUE;
 	} else {
 		g_print("stdin error!");
@@ -30,15 +36,21 @@ static gboolean on_input(GIOChannel *input, GIOCondition cond, gpointer data)
 	}
 }
 
+
 int main(int argc, char *argv[])
 {
-	spoon_term_init();
-	GMainLoop  *loop   = g_main_loop_new(NULL, TRUE);
-	GIOChannel *input  = g_io_channel_unix_new (fileno(stdin));
-	Keyboard *kb      = spoon_keyboard_new();
+	/* Set data */
+	GMainLoop  *loop  = g_main_loop_new(NULL, TRUE);
+	GIOChannel *input = g_io_channel_unix_new (fileno(stdin));
+	keyboard = spoon_keyboard_new();
+	screen   = spoon_screen_new();
+	spoon_screen_refresh(screen);
+	/*lua_State *L      = luaL_newstate();
+	luaL_openlibs(L);*/
 
-	spoon_keyboard_defkey(kb, "\r", "ENTER");
-	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, kb);
+	/*spoon_keyboard_defkey(keyboard, "^?", "BS?");
+	spoon_keyboard_defkey(keyboard, "^H", "BSH");*/
+	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, NULL);
 	g_main_loop_run(loop);
 	return 0;
 }
