@@ -3,15 +3,13 @@
 #include <glib.h>
 #include <signal.h>
 
-
-/* Private variables */
+/* Used to detect if we've been given SIGWINCH. */
 static volatile gboolean resized = FALSE;
 
-/* Private Functions */
-static void on_resize(int sig);
-static void on_abort(int sig);
-
-/* Our only public function! */
+/* Our only public function! 
+ * It needs to be called as often as possible in the main loop.
+ * Thus it is inlined.
+ * It returns true if the terminal has been resized, false otherwise. */
 inline gboolean spoon_term_resized(void)
 {
 	if (resized) {
@@ -21,6 +19,20 @@ inline gboolean spoon_term_resized(void)
 		return TRUE;
 	} else
 		return FALSE;
+}
+
+/* This is called on SIGWINCH. */
+static void on_resize(int sig)
+{
+	resized = TRUE;
+	SLsignal (SIGWINCH, on_resize);
+}
+
+/* FIXME: Is it safe to call exit(0) inside a signal handler? 
+ * This is called for SIGHUP, SIGTERM, and SIGINT. */
+static void on_abort(int sig)
+{
+	exit(0);
 }
 
 /* This calls all functions needed to initialize the terminal.
@@ -36,17 +48,6 @@ __attribute__((constructor)) static void init(void)
 	SLsmg_init_smg ();
 }
 
-static void on_resize(int sig)
-{
-	resized = TRUE;
-	SLsignal (SIGWINCH, on_resize);
-}
-
-/* FIXME: Is it safe to call exit(0) inside a signal handler? */
-static void on_abort(int sig)
-{
-	exit(0);
-}
 
 /* This restores the terminal to its original state.
  * the __attribute__ GCC feature is used to ensure it is called after main().

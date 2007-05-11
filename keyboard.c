@@ -1,5 +1,4 @@
 #include <string.h>
-
 #include "config.h"
 #include "keyboard.h"
 
@@ -7,14 +6,15 @@ inline static void init_keymap(Keyboard *kb);
 
 Keyboard *spoon_keyboard_new(void)
 {
-	Keyboard *kb = g_new(Keyboard, 1);
+	Keyboard *kb     = g_new(Keyboard, 1);
 	kb->keymap   = SLang_create_keymap("default", NULL);
+	kb->table    = g_hash_table_new(g_direct_hash, g_direct_equal);
 	g_assert(kb->keymap != NULL);
 	init_keymap(kb);
 	return kb;
 }
 
-void spoon_keyboard_defkey(Keyboard *kb, char *spec, char *name)
+void spoon_keyboard_define(Keyboard *kb, char *spec, char *name)
 {
 	g_assert(spec != NULL);
 	g_assert(name != NULL);
@@ -50,30 +50,30 @@ inline static void init_keymap(Keyboard *kb)
    		GString *string = g_string_new("");
    		g_string_printf(string, "F%d", i);
 	   	esc_seq[3] = '0' + i;
-	   	spoon_keyboard_defkey(kb, esc_seq, string->str);
+	   	spoon_keyboard_define(kb, esc_seq, string->str);
 	   	g_string_free(string, TRUE);
    	}
-   	spoon_keyboard_defkey(kb, "^(k;)", "F10");
-   	spoon_keyboard_defkey(kb, "^(F1)", "F11");
-   	spoon_keyboard_defkey(kb, "^(F2)", "F12");
+   	spoon_keyboard_define(kb, "^(k;)", "F10");
+   	spoon_keyboard_define(kb, "^(F1)", "F11");
+   	spoon_keyboard_define(kb, "^(F2)", "F12");
 
-   	spoon_keyboard_defkey(kb, "^(ku)", "UP");
-   	spoon_keyboard_defkey(kb, "^(kd)", "DOWN");
-   	spoon_keyboard_defkey(kb, "^(kl)", "LEFT");
-   	spoon_keyboard_defkey(kb, "^(kr)", "RIGHT");
-   	spoon_keyboard_defkey(kb, "^(kP)", "PPAGE");
-   	spoon_keyboard_defkey(kb, "^(kN)", "NPAGE");
-   	spoon_keyboard_defkey(kb, "^(kh)", "HOME");
-   	spoon_keyboard_defkey(kb, "^(@7)", "END");
-   	spoon_keyboard_defkey(kb, "^(K1)", "A1");
-   	spoon_keyboard_defkey(kb, "^(K3)", "A3");
-   	spoon_keyboard_defkey(kb, "^(K2)", "B2");
-   	spoon_keyboard_defkey(kb, "^(K4)", "C1");
-   	spoon_keyboard_defkey(kb, "^(K5)", "C3");
-   	spoon_keyboard_defkey(kb, "^(%0)", "REDO");
-   	spoon_keyboard_defkey(kb, "^(&8)", "UNDO");
-   	spoon_keyboard_defkey(kb, "^(kb)", "BACKSPACE");
-   	spoon_keyboard_defkey(kb, "^(@8)", "ENTER");
-   	spoon_keyboard_defkey(kb, "^(kD)", "DELETE");
+   	spoon_keyboard_define(kb, "^(ku)", "UP");
+   	spoon_keyboard_define(kb, "^(kd)", "DOWN");
+   	spoon_keyboard_define(kb, "^(kl)", "LEFT");
+   	spoon_keyboard_define(kb, "^(kr)", "RIGHT");
+   	spoon_keyboard_define(kb, "^(kP)", "PPAGE");
+   	spoon_keyboard_define(kb, "^(kN)", "NPAGE");
+   	spoon_keyboard_define(kb, "^(kh)", "HOME");
+   	spoon_keyboard_define(kb, "^(@7)", "END");
+   	spoon_keyboard_define(kb, "^(K1)", "A1");
+   	spoon_keyboard_define(kb, "^(K3)", "A3");
+   	spoon_keyboard_define(kb, "^(K2)", "B2");
+   	spoon_keyboard_define(kb, "^(K4)", "C1");
+   	spoon_keyboard_define(kb, "^(K5)", "C3");
+   	spoon_keyboard_define(kb, "^(%0)", "REDO");
+   	spoon_keyboard_define(kb, "^(&8)", "UNDO");
+   	spoon_keyboard_define(kb, "^(kb)", "BACKSPACE");
+   	spoon_keyboard_define(kb, "^(@8)", "ENTER");
+   	spoon_keyboard_define(kb, "^(kD)", "DELETE");
 }
 
