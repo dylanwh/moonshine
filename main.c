@@ -8,18 +8,11 @@
 #include "term.h"
 #include "screen.h"
 #include "keyboard.h"
-#include "string.h"
-
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
+#include "signal.h"
 
 int main(int argc, char *argv[])
 {
 	/* Set data */
-	GMainLoop  *loop  = g_main_loop_new(NULL, TRUE);
-	GIOChannel *input = g_io_channel_unix_new (fileno(stdin));
 	Screen *scr       = spoon_screen_new();
 	Keyboard *kb      = spoon_keyboard_new();
 
@@ -46,25 +39,58 @@ int main(int argc, char *argv[])
 		spoon_screen_enter(scr);
 		spoon_screen_refresh(scr);
 	}
+
 	void on_exit(UNUSED gpointer env, UNUSED gpointer arg)
 	{
 		exit(0);
 	}
 
+	void on_resize(UNUSED gpointer env, UNUSED gpointer arg)
+	{
+		spoon_term_resize();
+	}
+
+	Closure *exit_closure = spoon_closure_new(on_exit, NULL, NULL);
+	Closure *fb_closure   = spoon_closure_new(on_keypress, scr, NULL);
+	Closure *bs_closure   = spoon_closure_new(on_backspace, scr, NULL);
+	Closure *enter_closure = spoon_closure_new(on_enter, scr, NULL);
+	Closure *resize_closure = spoon_closure_new(on_resize, NULL, NULL);
+
 	spoon_keyboard_define(kb, "\r", "ENTER");
 	spoon_keyboard_define(kb, "^x", "EXIT");
-	spoon_keyboard_bind_fallback(kb, spoon_closure_new(on_keypress, scr, NULL));
-	spoon_keyboard_bind(kb, "BACKSPACE", spoon_closure_new(on_backspace, scr, NULL));
-	spoon_keyboard_bind(kb, "ENTER", spoon_closure_new(on_enter, scr, NULL));
-	spoon_keyboard_bind(kb, "EXIT", spoon_closure_new(on_exit, NULL, NULL));
+	spoon_keyboard_bind_fallback(kb, fb_closure);
 
-	//Closure *backspace = spoon_closure_new(on_backspace, screen, NULL);
+	spoon_keyboard_bind(kb, "BACKSPACE", bs_closure);
+	spoon_keyboard_bind(kb, "ENTER", enter_closure);
+	spoon_keyboard_bind(kb, "EXIT", exit_closure);
 
 	spoon_screen_refresh(scr);
+	spoon_signal_register(SIGINT, exit_closure);
+	spoon_signal_register(SIGTERM, exit_closure);
+	spoon_signal_register(SIGHUP, exit_closure);
+	spoon_signal_register(SIGWINCH, resize_closure);
 
-	g_idle_add(spoon_screen_on_idle, scr);
-	g_io_add_watch(input, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, spoon_keyboard_on_input, kb);
+	spoon_signal_add_watch();
+	spoon_keyboard_add_watch(kb);
 
-	g_main_loop_run(loop);
+	spoon_closure_unref(exit_closure);
+	spoon_closure_unref(fb_closure);
+	spoon_closure_unref(bs_closure);
+	spoon_closure_unref(enter_closure);
+	spoon_closure_unref(resize_closure);
+
+	g_main_loop_run(g_main_loop_new(NULL, TRUE));
 	return 0;
+}
+
+__attribute__((constructor)) static void pre_main(void)
+{
+	spoon_signal_init();
+	spoon_term_init();
+}
+
+__attribute__((destructor)) static void post_main(void)
+{
+	spoon_term_reset();
+	spoon_signal_reset();
 }

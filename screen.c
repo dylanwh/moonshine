@@ -63,16 +63,3 @@ void spoon_screen_backspace(Screen *scr)
 	g_string_truncate(scr->entry, scr->entry->len - 1);
 }
 
-
-
-gboolean spoon_screen_on_idle(gpointer data)
-{
-	if (spoon_term_resized()) {
-		Screen *scr = (Screen *)data;
-		spoon_screen_refresh(scr);
-	}
-	return TRUE;
-}
-
-
-

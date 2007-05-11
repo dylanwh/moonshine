@@ -11,6 +11,7 @@ typedef struct {
 	SLkeymap_Type *keymap;
 	GHashTable *table; /* callbacks */
 	Closure *fallback;
+	GIOChannel *channel;
 } Keyboard;
 
 Keyboard *spoon_keyboard_new(void);
@@ -19,8 +20,7 @@ void spoon_keyboard_free(Keyboard *);
 void spoon_keyboard_define(Keyboard *kb, char *keyspec, char *keyname);
 void spoon_keyboard_bind(Keyboard *kb, char *keyname, Closure *c);
 void spoon_keyboard_bind_fallback(Keyboard *kb, Closure *c);
-
-gboolean spoon_keyboard_on_input(GIOChannel *input, GIOCondition cond, gpointer data);
+void spoon_keyboard_add_watch(Keyboard *kb);
 
 //const char *spoon_keyboard_read(Keyboard *kb);
 

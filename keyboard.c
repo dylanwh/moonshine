@@ -1,4 +1,6 @@
 #include <string.h>
+#include <glib.h>
+
 #include "config.h"
 #include "closure.h"
 #include "keyboard.h"
@@ -9,10 +11,21 @@ Keyboard *spoon_keyboard_new(void)
 {
 	Keyboard *kb     = g_new(Keyboard, 1);
 	kb->keymap   = SLang_create_keymap("default", NULL);
-	kb->table    = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify)spoon_closure_free);
+	kb->table    = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify)spoon_closure_unref);
+	kb->channel  = g_io_channel_unix_new (fileno(stdin));
+	g_io_channel_ref(kb->channel);
+	
 	g_assert(kb->keymap != NULL);
 	init_keymap(kb);
 	return kb;
+}
+
+void spoon_keyboard_free(Keyboard *kb)
+{
+	/* how do I free kb->keymap? */
+	g_hash_table_unref(kb->table);
+	spoon_closure_unref(kb->fallback);
+	g_io_channel_unref(kb->channel);
 }
 
 void spoon_keyboard_define(Keyboard *kb, char *spec, char *name)
@@ -26,11 +39,21 @@ void spoon_keyboard_define(Keyboard *kb, char *spec, char *name)
 
 void spoon_keyboard_bind(Keyboard *kb, char *keyname, Closure *c)
 {
-	g_hash_table_insert(kb->table, (gpointer) g_intern_string(keyname), c);
+	gpointer key = (gpointer) g_intern_string(keyname);
+	Closure *old = (Closure *)g_hash_table_lookup(kb->table, key);
+	if (old)
+		spoon_closure_unref(old);
+
+	spoon_closure_ref(c);
+	g_hash_table_insert(kb->table, key, c);
 }
 
 void spoon_keyboard_bind_fallback(Keyboard *kb, Closure *c)
 {
+	if (kb->fallback)
+		spoon_closure_unref(kb->fallback);
+
+	spoon_closure_ref(c);
 	kb->fallback = c;
 }
 
@@ -45,9 +68,10 @@ const char *spoon_keyboard_read(Keyboard *kb)
 	return g_quark_to_string(key->f.keysym);
 }
 
-
-/* This function should be called as an GLib IO function */
-gboolean spoon_keyboard_on_input(GIOChannel *input, GIOCondition cond, gpointer data)
+static gboolean on_input(
+		GIOChannel *input, 
+		GIOCondition cond, 
+		gpointer data)
 {
 	if (cond & G_IO_IN) {
 		Keyboard *kb = (Keyboard *)data;
@@ -64,6 +88,11 @@ gboolean spoon_keyboard_on_input(GIOChannel *input, GIOCondition cond, gpointer 
 		g_print("stdin error!");
 		return FALSE;
 	}
+}
+
+void spoon_keyboard_add_watch(Keyboard *kb)
+{
+	g_io_add_watch(kb->channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, kb);
 }
 
 inline static void init_keymap(Keyboard *kb)
