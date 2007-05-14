@@ -1,10 +1,11 @@
 #ifndef _SPOON_UI_H
 #define _SPOON_UI_H
 #include <glib.h>
+#include "buffer.h"
 
 typedef struct {
 	GString *topic;
-	GList *buffer;
+	buffer *buffer;
 	GString *entry;
 	guint entry_start;
 	guint entry_pos;
