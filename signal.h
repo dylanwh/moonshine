@@ -3,9 +3,10 @@
 #include <unistd.h>
 #include <glib.h>
 
-void spoon_signal_init(void);
-void spoon_signal_reset(void);
-void spoon_signal_add_watch(void);
-void spoon_signal_register(int sig, SLSig_Fun_Type *handler);
+#include "closure.h"
+
+void signal_init(void);
+void signal_reset(void);
+void signal_catch(int sig, Closure *c);
 
 #endif

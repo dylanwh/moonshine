@@ -12,17 +12,17 @@ typedef struct {
 
 
 
-Screen *spoon_screen_new(void);
-void spoon_screen_free(Screen *scr);
+Screen *screen_new(void);
+void screen_free(Screen *scr);
 
-void spoon_screen_print(Screen *scr, GString *msg);
+void screen_print(Screen *scr, GString *msg);
 
-void spoon_screen_refresh(Screen *scr);
+void screen_refresh(Screen *scr);
 
-void spoon_screen_addchar(Screen *scr, char c);
-void spoon_screen_backspace(Screen *scr);
-void spoon_screen_enter(Screen *scr);
+void screen_addchar(Screen *scr, char c);
+void screen_backspace(Screen *scr);
+void screen_enter(Screen *scr);
 
-gboolean spoon_screen_on_idle(gpointer data);
+gboolean screen_on_idle(gpointer data);
 
 #endif

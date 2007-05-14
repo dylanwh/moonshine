@@ -1,6 +1,6 @@
 /* vim: set ft=objc: */
-#ifndef _SPOON_KEYMAP_H
-#define _SPOON_KEYMAP_H
+#ifndef _SPOON_KEYBOARD_H
+#define _SPOON_KEYBOARD_H
 #include <slang.h>
 #include <glib.h>
 
@@ -14,14 +14,13 @@ typedef struct {
 	GIOChannel *channel;
 } Keyboard;
 
-Keyboard *spoon_keyboard_new(void);
-void spoon_keyboard_free(Keyboard *);
+Keyboard *keyboard_new(void);
+void keyboard_free(Keyboard *);
 
-void spoon_keyboard_define(Keyboard *kb, char *keyspec, char *keyname);
-void spoon_keyboard_bind(Keyboard *kb, char *keyname, Closure *c);
-void spoon_keyboard_bind_fallback(Keyboard *kb, Closure *c);
-void spoon_keyboard_add_watch(Keyboard *kb);
+void keyboard_define(Keyboard *kb, char *keyspec, char *keyname);
+void keyboard_bind(Keyboard *kb, char *keyname, Closure *c);
+void keyboard_bind_fallback(Keyboard *kb, Closure *c);
 
-//const char *spoon_keyboard_read(Keyboard *kb);
+//const char *keyboard_read(Keyboard *kb);
 
 #endif

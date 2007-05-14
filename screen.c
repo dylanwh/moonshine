@@ -6,7 +6,7 @@
 #include "screen.h"
 #include "term.h"
 
-Screen *spoon_screen_new(void)
+Screen *screen_new(void)
 {
 	Screen *scr = g_new(Screen, 1);
 	scr->topic  = g_string_new("");
@@ -17,7 +17,7 @@ Screen *spoon_screen_new(void)
 	return scr;
 }
 
-void spoon_screen_free(Screen *scr)
+void screen_free(Screen *scr)
 {
 	void each(GString *s, UNUSED gpointer unused) { g_string_free(s, TRUE); }
 	g_string_free(scr->topic, TRUE);
@@ -27,7 +27,7 @@ void spoon_screen_free(Screen *scr)
 	g_free(scr);
 }
 
-void spoon_screen_refresh(Screen *scr)
+void screen_refresh(Screen *scr)
 {
 	/* write the topic */
 	SLsmg_gotorc(0, 0);
@@ -42,23 +42,23 @@ void spoon_screen_refresh(Screen *scr)
 	SLsmg_refresh();
 }
 
-void spoon_screen_print(Screen *scr, GString *msg)
+void screen_print(Screen *scr, GString *msg)
 {
 	scr->buffer = g_list_prepend(scr->buffer, (gpointer)msg);
 }
 
-void spoon_screen_enter(Screen *scr)
+void screen_enter(Screen *scr)
 {
-	spoon_screen_print(scr, g_string_new(scr->entry->str));
+	screen_print(scr, g_string_new(scr->entry->str));
 	g_string_truncate(scr->entry, 0);
 }
 
-void spoon_screen_addchar(Screen *scr, char c)
+void screen_addchar(Screen *scr, char c)
 {
 	g_string_append_c(scr->entry, c);
 }
 
-void spoon_screen_backspace(Screen *scr)
+void screen_backspace(Screen *scr)
 {
 	g_string_truncate(scr->entry, scr->entry->len - 1);
 }

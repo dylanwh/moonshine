@@ -3,7 +3,7 @@
 #include <glib.h>
 #include <signal.h>
 
-void spoon_term_init(void)
+void term_init(void)
 {
 	SLtt_get_terminfo ();
 	g_assert(SLang_init_tty (0, 1, 1) != -1);
@@ -15,13 +15,13 @@ void spoon_term_init(void)
 }
 
 
-void spoon_term_resize(void)
+void term_resize(void)
 {
 	SLtt_get_screen_size();
 	SLsmg_reinit_smg();
 }
 
-void spoon_term_reset(void)
+void term_reset(void)
 {
 	SLsmg_reset_smg ();
 	SLang_reset_tty ();
