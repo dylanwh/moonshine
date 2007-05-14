@@ -3,18 +3,18 @@
 
 #include <glib.h>
 
-typedef struct buffer buffer;
+typedef struct Buffer Buffer;
 
-buffer *buffer_new(guint history_len);
+Buffer *buffer_new(guint history_len);
 
-void buffer_set_history_len(buffer *b, guint newlen);
-int buffer_get_history_len(const buffer *b);
+void buffer_set_history_len(Buffer *b, guint newlen);
+int buffer_get_history_len(const Buffer *b);
 
-void buffer_render(buffer *buffer);
-void buffer_print(buffer *buffer, const GString *text);
-void buffer_scroll(buffer *buffer, int offset);
-void buffer_scroll_to(buffer *buffer, guint abs_offset);
-void buffer_free(buffer *buffer);
+void buffer_render(Buffer *buffer);
+void buffer_print(Buffer *buffer, const GString *text);
+void buffer_scroll(Buffer *buffer, int offset);
+void buffer_scroll_to(Buffer *buffer, guint abs_offset);
+void buffer_free(Buffer *buffer);
 
 #endif
 

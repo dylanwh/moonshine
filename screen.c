@@ -50,7 +50,7 @@ void screen_print(Screen *scr, GString *msg)
 
 void screen_enter(Screen *scr)
 {
-	spoon_screen_print(scr, g_string_new(scr->entry->str));
+	screen_print(scr, scr->entry);
 	g_string_truncate(scr->entry, 0);
 }
 

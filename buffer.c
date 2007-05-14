@@ -2,10 +2,9 @@
 #include <slang.h>
 #include <stdlib.h>
 #include "buffer.h"
-#include <assert.h>
-#include <string.h>
+// #include <string.h>
 
-struct buffer {
+struct Buffer {
     /* These are three pointers into a doubly-linked list of lines (as strings,
      * for now). head and tail, of course, point to the head and tail of the
      * list. view is the newest line visible on screen (which is != tail iff
@@ -21,18 +20,18 @@ struct buffer {
     guint history_max, scrollback, scrollfwd;
 };
 
-static void purge(buffer *b) {
+static void purge(Buffer *b) {
     if (b->scrollback > b->history_max) {
         GList *head = b->head;
         guint reap  = b->scrollback - b->history_max;
-        assert(head);
+        g_assert(head);
         /* Walk from the tail down to tail + reap, freeing strings as we go.
          * Then just break the link between the two lists, and free the dead
          * list in one step.
          */
         GList *ptr  = head;
         for (int i = 0; i < reap; i++) {
-            assert(ptr);
+            g_assert(ptr);
             g_free(ptr->data);
             ptr = ptr->next;
         }
@@ -45,34 +44,34 @@ static void purge(buffer *b) {
     }
 }
 
-buffer *buffer_new(guint history_max) {
-    assert(history_max > 0);
-    buffer *b = g_new(buffer, 1);
+Buffer *buffer_new(guint history_max) {
+    g_assert(history_max > 0);
+    Buffer *b = g_new(Buffer, 1);
     b->head = b->view = b->tail = NULL;
     b->history_max = history_max;
     b->scrollback = b->scrollfwd = 0;
     return b;
 }
 
-void buffer_set_history_max(buffer *b, guint newmax) {
-    assert(newmax > 0);
+void buffer_set_history_max(Buffer *b, guint newmax) {
+    g_assert(newmax > 0);
     b->history_max = newmax;
     purge(b);
 }
 
-int buffer_get_history_max(const buffer *b) {
+int buffer_get_history_max(const Buffer *b) {
     return b->history_max;
 }
 
 static guint line_render(const char *line, guint bottom_row, guint top_row) {
     /* XXX: this doesn't yet handle wrapping */
-    assert(bottom_row >= top_row);
+    g_assert(bottom_row >= top_row);
     SLsmg_gotorc(bottom_row, 0);
     SLsmg_write_nstring((char *)line, SLtt_Screen_Cols);
     return bottom_row - 1;
 }
 
-void buffer_render(buffer *buffer) {
+void buffer_render(Buffer *Buffer) {
     int top_row = 1;
     int bottom_row = SLtt_Screen_Rows - 2;
     char blanks[SLtt_Screen_Cols + 1];
@@ -92,7 +91,7 @@ void buffer_render(buffer *buffer) {
     }
 }
 
-void buffer_print(buffer *buffer, const GString *text) {
+void buffer_print(Buffer *buffer, const GString *text) {
     char *copy = g_strdup(text->str);
     GList *elem = g_list_alloc();
     elem->data = copy;
@@ -112,27 +111,27 @@ void buffer_print(buffer *buffer, const GString *text) {
     purge(buffer);
 }
 
-static void scroll_up(buffer *buffer, guint offset) {
+static void scroll_up(Buffer *buffer, guint offset) {
     while (offset-- && buffer->scrollback > 1) {
         buffer->scrollback--;
         buffer->scrollfwd++;
-        assert(buffer->view);
+        g_assert(buffer->view);
         buffer->view = buffer->view->prev;
-        assert(buffer->view);
+        g_assert(buffer->view);
     }
 }
 
-static void scroll_down(buffer *buffer, guint offset) {
+static void scroll_down(Buffer *buffer, guint offset) {
     while (offset-- && buffer->scrollfwd) {
         buffer->scrollback++;
         buffer->scrollfwd--;
-        assert(buffer->view);
+        g_assert(buffer->view);
         buffer->view = buffer->view->next;
-        assert(buffer->view);
+        g_assert(buffer->view);
     }
 }
 
-void buffer_scroll(buffer *buffer, int offset) {
+void buffer_scroll(Buffer *buffer, int offset) {
     if (offset > 0)
         scroll_up(buffer, offset);
     else {
@@ -141,7 +140,7 @@ void buffer_scroll(buffer *buffer, int offset) {
     }
 }
 
-void buffer_scroll_to(buffer *buffer, guint abs_offset) {
+void buffer_scroll_to(Buffer *buffer, guint abs_offset) {
     /* Scroll down to the bottom by twiddling pointers, then scroll up to the
      * desired position
      */
@@ -152,7 +151,7 @@ void buffer_scroll_to(buffer *buffer, guint abs_offset) {
     purge(buffer);
 }
 
-void buffer_free(buffer *buffer) {
+void buffer_free(Buffer *buffer) {
     for(GList *ptr = buffer->head; ptr; ptr = ptr->next)
         g_free(ptr->data);
     g_list_free(buffer->head);
