@@ -5,7 +5,7 @@
 
 typedef struct {
 	GString *topic;
-	buffer *buffer;
+	Buffer *buffer;
 	GString *entry;
 	guint entry_start;
 	guint entry_pos;

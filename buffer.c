@@ -1,8 +1,9 @@
 #include <glib.h>
 #include <slang.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "buffer.h"
-// #include <string.h>
 
 struct Buffer {
     /* These are three pointers into a doubly-linked list of lines (as strings,
@@ -71,7 +72,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
     return bottom_row - 1;
 }
 
-void buffer_render(Buffer *Buffer) {
+void buffer_render(Buffer *buffer) {
     int top_row = 1;
     int bottom_row = SLtt_Screen_Rows - 2;
     char blanks[SLtt_Screen_Cols + 1];
@@ -79,6 +80,7 @@ void buffer_render(Buffer *Buffer) {
 
     blanks[SLtt_Screen_Cols] = '\0';
     memset(blanks, ' ', SLtt_Screen_Cols);
+
 
     for (int i = top_row; i <= bottom_row; i++) {
         SLsmg_gotorc(i, 0);

@@ -31,15 +31,15 @@ void screen_refresh(Screen *scr)
 	SLsmg_gotorc(0, 0);
 	SLsmg_write_nstring(scr->topic->str, scr->topic->len);
 
+	/* render the buffer */
+    buffer_render(scr->buffer);
+
 	/* show entry text */
 	SLsmg_gotorc(SLtt_Screen_Rows - 1, 0);
 	SLsmg_write_nstring(scr->entry->str, SLtt_Screen_Cols);
 	SLsmg_gotorc(SLtt_Screen_Rows - 1, scr->entry->len);
 
-    /* render the buffer */
-    buffer_render(scr->buffer);
-
-	/* finally, write to the real display */
+    /* finally, write to the real display */
 	SLsmg_refresh();
 }
 
