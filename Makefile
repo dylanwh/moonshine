@@ -15,9 +15,11 @@ spoon: closure.o signal.o keyboard.o screen.o term.o protocol.o main.o buffer.o
 clean:
 	rm -f *.o spoon
 
+posthook:
+	-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl
+
+.PHONY: clean posthook
 
 -include .depends
 .depends: $(wildcard *.c *.m)
 	@gcc -MM $^ > $@
-
-.PHONY: clean
