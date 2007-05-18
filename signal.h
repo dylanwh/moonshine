@@ -2,10 +2,12 @@
 #include <signal.h>
 #include <unistd.h>
 #include <glib.h>
-#include "moon.h"
+#include "omnibus.h"
 
-void signal_init(Moon *m);
+void signal_init(OmniBus *bus);
 void signal_reset(void);
-void signal_catch(int sig);
+
+#define signal_catch(sig) signal_catch_full(sig, #sig)
+void signal_catch_full(int sig, const char *name);
 
 #endif

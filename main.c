@@ -9,7 +9,7 @@
 #include "screen.h"
 #include "keyboard.h"
 #include "signal.h"
-#include "moon.h"
+#include "omnibus.h"
 #include "closure.h"
 
 int main(int argc, char *argv[])
@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
 	// Keyboard *kb      = keyboard_new();
 	//lua_State *L      = lua_open();
 	//term_init();
-	Moon *moon = moon_new();
-	signal_init(moon);
+	OmniBus *bus = omnibus_new();
+	signal_init(bus);
 
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	signal_catch(SIGTERM);
 	//signal_catch(SIGHUP);
 
-	moon_bind(moon, "signal SIGTERM", exit_c);
+	omnibus_bind(bus, "signal SIGTERM", exit_c);
 
 	//screen_refresh(scr);
 	g_main_loop_run(loop);
