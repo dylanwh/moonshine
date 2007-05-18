@@ -9,36 +9,40 @@
 #include "screen.h"
 #include "keyboard.h"
 #include "signal.h"
+#include "moon.h"
+#include "closure.h"
 
 int main(int argc, char *argv[])
 {	
-	signal_init();
-	term_init();
+	// Screen *scr       = screen_new();
+	// Keyboard *kb      = keyboard_new();
+	//lua_State *L      = lua_open();
+	//term_init();
+	Moon *moon = moon_new();
+	signal_init(moon);
 
-	Screen *scr       = screen_new();
-	Keyboard *kb      = keyboard_new();
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 
-	keyboard_define(kb, "\r", "ENTER");
-	keyboard_define(kb, "^x", "EXIT");
+	//keyboard_define(kb, "\r", "ENTER");
+	//keyboard_define(kb, "^x", "EXIT");
+
 	void on_exit(gpointer loop, UNUSED gpointer arg)
 	{
 		g_main_loop_quit((GMainLoop *)loop);
 	}
-
 	Closure *exit_c = closure_new(on_exit, loop, NULL);
 
-	keyboard_bind(kb, "EXIT", exit_c);
-	signal_catch(SIGINT, exit_c);
-	signal_catch(SIGTERM, exit_c);
-	signal_catch(SIGHUP, exit_c);
+	//keyboard_bind(kb, "EXIT", on_exit, loop);
+	//signal_catch(SIGINT);
+	signal_catch(SIGTERM);
+	//signal_catch(SIGHUP);
 
-	closure_unref(exit_c);
+	moon_bind(moon, "signal SIGTERM", exit_c);
 
-	screen_refresh(scr);
+	//screen_refresh(scr);
 	g_main_loop_run(loop);
 
-	term_reset();
-	signal_reset();
+	//signal_reset();
+	//term_reset();
 	return 0;
 }

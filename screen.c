@@ -14,6 +14,7 @@ Screen *screen_new(void)
 	scr->entry  = g_string_new("");
 	scr->entry_start = 0;
 	scr->entry_pos   = 0;
+
 	return scr;
 }
 
