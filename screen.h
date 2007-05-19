@@ -1,6 +1,8 @@
-#ifndef _SPOON_UI_H
-#define _SPOON_UI_H
+#ifndef __SPOON_SCREEN_H__
+#define __SPOON_SCREEN_H__
+#include <lua.h>
 #include <glib.h>
+
 #include "buffer.h"
 
 typedef struct {
@@ -13,7 +15,7 @@ typedef struct {
 
 
 
-Screen *screen_new(void);
+Screen *screen_new(lua_State *L);
 void screen_free(Screen *scr);
 
 void screen_print(Screen *scr, GString *msg);

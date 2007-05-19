@@ -1,4 +1,6 @@
 #include <slang.h>
+#include <lua.h>
+
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -6,7 +8,7 @@
 #include "screen.h"
 #include "term.h"
 
-Screen *screen_new(void)
+Screen *screen_new(lua_State *L)
 {
 	Screen *scr = g_new(Screen, 1);
 	scr->topic  = g_string_new("");

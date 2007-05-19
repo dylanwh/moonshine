@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <lua.h>
+#include <lualib.h>
 
 #include "config.h"
 #include "keyboard.h"

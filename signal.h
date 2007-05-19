@@ -1,10 +1,13 @@
-#ifndef _SPOON_SIGNAL_H
+#ifndef __SPOON_SIGNAL_H__
+#define __SPOON_SIGNAL_H__
+
+#include <glib.h>
+#include <lua.h>
+
 #include <signal.h>
 #include <unistd.h>
-#include <glib.h>
-#include "omnibus.h"
 
-void signal_init(OmniBus *bus);
+void signal_init(lua_State *L);
 void signal_reset(void);
 
 #define signal_catch(sig) signal_catch_full(sig, #sig)

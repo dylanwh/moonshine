@@ -3,14 +3,15 @@
 #include <gnet.h>
 #include <glib.h>
 #include <ctype.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
 
 #include "config.h"
 #include "term.h"
 #include "screen.h"
 #include "keyboard.h"
 #include "signal.h"
-#include "omnibus.h"
-#include "closure.h"
 
 int main(int argc, char *argv[])
 {	
