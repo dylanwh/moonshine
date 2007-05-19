@@ -1,9 +1,5 @@
-CC        := gcc
-LDFLAGS   :=  -lslang $(shell pkg-config glib-2.0 gnet-2.0 --libs)
-CFLAGS    := -g -Winline -Wall -Werror -std=gnu99 -I/usr/include/slang-2 $(shell pkg-config glib-2.0 gnet-2.0 --cflags)
-OBJCFLAGS := $(CFLAGS) -fgnu-runtime #-fobjc-direct-dispatch
+PACKAGES = lua glib-2.0 gnet-2.0
 
-
-ifdef DEBIAN
-CFLAGS += -I/usr/include/lua5.1
-endif
+LDFLAGS   := -lslang $(shell pkg-config $(PACKAGES) --libs)
+CFLAGS    := -g -Winline -Wall -Werror -std=gnu99 -I/usr/include/slang-2 \
+			 $(shell pkg-config $(PACKAGES) --cflags)

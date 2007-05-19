@@ -14,30 +14,22 @@
 
 int main(int argc, char *argv[])
 {	
-	// Screen *scr       = screen_new();
-	// Keyboard *kb      = keyboard_new();
-	//lua_State *L      = lua_open();
-	//term_init();
-	OmniBus *bus = omnibus_new();
-	signal_init(bus);
+	lua_State *L      = lua_open();
+	Screen *scr       = screen_new(L);
+	Keyboard *kb      = keyboard_new(L);
+	signal_init(L);
 
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 
-	//keyboard_define(kb, "\r", "ENTER");
-	//keyboard_define(kb, "^x", "EXIT");
-
-	void on_exit(gpointer loop, UNUSED gpointer arg)
+	void quit(lua_State *lua)
 	{
 		g_main_loop_quit((GMainLoop *)loop);
 	}
 	Closure *exit_c = closure_new(on_exit, loop, NULL);
 
-	//keyboard_bind(kb, "EXIT", on_exit, loop);
-	//signal_catch(SIGINT);
+	signal_catch(SIGINT);
 	signal_catch(SIGTERM);
-	//signal_catch(SIGHUP);
-
-	omnibus_bind(bus, "signal SIGTERM", exit_c);
+	signal_catch(SIGHUP);
 
 	//screen_refresh(scr);
 	g_main_loop_run(loop);
