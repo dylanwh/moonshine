@@ -1,4 +1,6 @@
+ifndef POSTHOOK
 include config.mk
+endif
 
 spoon: closure.o moon.o signal.o keyboard.o screen.o term.o protocol.o main.o buffer.o
 	@echo LD $@
