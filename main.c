@@ -16,8 +16,8 @@
 int main(int argc, char *argv[])
 {	
 	lua_State *L      = lua_open();
-	Screen *scr       = screen_new(L);
-	Keyboard *kb      = keyboard_new(L);
+	UNUSED Screen *scr       = screen_new(L);
+	UNUSED Keyboard *kb      = keyboard_new(L);
 	signal_init(L);
 
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
 	{
 		g_main_loop_quit((GMainLoop *)loop);
 	}
-	Closure *exit_c = closure_new(on_exit, loop, NULL);
 
 	signal_catch(SIGINT);
 	signal_catch(SIGTERM);

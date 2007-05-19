@@ -3,17 +3,17 @@
 #include <slang.h>
 #include "config.h"
 #include "signal.h"
-#include "omnibus.h"
+#include "lua.h"
 
 static GHashTable *names;
 static int sigin, sigout;
 static GIOChannel *channel;
-static OmniBus *omnibus;
+static lua_State *lua_state;
 
 static gboolean on_input(GIOChannel *i, GIOCondition c, gpointer p);
 static void on_signal(int sig);
 
-void signal_init(OmniBus *o)
+void signal_init(lua_State *L)
 {
 	int fildes[2];
 	if (pipe(fildes) != 0)
@@ -22,7 +22,7 @@ void signal_init(OmniBus *o)
 	sigout  = fildes[1];
 	channel = g_io_channel_unix_new(sigin);
 	names   = g_hash_table_new(g_direct_hash, g_direct_equal);
-	omnibus = o;
+	lua_state = L;
 	g_io_add_watch(channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, NULL);
 }
 
@@ -47,8 +47,10 @@ static gboolean on_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer p
 			read(sigin, &sig, sizeof(sig));
 			char *signame = g_hash_table_lookup(names, GINT_TO_POINTER(sig));
 			g_assert(signame != NULL);
-			char *name = g_strconcat("signal ", signame, NULL);
-			omnibus_call(omnibus, name, GINT_TO_POINTER(sig));
+			char *name = g_strconcat("signal_", signame, NULL);
+			lua_getglobal(lua_state, name);
+			lua_pushstring(lua_state, signame);
+			lua_call(lua_state, 1, 0);
 			g_free(name);
 			return TRUE;
 		default:
