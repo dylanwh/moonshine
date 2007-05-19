@@ -13,7 +13,7 @@ configure(
 sub lua {
 	my $ctx = shift;
 	my $pkgconfig = $ctx->get('PKGCONFIG') or die "Need pkg-config to find lua.\n";
-	my @luas = qw( lua lua51 lua51 );
+	my @luas = qw( lua lua51 lua50 );
 	foreach my $lua (@luas) {
 		if (system($pkgconfig, '--exists', $lua) == 0) {
 			return $lua;
