@@ -1,5 +1,14 @@
 ifndef POSTHOOK
 include config.mk
+endif
+
+all: options spoon
+
+options:
+	@echo "spoon build options"
+	@echo "PACKAGES = $(PACKAGES)"
+	@echo "LDFLAGS  = $(LDFLAGS)"
+	@echo "CFLAGS   = $(CFLAGS)"
 
 spoon: closure.o moon.o signal.o keyboard.o screen.o term.o protocol.o main.o buffer.o
 	@echo LD $@
