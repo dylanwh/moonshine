@@ -81,6 +81,8 @@ static gboolean on_input(
 		Keyboard *kb = (Keyboard *)data;
 		const char *s = readkey(kb);
 		if (s) {
+			SLsmg_gotorc(1,0);
+			SLsmg_printf("readkey() = %s\n", s);
 			lua_getglobal(kb->lua, "on_keypress");
 			lua_pushstring(kb->lua, s);
 			lua_call(kb->lua, 1, 0);

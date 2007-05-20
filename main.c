@@ -13,19 +13,18 @@
 #include "keyboard.h"
 #include "signal.h"
 
+#if SLANG_VERSION < 20006
+#	error slang.h too old!
+#endif
+
 int main(int argc, char *argv[])
-{	
-	lua_State *L      = lua_open();
-	screen_new(L);
-	Keyboard *kb = keyboard_new(L);
-
-	term_init();
-	signal_init(L);
-
-	atexit(term_reset);
-	atexit(signal_reset);
-
+{
+	lua_State *L = lua_open();
 	luaL_openlibs(L);
+
+	keyboard_new(L);
+	screen_new(L);
+	signal_init(L);
 
 	keyboard_define(kb, "\r", "ENTER");
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
@@ -50,6 +49,16 @@ int main(int argc, char *argv[])
 	g_main_loop_run(loop);
 
 	lua_close(L);
-	g_print("bye!\n");
 	return 0;
+}
+
+__attribute__((constructor)) void before_main(void)
+{
+	term_init();
+}
+
+__attribute__((destructor)) void after_main(void)
+{
+	term_reset();
+	g_print("bye!\n");
 }
