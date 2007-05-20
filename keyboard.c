@@ -33,8 +33,6 @@ inline static void init_keymap(Keyboard *kb)
 
    	esc_seq[1] = 0;
    	for (int i = 1; i < 256; i++) {
-   		if (i == 127)
-   			continue;
    	   	esc_seq[0] = (char) i;
    	   	SLkm_define_keysym(esc_seq, g_quark_from_string(esc_seq), kb->keymap);
    	}
@@ -100,6 +98,7 @@ Keyboard *keyboard_new(lua_State *L)
 	kb->channel   = g_io_channel_unix_new (fileno(stdin));
 	kb->lua       = L;
 	init_keymap(kb);
+
 	g_io_add_watch(kb->channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, kb);
 
 	return kb;

@@ -1,3 +1,5 @@
+/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
+
 #include <glib.h>
 #include <slang.h>
 #include <stdlib.h>
@@ -7,7 +9,7 @@
 
 struct Buffer {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
-	 * for now). head and tail, of course, point to the head and tail of the
+	 * for now).  head and tail, of course, point to the head and tail of the
 	 * list. view is the newest line visible on screen (which is != tail iff
 	 * we're scrolled up).
 	 *

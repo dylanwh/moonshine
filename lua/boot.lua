@@ -3,6 +3,3 @@ function on_signal(sig)
 		quit()
 	end
 end
-
-function on_keypress(c)
-end
