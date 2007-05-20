@@ -6,7 +6,6 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-#include <setjmp.h>
 
 #include "config.h"
 #include "term.h"
@@ -18,8 +17,7 @@ int main(int argc, char *argv[])
 {	
 	lua_State *L      = lua_open();
 	//Screen *scr       = screen_new(L);
-	//Keyboard *kb      = keyboard_new(L);
-	jmp_buf jump_env;
+	UNUSED Keyboard *kb = keyboard_new(L);
 
 	term_init();
 	signal_init(L);
@@ -37,17 +35,16 @@ int main(int argc, char *argv[])
 	lua_pushcclosure(L, quit, 1);
 	lua_setglobal(L, "quit");
 
-	(void)luaL_dofile(L, "boot.lua");
+	(void)luaL_dofile(L, "lua/boot.lua");
 
-	//signal_catch(SIGINT);
+	signal_catch(SIGINT);
 	signal_catch(SIGTERM);
 	signal_catch(SIGHUP);
 
 	//screen_refresh(scr);
-	if (setjmp(jump_env) == 0) {
-		g_main_loop_run(loop);
-	}
+	g_main_loop_run(loop);
 
+	lua_close(L);
 	signal_reset();
 	term_reset();
 	g_print("bye!\n");

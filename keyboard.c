@@ -83,7 +83,7 @@ static gboolean on_input(
 		Keyboard *kb = (Keyboard *)data;
 		const char *s = readkey(kb);
 		if (s) {
-			lua_getglobal(kb->lua, "keypress");
+			lua_getglobal(kb->lua, "on_keypress");
 			lua_pushstring(kb->lua, s);
 			lua_call(kb->lua, 1, 0);
 		}
