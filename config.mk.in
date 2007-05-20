@@ -1,5 +1,0 @@
-PACKAGES = @LUA@ glib-2.0 gnet-2.0
-
-LDFLAGS   := @SLANG_LDFLAGS@ $(shell pkg-config $(PACKAGES) --libs)
-CFLAGS    := @SLANG_CFLAGS@ -Winline -Wall -Werror -std=gnu99 \
-			 $(shell pkg-config $(PACKAGES) --cflags)

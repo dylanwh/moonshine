@@ -3,7 +3,6 @@ INCLUDE (CheckSymbolExists)
 INCLUDE (FindPerl)
 INCLUDE (UsePkgConfig)
 
-SET (CMAKE_C_FLAGS "-std=gnu99 -Werror -Wall -Winline -I/usr/include/slang-2")
 
 PROJECT (spoon C)
 
@@ -29,15 +28,34 @@ PKGCONFIG (glib-2.0 GLIB_INCDIR GLIB_LIBDIR GLIB_LDFLAGS GLIB_CFLAGS)
 PKGCONFIG (gnet-2.0 GNET_INCDIR GNET_LIBDIR GNET_LDFLAGS GNET_CFLAGS)
 PKGCONFIG (${LUA}   LUA_INCDIR LUA_LIBDIR LUA_LDFLAGS LUA_CFLAGS)
 
+IF (NOT ${LUA} STREQUAL "lua")
+	MESSAGE(STATUS "This smells like debian")
+ENDIF (NOT ${LUA} STREQUAL "lua")
 
+# If only slang used pkg-config...
+# On gentoo, /usr/include/slang-2 is where slang v2 is kept.
+# In addition, the library name is slang-2.
+# On debian, it's just called "slang" and the header is in /usr/include.
+IF (EXISTS "/usr/include/slang-2")
+	MESSAGE(STATUS "This smells like gentoo")
+	SET (SLANG_CFLAGS "-I/usr/include/slang-2")
+	SET (SLANG_LDFLAGS "-lslang-2")
+ELSE()
+	SET (SLANG_CFLAGS "")
+	SET (SLANG_LDFLAGS "-lslang")
+ENDIF (EXISTS "/usr/include/slang-2")
 
+# Now, after all that trouble, we need to make sure we're really using slang2.
+# Isn't this fun?
+
+ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline")
+ADD_DEFINITIONS(${SLANG_CFLAGS})
 ADD_DEFINITIONS(${GLIB_CFLAGS})
 ADD_DEFINITIONS(${GNET_CFLAGS})
 ADD_DEFINITIONS(${LUA_CFLAGS})
 
 SET_TARGET_PROPERTIES(spoon PROPERTIES LINK_FLAGS 
-	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS}")
-
+	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
 
 #SET(CMAKE_REQUIRED_FLAGS "${CMAKE_C_FLAGS}")
 
