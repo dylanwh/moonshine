@@ -8,7 +8,7 @@ void term_init(void)
 	g_assert(SLang_init_tty (0, 1, 1) != -1);
 	// SLang_set_abort_signal(on_abort);
 	SLsmg_init_smg ();
-	//SLutf8_enable (-1);
+	SLutf8_enable (-1);
 	SLsmg_refresh();
 }
 
