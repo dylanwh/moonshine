@@ -72,6 +72,8 @@ inline static void init_keymap(Keyboard *kb)
    	keyboard_define(kb, "\r", "enter");
 }
 
+/** This function is called whenever there is keyboard input. 
+ * It calls a lua function on_keypress with one argument, the string returned by readkey() */
 static gboolean on_input(
 		GIOChannel *input, 
 		GIOCondition cond,
