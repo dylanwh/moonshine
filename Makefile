@@ -5,6 +5,9 @@ all: build
 install:
 	make --no-print-directory -C build install
 
+test:
+	make --no-print-directory -C build test
+
 posthook:
 	-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl
 
@@ -14,4 +17,4 @@ purge:
 build:
 	mkdir -p build
 
-.PHONY: all posthook purge install
+.PHONY: all posthook purge install test

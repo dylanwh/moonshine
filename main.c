@@ -13,10 +13,6 @@
 #include "keyboard.h"
 #include "signal.h"
 
-#if SLANG_VERSION < 20006
-#	error slang.h too old!
-#endif
-
 int main(int argc, char *argv[])
 {
 	lua_State *L = lua_open();

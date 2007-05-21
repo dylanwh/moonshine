@@ -40,33 +40,35 @@ inline static void init_keymap(Keyboard *kb)
    	for (int i = 0; i <= 9; i++)
    	{
    		GString *string = g_string_new("");
-   		g_string_printf(string, "F%d", i);
+   		g_string_printf(string, "f%d", i);
 	   	esc_seq[3] = '0' + i;
 	   	keyboard_define(kb, esc_seq, string->str);
 	   	g_string_free(string, TRUE);
    	}
-   	keyboard_define(kb, "^(k;)", "F10");
-   	keyboard_define(kb, "^(F1)", "F11");
-   	keyboard_define(kb, "^(F2)", "F12");
+   	keyboard_define(kb, "^(k;)", "f10");
+   	keyboard_define(kb, "^(F1)", "f11");
+   	keyboard_define(kb, "^(F2)", "f12");
 
-   	keyboard_define(kb, "^(ku)", "UP");
-   	keyboard_define(kb, "^(kd)", "DOWN");
-   	keyboard_define(kb, "^(kl)", "LEFT");
-   	keyboard_define(kb, "^(kr)", "RIGHT");
-   	keyboard_define(kb, "^(kP)", "PPAGE");
-   	keyboard_define(kb, "^(kN)", "NPAGE");
-   	keyboard_define(kb, "^(kh)", "HOME");
-   	keyboard_define(kb, "^(@7)", "END");
-   	keyboard_define(kb, "^(K1)", "A1");
-   	keyboard_define(kb, "^(K3)", "A3");
-   	keyboard_define(kb, "^(K2)", "B2");
-   	keyboard_define(kb, "^(K4)", "C1");
-   	keyboard_define(kb, "^(K5)", "C3");
-   	keyboard_define(kb, "^(%0)", "REDO");
-   	keyboard_define(kb, "^(&8)", "UNDO");
-   	keyboard_define(kb, "^(kb)", "BACKSPACE");
-   	keyboard_define(kb, "^(@8)", "ENTER");
-   	keyboard_define(kb, "^(kD)", "DELETE");
+   	keyboard_define(kb, "^(ku)", "up");
+   	keyboard_define(kb, "^(kd)", "down");
+   	keyboard_define(kb, "^(kl)", "left");
+   	keyboard_define(kb, "^(kr)", "right");
+   	keyboard_define(kb, "^(kP)", "ppage");
+   	keyboard_define(kb, "^(kN)", "npage");
+   	keyboard_define(kb, "^(kh)", "home");
+   	keyboard_define(kb, "^(@7)", "end");
+   	keyboard_define(kb, "^(K1)", "a1");
+   	keyboard_define(kb, "^(K3)", "a3");
+   	keyboard_define(kb, "^(K2)", "b2");
+   	keyboard_define(kb, "^(K4)", "c1");
+   	keyboard_define(kb, "^(K5)", "c3");
+   	keyboard_define(kb, "^(%0)", "redo");
+   	keyboard_define(kb, "^(&8)", "undo");
+   	keyboard_define(kb, "^(kb)", "backspace");
+   	keyboard_define(kb, "^(@8)", "enter");
+   	keyboard_define(kb, "^(kD)", "delete");
+   	
+   	keyboard_define(kb, "\r", "enter");
 }
 
 static gboolean on_input(
@@ -81,8 +83,6 @@ static gboolean on_input(
 		Keyboard *kb = (Keyboard *)data;
 		const char *s = readkey(kb);
 		if (s) {
-			SLsmg_gotorc(1,0);
-			SLsmg_printf("readkey() = %s\n", s);
 			lua_getglobal(kb->lua, "on_keypress");
 			lua_pushstring(kb->lua, s);
 			lua_call(kb->lua, 1, 0);

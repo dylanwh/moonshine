@@ -11,14 +11,37 @@
 
 static int on_keypress(lua_State *L)
 {
-	//Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
 	const char *s = luaL_checkstring(L, 1);
-	SLsmg_gotorc(0, 0);
-	SLsmg_write_nstring((char *)s, SLtt_Screen_Cols);
-	SLsmg_refresh();
+	g_assert(s);
+
+	if (s != '\0' && s[1] == '\0')
+		g_string_append_c(scr->entry, s[0]);
+	else {
+		char *name = g_strconcat("on_key_", s, NULL);
+		lua_getglobal(L, name);
+		if (!lua_isnil(L, -1))
+			lua_call(L, 0, 0);
+	}
+
+	screen_refresh(scr);
 	return 0;
 }
 
+static int on_key_backspace(lua_State *L)
+{
+	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	g_string_truncate(scr->entry, scr->entry->len - 1);
+	return 0;
+}
+
+static int on_key_enter(lua_State *L)
+{
+	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	screen_print(scr, scr->entry);
+	g_string_truncate(scr->entry, 0);
+	return 0;
+}
 
 Screen *screen_new(lua_State *L)
 {
@@ -30,9 +53,19 @@ Screen *screen_new(lua_State *L)
 	scr->entry_start = 0;
 	scr->entry_pos   = 0;
 
+
 	lua_pushlightuserdata(L, scr);
 	lua_pushcclosure(L, on_keypress, 1);
 	lua_setglobal(L, "on_keypress");
+
+	lua_pushlightuserdata(L, scr);
+	lua_pushcclosure(L, on_key_backspace, 1);
+	lua_setglobal(L, "on_key_backspace");
+
+	lua_pushlightuserdata(L, scr);
+	lua_pushcclosure(L, on_key_enter, 1);
+	lua_setglobal(L, "on_key_enter");
+
 
 	return scr;
 }
@@ -68,19 +101,4 @@ void screen_print(Screen *scr, GString *msg)
 	buffer_print(scr->buffer, msg);
 }
 
-void screen_enter(Screen *scr)
-{
-	screen_print(scr, scr->entry);
-	g_string_truncate(scr->entry, 0);
-}
-
-void screen_addchar(Screen *scr, char c)
-{
-	g_string_append_c(scr->entry, c);
-}
-
-void screen_backspace(Screen *scr)
-{
-	g_string_truncate(scr->entry, scr->entry->len - 1);
-}
 
