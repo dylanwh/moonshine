@@ -5,15 +5,7 @@
 
 #include "buffer.h"
 
-typedef struct {
-	GString *topic;
-	Buffer *buffer;
-	GString *entry;
-	guint entry_start;
-	guint entry_pos;
-} Screen;
-
-
+typedef struct _Screen Screen;
 
 Screen *screen_new(lua_State *L);
 void screen_free(Screen *scr);

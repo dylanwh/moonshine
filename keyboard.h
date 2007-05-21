@@ -1,6 +1,6 @@
 /* vim: set ft=objc: */
-#ifndef _SPOON_KEYBOARD_H
-#define _SPOON_KEYBOARD_H
+#ifndef __SPOON_KEYBOARD_H__
+#define __SPOON_KEYBOARD_H__
 #include <slang.h>
 #include <glib.h>
 #include <lua.h>

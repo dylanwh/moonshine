@@ -1,20 +1,19 @@
-PROJECT (spoon C)
+PROJECT (SPOON C)
+
+ADD_EXECUTABLE (spoon signal.c keyboard.c screen.c term.c protocol.c main.c 
+	buffer.c)
+
 
 # Includes
-
 INCLUDE (CheckIncludeFile)
 INCLUDE (FindPerl)
+INCLUDE (FindDoxygen)
 INCLUDE (UsePkgConfig)
 INCLUDE (CheckCSourceCompiles)
 
 # Options
 ENABLE_TESTING()
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
-
-# Executables.
-
-ADD_EXECUTABLE (spoon signal.c keyboard.c screen.c term.c protocol.c main.c
-	buffer.c)
 
 # Discover compiler flags.
 
@@ -44,9 +43,15 @@ ADD_DEFINITIONS(${GLIB_CFLAGS})
 ADD_DEFINITIONS(${GNET_CFLAGS})
 ADD_DEFINITIONS(${LUA_CFLAGS})
 
-## And add the link flags to spoon.
+# And add the link flags to spoon.
 SET_TARGET_PROPERTIES(spoon PROPERTIES LINK_FLAGS 
 	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
+
+CONFIGURE_FILE(${SPOON_SOURCE_DIR}/docs/Doxyfile.in
+	${SPOON_BINARY_DIR}/docs/Doxyfile
+	@ONLY IMMEDIATE)
+
+ADD_CUSTOM_TARGET(api-docs ALL ${DOXYGEN} docs/Doxyfile)
 
 # Install rules.
 INSTALL(TARGETS spoon RUNTIME DESTINATION bin)

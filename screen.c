@@ -9,6 +9,14 @@
 #include "screen.h"
 #include "term.h"
 
+struct _Screen {
+	GString *topic;
+	Buffer *buffer;
+	GString *entry;
+	guint entry_start;
+	guint entry_pos;
+};
+
 static int on_keypress(lua_State *L)
 {
 	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));

@@ -1,5 +1,5 @@
-#ifndef _HAVER_PROTOCOL_H
-#define _HAVER_PROTOCOL_H
+#ifndef __SPOON_PROTOCOL_H__
+#define __SPOON_PROTOCOL_H__
 #include <glib.h>
 
 const GSList *haver_parse(GString *buf) G_GNUC_PURE;

@@ -1,5 +1,5 @@
-#ifndef _SPOON_COMMON_H
-#define _SPOON_COMMON_H
+#ifndef __SPOON_CONFIG_H__
+#define __SPOON_CONFIG_H__
 
 #define UNUSED G_GNUC_UNUSED
 

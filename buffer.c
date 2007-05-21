@@ -7,7 +7,7 @@
 
 #include "buffer.h"
 
-struct Buffer {
+struct _Buffer {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
 	 * for now).  head and tail, of course, point to the head and tail of the
 	 * list. view is the newest line visible on screen (which is != tail iff

@@ -1,9 +1,9 @@
-#ifndef BUFFER_H
-#define BUFFER_H 1
+#ifndef __SPOON_BUFFER_H__
+#define __SPOON_BUFFER_H__
 
 #include <glib.h>
 
-typedef struct Buffer Buffer;
+typedef struct _Buffer Buffer;
 
 Buffer *buffer_new(guint history_len);
 
