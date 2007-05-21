@@ -73,6 +73,8 @@ void buffer_scroll(Buffer *buffer, int offset);
  *   buffer_scroll(buffer, INT_MIN);
  *   buffer_scroll(buffer, offset);
  * </code>
+ * except that the scrolling operation is atomic, and does not truncate the
+ * buffer until it reaches the final position.
  *
  * \param buffer The buffer to scroll
  * \param buffer The offset to scroll to
