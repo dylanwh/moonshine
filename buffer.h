@@ -3,7 +3,7 @@
 
 #include <glib.h>
 
-typedef struct _Buffer Buffer;
+typedef struct Buffer Buffer;
 
 Buffer *buffer_new(guint history_len);
 

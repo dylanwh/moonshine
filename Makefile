@@ -1,12 +1,15 @@
 
 all: build
-	cd build && cmake .. && make --no-print-directory
+	cd build && cmake .. && make --no-print-directory spoon
 
 install:
 	make --no-print-directory -C build install
 
 test:
 	make --no-print-directory -C build test
+
+api-docs:
+	make --no-print-directory -C build api-docs
 
 posthook:
 	-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl

@@ -9,12 +9,10 @@
 #include "screen.h"
 #include "term.h"
 
-struct _Screen {
-	GString *topic;
-	Buffer *buffer;
-	GString *entry;
-	guint entry_start;
-	guint entry_pos;
+struct Screen {
+	GString *topic; ///< The first line of the screen.
+	Buffer *buffer; ///< Where chat messages pile up.
+	GString *entry; ///< the text the user types into the client.
 };
 
 static int on_keypress(lua_State *L)
@@ -58,9 +56,6 @@ Screen *screen_new(lua_State *L)
 	scr->topic  = g_string_new("");
 	scr->buffer = buffer_new(100);
 	scr->entry  = g_string_new("");
-	scr->entry_start = 0;
-	scr->entry_pos   = 0;
-
 
 	lua_pushlightuserdata(L, scr);
 	lua_pushcclosure(L, on_keypress, 1);

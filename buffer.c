@@ -7,7 +7,7 @@
 
 #include "buffer.h"
 
-struct _Buffer {
+struct Buffer {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
 	 * for now).  head and tail, of course, point to the head and tail of the
 	 * list. view is the newest line visible on screen (which is != tail iff
@@ -15,8 +15,11 @@ struct _Buffer {
 	 *
 	 * Note that all three pointers are NULL for an empty buffer.
 	 */
-	GList *head, *view, *tail;
-	/* Counters for list purging. history_max is the maximum amount of
+	GList *head; ///< head of the list.
+	GList *view; ///< tail of the list.
+	GList *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
+
+	/** Counters for list purging. history_max is the maximum amount of
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
 	 */

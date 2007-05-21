@@ -5,7 +5,7 @@
 
 #include "buffer.h"
 
-typedef struct _Screen Screen;
+typedef struct Screen Screen;
 
 Screen *screen_new(lua_State *L);
 void screen_free(Screen *scr);

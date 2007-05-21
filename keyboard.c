@@ -8,7 +8,7 @@
 #include "config.h"
 #include "keyboard.h"
 
-struct _Keyboard {
+struct Keyboard {
 	SLkeymap_Type *keymap;
 	GIOChannel    *channel;
 	lua_State     *lua;

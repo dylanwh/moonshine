@@ -7,7 +7,7 @@
 
 #include "config.h"
 
-typedef struct _Keyboard Keyboard;
+typedef struct Keyboard Keyboard;
 Keyboard *keyboard_new(lua_State *L);
 void keyboard_free(Keyboard *);
 void keyboard_define(Keyboard *kb, char *keyspec, char *keyname);
