@@ -46,10 +46,10 @@ void buffer_render(Buffer *buffer);
  * UTF-8, the behavior is undefined.
  *
  * \param buffer The buffer to print to
- * \param text A GString of UTF-8 text to render. This string will be copied
- *   into space managed by the buffer.
+ * \param text A null-terminated string of UTF-8 text to render. This string
+ *   will be copied into space managed by the buffer.
  */
-void buffer_print(Buffer *buffer, const GString *text);
+void buffer_print(Buffer *buffer, const char *text);
 
 /** \brief Scrolls the buffer
  *

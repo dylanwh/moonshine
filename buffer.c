@@ -4,6 +4,7 @@
 #include <slang.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "buffer.h"
 
@@ -73,23 +74,48 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	/* XXX: this doesn't yet handle wrapping */
 	g_assert(bottom_row >= top_row);
 	SLsmg_gotorc(bottom_row, 0);
-	SLsmg_write_nstring((char *)line, SLtt_Screen_Cols);
+	
+	int cols_remain = SLtt_Screen_Cols;
+	const char *endp = line;
+	while (*endp) {
+		gunichar c = g_utf8_get_char(endp);
+		guint width;
+		if (g_unichar_iswide(c))
+			width = 2;
+#if 0
+		// XXX: glib's online manual documents this, but the version in ubuntu
+		// doesn't seem to have it
+		else if (g_unichar_iszerowidth(c))
+			width = 0;
+#endif
+		else
+			width = 1;
+		
+		/* HACK: per glib docs not all terminals render zerowidth chars properly */
+		if (width == 0) cols_remain--;
+		/* end hack */
+
+		cols_remain -= width;
+		if (cols_remain < 0)
+			break;
+		if (!SLutf8_is_utf8_mode() && c > 0x7f) {
+			for (int i = 0; i < width; i++)
+				SLsmg_write_char('?');
+		} else SLsmg_write_char(c);
+		endp = g_utf8_next_char(endp);
+	}
+
 	return bottom_row - 1;
 }
 
 void buffer_render(Buffer *buffer) {
 	int top_row = 1;
 	int bottom_row = SLtt_Screen_Rows - 2;
-	char blanks[SLtt_Screen_Cols + 1];
 	GList *ptr = buffer->view;
-
-	blanks[SLtt_Screen_Cols] = '\0';
-	memset(blanks, ' ', SLtt_Screen_Cols);
-
 
 	for (int i = top_row; i <= bottom_row; i++) {
 		SLsmg_gotorc(i, 0);
-		SLsmg_write_nstring(blanks, SLtt_Screen_Cols);
+		SLsmg_erase_eol();
 	}
 
 	while (ptr && bottom_row >= top_row) {
@@ -98,8 +124,10 @@ void buffer_render(Buffer *buffer) {
 	}
 }
 
-void buffer_print(Buffer *buffer, const GString *text) {
-	char *copy = g_strdup(text->str);
+void buffer_print(Buffer *buffer, const char *text) {
+	assert(g_utf8_validate(text, -1, NULL));
+
+	char *copy = g_strdup(text);
 	GList *elem = g_list_alloc();
 	elem->data = copy;
 	

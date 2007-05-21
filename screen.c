@@ -115,7 +115,7 @@ void screen_refresh(Screen *scr)
 
 void screen_print(Screen *scr, GString *msg)
 {
-	buffer_print(scr->buffer, msg);
+	buffer_print(scr->buffer, msg->str);
 }
 
 

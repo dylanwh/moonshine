@@ -10,6 +10,7 @@ void term_init(void)
 	// SLang_set_abort_signal(on_abort);
 	SLsmg_init_smg ();
 	SLutf8_enable (-1);
+    SLsmg_utf8_enable(-1);
 	SLsmg_refresh();
 }
 
