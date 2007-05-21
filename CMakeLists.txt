@@ -1,11 +1,11 @@
+PROJECT (spoon C)
+
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 INCLUDE (CheckIncludeFile)
 #INCLUDE (CheckSymbolExists)
 INCLUDE (FindPerl)
 INCLUDE (UsePkgConfig)
 INCLUDE (CheckCSourceCompiles)
-
-PROJECT (spoon C)
 
 ADD_EXECUTABLE (spoon signal.c keyboard.c screen.c term.c protocol.c main.c
 	buffer.c)
