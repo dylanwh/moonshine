@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
 	screen_new(L);
 	signal_init(L);
 
-	keyboard_define(kb, "\r", "ENTER");
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 
 	int quit(lua_State *L)
