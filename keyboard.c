@@ -9,9 +9,9 @@
 #include "keyboard.h"
 
 struct Keyboard {
-	SLkeymap_Type *keymap;
-	GIOChannel    *channel;
-	lua_State     *lua;
+	SLkeymap_Type *keymap;  ///< slang keymap.
+	GIOChannel    *channel; ///< GIOChannel of stdin. Used for calling readkey() when there is input.
+	lua_State     *lua;     ///< Lua interpreter.
 };
 
 static const char *readkey(Keyboard *kb)
