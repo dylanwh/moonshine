@@ -9,6 +9,7 @@
 #include "config.h"
 #include "screen.h"
 #include "term.h"
+#include "signal.h"
 
 struct Screen {
 	GString *topic; ///< The first line of the screen.
@@ -78,6 +79,7 @@ Screen *screen_new(lua_State *L)
 	lua_pushcclosure(L, on_key_enter, 1);
 	lua_setglobal(L, "on_key_enter");
 
+	signal_catch(SIGWINCH);
 	lua_pushlightuserdata(L, scr);
 	lua_pushcclosure(L, on_signal_SIGWINCH, 1);
 	lua_setglobal(L, "on_signal_SIGWINCH");

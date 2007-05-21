@@ -18,10 +18,9 @@ int main(int argc, char *argv[])
 {
 	lua_State *L = lua_open();
 	luaL_openlibs(L);
-
+	signal_init(L);
 	keyboard_new(L);
 	screen_new(L);
-	signal_init(L);
 
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 
