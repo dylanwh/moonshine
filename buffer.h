@@ -1,18 +1,20 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #ifndef __SPOON_BUFFER_H__
 #define __SPOON_BUFFER_H__
-
 #include <glib.h>
+
+/** \file buffer.h
+ * \brief buffer class. */
 
 typedef struct Buffer Buffer;
 
-/*! \brief Create a new buffer.
+/** \brief Create a new buffer.
  *
  * \param history_len The maximum size of the scrollback buffer
  */
 Buffer *buffer_new(guint history_len);
 
-/*! \brief Change the scrollback buffer size of an existing buffer.
+/** \brief Change the scrollback buffer size of an existing buffer.
  * 
  *  The buffer will be truncated immediately if need be.
  *  
@@ -20,13 +22,14 @@ Buffer *buffer_new(guint history_len);
  * \param newlen The new maximum scrollback length
  */
 void buffer_set_history_len(Buffer *b, guint newlen);
-/*! \brief Returns the scrollback length limit of a buffer.
+
+/** \brief Returns the scrollback length limit of a buffer.
  *
  * \param b The buffer to query
  */
 int buffer_get_history_len(const Buffer *b);
 
-/*! \brief Renders a buffer to the screen
+/** \brief Renders a buffer to the screen
  *
  * Currently, this renders to the region of the window starting at the second
  * line down, and ending at the third-to-last line from the bottom.
@@ -36,7 +39,8 @@ int buffer_get_history_len(const Buffer *b);
  * \param buffer The buffer to render
  */
 void buffer_render(Buffer *buffer);
-/*! \brief Appends a string to a buffer
+
+/** \brief Appends a string to a buffer
  *
  * The buffer scrollback will be truncated as needed. If text is not valid
  * UTF-8, the behavior is undefined.
@@ -46,7 +50,8 @@ void buffer_render(Buffer *buffer);
  *   into space managed by the buffer.
  */
 void buffer_print(Buffer *buffer, const GString *text);
-/*! \brief Scrolls the buffer
+
+/** \brief Scrolls the buffer
  *
  * Scrolls the buffer up by (offset) lines. If offset is negative, then the
  * buffer will scroll down instead. If the attempted scroll would scroll off
@@ -59,7 +64,8 @@ void buffer_print(Buffer *buffer, const GString *text);
  * \param offset The number of logical lines to scroll up
  */
 void buffer_scroll(Buffer *buffer, int offset);
-/*! \brief Scrolls the buffer to an absolute position
+
+/** \brief Scrolls the buffer to an absolute position
  *
  * Scrolls the buffer to a position (abs_offset) above the bottom of the
  * screen. Equivalent to:
@@ -72,7 +78,8 @@ void buffer_scroll(Buffer *buffer, int offset);
  * \param buffer The offset to scroll to
  */
 void buffer_scroll_to(Buffer *buffer, guint abs_offset);
-/*! \brief Destroys a buffer and all associated storage
+
+/** \brief Destroys a buffer and all associated storage
  *
  * \param buffer The buffer to destroy
  */
