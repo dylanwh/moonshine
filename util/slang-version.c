@@ -3,5 +3,5 @@
 
 int main(int argc, char *argv[])
 {
-	printf("%d\n", SLANG_VERSION);
+	printf("SLANG_VERSION=%d\n", SLANG_VERSION);
 }

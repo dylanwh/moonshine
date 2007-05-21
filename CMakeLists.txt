@@ -42,18 +42,15 @@ PKGCONFIG (${LUA}   LUA_INCDIR LUA_LIBDIR LUA_LDFLAGS LUA_CFLAGS)
 PKGCONFIG (glib-2.0 GLIB_INCDIR GLIB_LIBDIR GLIB_LDFLAGS GLIB_CFLAGS)
 PKGCONFIG (gnet-2.0 GNET_INCDIR GNET_LIBDIR GNET_LDFLAGS GNET_CFLAGS)
 
-# If only slang used pkg-config...
-# On gentoo, /usr/include/slang-2 is where slang v2 is kept.
-# In addition, the library name is slang-2.
-# On debian, it's just called "slang" and the header is in /usr/include.
-IF (EXISTS "/usr/include/slang-2")
-	MESSAGE(STATUS "This smells like gentoo")
-	SET (SLANG_CFLAGS "-I/usr/include/slang-2")
-	SET (SLANG_LDFLAGS "-lslang-2")
-ELSE()
-	SET (SLANG_CFLAGS "")
-	SET (SLANG_LDFLAGS "-lslang")
-ENDIF (EXISTS "/usr/include/slang-2")
+SET(SLANG_CFLAGS "")
+SET(SLANG_LDFLAGS "-lslang")
+
+INCLUDE (util/SlangVersion.cmake)
+
+IF (SLANG_VERSION LESS 20006)
+	MESSAGE(FATAL_ERROR "slang too old!")
+ENDIF (SLANG_VERSION LESS 20006)
+
 
 # Now, after all that trouble, we need to make sure we're really using slang2.
 # Isn't this fun?
@@ -62,12 +59,6 @@ ADD_DEFINITIONS(${SLANG_CFLAGS})
 ADD_DEFINITIONS(${GLIB_CFLAGS})
 ADD_DEFINITIONS(${GNET_CFLAGS})
 ADD_DEFINITIONS(${LUA_CFLAGS})
-
-#SET(DIR "${CMAKE_CURRENT_SOURCE_DIR}/util")
-#TRY_RUN(SLANG_RUN_RESULT SLANG_COMPILE_RESULT
-#	${DIR} ${DIR}/slang-version.c
-#	OUTPUT_VARIABLE SLANG_VERSION)
-
 
 SET_TARGET_PROPERTIES(spoon PROPERTIES LINK_FLAGS 
 	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
