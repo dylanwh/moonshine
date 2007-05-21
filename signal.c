@@ -50,7 +50,7 @@ static gboolean on_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer p
 			read(sigin, &sig, sizeof(sig));
 			char *signame = g_hash_table_lookup(names, GINT_TO_POINTER(sig));
 			g_assert(signame != NULL);
-			char *name = g_strconcat("on_signal_", signame);
+			char *name = g_strconcat("on_signal_", signame, NULL);
 			lua_getglobal(lua_state, name);
 			if (lua_isnil(lua_state, -1))
 				lua_getglobal(lua_state, "on_signal");

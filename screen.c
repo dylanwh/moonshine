@@ -50,6 +50,14 @@ static int on_key_enter(lua_State *L)
 	return 0;
 }
 
+static int on_signal_SIGWINCH(lua_State *L)
+{
+	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	term_resize();
+	screen_refresh(scr);
+	return 0;
+}
+
 Screen *screen_new(lua_State *L)
 {
 	Screen *scr = g_new(Screen, 1);
@@ -70,6 +78,9 @@ Screen *screen_new(lua_State *L)
 	lua_pushcclosure(L, on_key_enter, 1);
 	lua_setglobal(L, "on_key_enter");
 
+	lua_pushlightuserdata(L, scr);
+	lua_pushcclosure(L, on_signal_SIGWINCH, 1);
+	lua_setglobal(L, "on_signal_SIGWINCH");
 
 	return scr;
 }
