@@ -1,4 +1,4 @@
-/* vim: set ft=objc: */
+/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 : */
 #ifndef __SPOON_KEYBOARD_H__
 #define __SPOON_KEYBOARD_H__
 #include <slang.h>

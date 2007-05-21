@@ -1,3 +1,4 @@
+/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include "config.h"
 #include "protocol.h"
 
