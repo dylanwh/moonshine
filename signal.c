@@ -1,16 +1,29 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#include <glib.h>
 #include <stdio.h>
+
+#include <glib.h>
 #include <slang.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
 #include "config.h"
 #include "signal.h"
-#include <lua.h>
-#include <lauxlib.h>
+#include "moon.h"
 
 static GHashTable *names;
 static int sigin, sigout;
 static GIOChannel *channel;
 static lua_State *lua_state;
+
+static int on_signal(lua_State *L)
+{
+	const char *signal = luaL_checkstring(L, 1);
+	char *name = g_strconcat("on_signal_", signal, NULL);
+	if (!moon_call(L, name, ""))
+		moon_call(L, "quit", "");
+	return 0;
+}
 
 static gboolean got_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer p)
 {
@@ -20,8 +33,7 @@ static gboolean got_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer 
 			read(sigin, &sig, sizeof(sig));
 			char *signame = g_hash_table_lookup(names, GINT_TO_POINTER(sig));
 			g_assert(signame != NULL);
-			lua_pushstring(lua_state, signame);
-			moon_dispatch(lua_state, "on_signal", 1);
+			moon_call(lua_state, "on_signal", "s", signame);
 			return TRUE;
 		default:
 			return FALSE;
@@ -45,7 +57,7 @@ void signal_init(lua_State *L)
 	channel = g_io_channel_unix_new(sigin);
 	names   = g_hash_table_new(g_direct_hash, g_direct_equal);
 	lua_state = L;
-
+	moon_export(L, "on_signal", on_signal, 0);
 	g_io_add_watch(channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, got_input, NULL);
 }
 

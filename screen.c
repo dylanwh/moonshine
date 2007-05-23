@@ -10,6 +10,7 @@
 #include "screen.h"
 #include "term.h"
 #include "signal.h"
+#include "moon.h"
 
 struct Screen {
 	GString *topic; ///< The first line of the screen.
@@ -21,13 +22,15 @@ static int on_keypress(lua_State *L)
 {
 	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
 	const char *s = luaL_checkstring(L, 1);
+	lua_pop(L, -1);
 	g_assert(s);
 
 	if (s != '\0' && s[1] == '\0')
 		g_string_append_c(scr->entry, s[0]);
 	else {
 		char *name = g_strconcat("on_key_", s, NULL);
-		moon_dispatch(L, name, 0);
+		moon_call(L, name, "");
+		g_free(name);
 	}
 
 	screen_refresh(scr);
@@ -61,26 +64,22 @@ Screen *screen_new(lua_State *L)
 {
 	Screen *scr = g_new(Screen, 1);
 
-	scr->topic  = g_string_new("");
+	scr->topic  = g_string_new("<topic>");
 	scr->buffer = buffer_new(100);
 	scr->entry  = g_string_new("");
 
 	lua_pushlightuserdata(L, scr);
-	lua_pushcclosure(L, on_keypress, 1);
-	lua_setglobal(L, "on_keypress");
+	moon_export(L, "on_keypress", on_keypress, 1);
 
 	lua_pushlightuserdata(L, scr);
-	lua_pushcclosure(L, on_key_backspace, 1);
-	lua_setglobal(L, "on_key_backspace");
+	moon_export(L, "on_key_backspace", on_key_backspace, 1);
 
 	lua_pushlightuserdata(L, scr);
-	lua_pushcclosure(L, on_key_enter, 1);
-	lua_setglobal(L, "on_key_enter");
+	moon_export(L, "on_key_enter", on_key_enter, 1);
 
 	signal_catch(SIGWINCH);
 	lua_pushlightuserdata(L, scr);
-	lua_pushcclosure(L, on_signal_SIGWINCH, 1);
-	lua_setglobal(L, "on_signal_SIGWINCH");
+	moon_export(L, "on_signal_SIGWINCH", on_signal_SIGWINCH, 1);
 
 	return scr;
 }

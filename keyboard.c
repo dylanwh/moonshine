@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "keyboard.h"
+#include "moon.h"
 
 struct Keyboard {
 	SLkeymap_Type *keymap;  ///< slang keymap.
@@ -87,10 +88,8 @@ static gboolean on_input(
 	} else if (cond & G_IO_IN) {
 		Keyboard *kb = (Keyboard *)data;
 		const char *s = readkey(kb);
-		if (s) {
-			lua_pushstring(kb->lua, s);
-			moon_dispatch(kb->lua, "on_keypress", 1);
-		}
+		if (s)
+			moon_call(kb->lua, "on_keypress", "s", s);
 		return TRUE;
 	} else {
 		return FALSE;

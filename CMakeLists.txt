@@ -1,23 +1,28 @@
 PROJECT (SPOON C)
 
-ADD_EXECUTABLE (spoon hook.c signal.c keyboard.c screen.c term.c protocol.c main.c 
+ADD_EXECUTABLE (spoon moon.c signal.c keyboard.c screen.c term.c protocol.c main.c 
 	buffer.c)
-
-ADD_EXECUTABLE (t/hook hook.c t/hook.c)
-
 
 # Includes
 INCLUDE (CheckIncludeFile)
-INCLUDE (FindPerl)
 INCLUDE (FindDoxygen)
 INCLUDE (UsePkgConfig)
 INCLUDE (CheckCSourceCompiles)
 
 # Options
-ENABLE_TESTING()
+# ENABLE_TESTING()
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 
-# Discover compiler flags.
+
+## As far as I know, the *_INCDIR and *_LIBDIR variables are useless.
+PKGCONFIG (glib-2.0 GLIB_INCDIR GLIB_LIBDIR GLIB_LDFLAGS GLIB_CFLAGS)
+PKGCONFIG (gnet-2.0 GNET_INCDIR GNET_LIBDIR GNET_LDFLAGS GNET_CFLAGS)
+FOREACH(package bob lua5.1 lua50 lua)
+	IF (NOT LUA_LDFLAGS)
+		PKGCONFIG (${package} LUA_INCDIR LUA_LIBDIR LUA_LDFLAGS LUA_CFLAGS)
+		SET(LUA "${package}")
+	ENDIF ()
+ENDFOREACH ()
 
 SET(SLANG_CFLAGS "")
 SET(SLANG_LDFLAGS "-lslang")
@@ -27,17 +32,6 @@ IF (EXISTS "/usr/include/slang-2/slang.h")
 	SET (SLANG_CFLAGS "-I/usr/include/slang-2")
 	SET (SLANG_LDFLAGS "-lslang-2")
 ENDIF()
-
-## Debian renames lua to lua50 or lua5.1, etc.
-## We execute findlua.pl to find the right pkg-config package.
-EXEC_PROGRAM(${PERL_EXECUTABLE}
-	ARGS ${CMAKE_CURRENT_SOURCE_DIR}/util/findlua.pl
-	OUTPUT_VARIABLE LUA)
-
-## As far as I know, the *_INCDIR and *_LIBDIR variables are useless.
-PKGCONFIG (${LUA}   LUA_INCDIR LUA_LIBDIR LUA_LDFLAGS LUA_CFLAGS)
-PKGCONFIG (glib-2.0 GLIB_INCDIR GLIB_LIBDIR GLIB_LDFLAGS GLIB_CFLAGS)
-PKGCONFIG (gnet-2.0 GNET_INCDIR GNET_LIBDIR GNET_LDFLAGS GNET_CFLAGS)
 
 ## Now we add these the the flags passed to the C compiler.
 ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline")
@@ -50,48 +44,13 @@ ADD_DEFINITIONS(${LUA_CFLAGS})
 SET_TARGET_PROPERTIES(spoon PROPERTIES LINK_FLAGS 
 	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
 
-SET_TARGET_PROPERTIES(t/hook PROPERTIES LINK_FLAGS 
-	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
+CONFIGURE_FILE(${SPOON_SOURCE_DIR}/docs/Doxyfile.in
+	${SPOON_BINARY_DIR}/docs/Doxyfile
+	@ONLY IMMEDIATE)
 
 ADD_CUSTOM_TARGET(api-docs ALL ${DOXYGEN} docs/Doxyfile)
 
 # Install rules.
 INSTALL(TARGETS spoon RUNTIME DESTINATION bin)
 
-#ADD_TEST(test2 false)
-
-# Sanity checks.
-IF (NOT CMAKE_C_COMPILER MATCHES "gcc")
-	MESSAGE(SEND_ERROR "spoon requires gcc to compile")
-ELSE()
-	MESSAGE(STATUS "Good, we have gcc")
-ENDIF()
-
-IF (NOT PKGCONFIG_EXECUTABLE)
-	MESSAGE(SEND_ERROR "spoon requires pkg-config")
-ELSE()
-	MESSAGE(STATUS "Good, we have pkg-config")
-ENDIF()
-
-IF (NOT PERL_EXECUTABLE)
-	MESSAGE(SEND_ERROR "spoon requires perl")
-ELSE()	
-	MESSAGE(STATUS "Good, we have perl")
-ENDIF()
-
-IF (NOT LUA)
-	MESSAGE(SEND_ERROR "spoon requires lua")
-ELSE()
-	MESSAGE(STATUS "Good, we have lua (${LUA})")
-ENDIF()
-
-INCLUDE (util/SlangVersion.cmake)
-IF (SLANG_VERSION LESS 20000)
-	MESSAGE(SEND_ERROR "spoon requires slang-2")
-ELSE ()
-	MESSAGE(STATUS "Good, we have slang-2")
-ENDIF ()
-
-CONFIGURE_FILE(${SPOON_SOURCE_DIR}/docs/Doxyfile.in
-	${SPOON_BINARY_DIR}/docs/Doxyfile
-	@ONLY IMMEDIATE)
+INCLUDE(util/CheckRequired.cmake)

@@ -14,6 +14,13 @@
 #include "keyboard.h"
 #include "signal.h"
 
+
+static void mylog(const gchar *log_domain, UNUSED GLogLevelFlags log_level, const gchar *message, UNUSED gpointer unused_data)
+{
+	fprintf(stderr, "<%s> %s", log_domain, message);
+	fflush(stderr);
+}
+
 int main(int argc, char *argv[])
 {
 	lua_State *L = lua_open();
@@ -41,6 +48,7 @@ int main(int argc, char *argv[])
 	signal_catch(SIGHUP);
 
 	//screen_refresh(scr);
+	g_log_set_default_handler(mylog, NULL);
 	g_main_loop_run(loop);
 
 	lua_close(L);
