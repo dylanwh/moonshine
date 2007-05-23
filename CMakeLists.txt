@@ -1,7 +1,10 @@
 PROJECT (SPOON C)
 
-ADD_EXECUTABLE (spoon signal.c keyboard.c screen.c term.c protocol.c main.c 
+ADD_EXECUTABLE (spoon hook.c signal.c keyboard.c screen.c term.c protocol.c main.c 
 	buffer.c)
+
+ADD_EXECUTABLE (t/hook hook.c t/hook.c)
+
 
 # Includes
 INCLUDE (CheckIncludeFile)
@@ -45,6 +48,9 @@ ADD_DEFINITIONS(${LUA_CFLAGS})
 
 # And add the link flags to spoon.
 SET_TARGET_PROPERTIES(spoon PROPERTIES LINK_FLAGS 
+	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
+
+SET_TARGET_PROPERTIES(t/hook PROPERTIES LINK_FLAGS 
 	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
 
 ADD_CUSTOM_TARGET(api-docs ALL ${DOXYGEN} docs/Doxyfile)
