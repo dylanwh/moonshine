@@ -3,7 +3,6 @@ PROJECT (SPOON C)
 ADD_EXECUTABLE (spoon signal.c keyboard.c screen.c term.c protocol.c main.c 
 	buffer.c)
 
-
 # Includes
 INCLUDE (CheckIncludeFile)
 INCLUDE (FindPerl)
@@ -23,6 +22,7 @@ SET(SLANG_LDFLAGS "-lslang")
 ## We do this to have a chance finding slang on gentoo.
 IF (EXISTS "/usr/include/slang-2/slang.h")
 	SET (SLANG_CFLAGS "-I/usr/include/slang-2")
+	SET (SLANG_LDFLAGS "-lslang-2")
 ENDIF()
 
 ## Debian renames lua to lua50 or lua5.1, etc.
@@ -85,7 +85,6 @@ IF (SLANG_VERSION LESS 20000)
 ELSE ()
 	MESSAGE(STATUS "Good, we have slang-2")
 ENDIF ()
-
 
 CONFIGURE_FILE(${SPOON_SOURCE_DIR}/docs/Doxyfile.in
 	${SPOON_BINARY_DIR}/docs/Doxyfile

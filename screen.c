@@ -27,9 +27,7 @@ static int on_keypress(lua_State *L)
 		g_string_append_c(scr->entry, s[0]);
 	else {
 		char *name = g_strconcat("on_key_", s, NULL);
-		lua_getglobal(L, name);
-		if (!lua_isnil(L, -1))
-			lua_call(L, 0, 0);
+		moon_dispatch(L, name, 0);
 	}
 
 	screen_refresh(scr);

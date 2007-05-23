@@ -1,6 +1,8 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+
 #include <glib.h>
 #include <slang.h>
 #include <lua.h>
@@ -86,9 +88,8 @@ static gboolean on_input(
 		Keyboard *kb = (Keyboard *)data;
 		const char *s = readkey(kb);
 		if (s) {
-			lua_getglobal(kb->lua, "on_keypress");
 			lua_pushstring(kb->lua, s);
-			lua_call(kb->lua, 1, 0);
+			moon_dispatch(kb->lua, "on_keypress", 1);
 		}
 		return TRUE;
 	} else {
@@ -100,7 +101,7 @@ Keyboard *keyboard_new(lua_State *L)
 {
 	Keyboard *kb  = g_new(Keyboard, 1);
 	kb->keymap    = SLang_create_keymap("default", NULL);
-	kb->channel   = g_io_channel_unix_new (fileno(stdin));
+	kb->channel   = g_io_channel_unix_new(fileno(stdin));
 	kb->lua       = L;
 	init_keymap(kb);
 
