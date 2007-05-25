@@ -1,4 +1,4 @@
-/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
+/* vim: set ft=c.doxygen noexpandtab ts=4 sw=4 tw=80: */
 
 #include <glib.h>
 #include <slang.h>
