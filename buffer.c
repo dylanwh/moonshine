@@ -70,39 +70,96 @@ int buffer_get_history_max(const Buffer *b) {
 	return b->history_max;
 }
 
+static const char *skip_space(const char *in) {
+	while (*in && g_unichar_isspace(g_utf8_get_char(in)))
+		in = g_utf8_next_char(in);
+	return in;
+}
+
+typedef struct plan {
+	struct plan *prev;
+	guint margin;
+	const char *start, *end;
+	gboolean advance;
+} plan_t;
+
 static guint line_render(const char *line, guint bottom_row, guint top_row) {
-	/* XXX: this doesn't yet handle wrapping */
+
+	plan_t *lines = NULL;
+
 	g_assert(bottom_row >= top_row);
 	SLsmg_gotorc(bottom_row, 0);
-	
-	int cols_remain = SLtt_Screen_Cols;
-	const char *endp = line;
-	while (*endp) {
-		gunichar c = g_utf8_get_char(endp);
-		guint width;
-		if (g_unichar_iswide(c))
-			width = 2;
-#if 0
-		// XXX: glib's online manual documents this, but the version in ubuntu
-		// doesn't seem to have it
-		else if (g_unichar_iszerowidth(c))
-			width = 0;
-#endif
-		else
-			width = 1;
-		
-		/* HACK: per glib docs not all terminals render zerowidth chars properly */
-		if (width == 0) cols_remain--;
-		/* end hack */
 
-		cols_remain -= width;
-		if (cols_remain < 0)
-			break;
-		if (!SLutf8_is_utf8_mode() && c > 0x7f) {
-			for (int i = 0; i < width; i++)
-				SLsmg_write_char('?');
-		} else SLsmg_write_char(c);
-		endp = g_utf8_next_char(endp);
+	guint margin = 0;
+	while (*line) {
+		plan_t *thisline = alloca(sizeof *thisline);
+		thisline->prev = lines;
+		thisline->margin = margin;
+		lines = thisline;
+
+		const char *seg_start = line;
+		const char *seg_end   = line;
+		const char *last_word = line;
+		const char *next_line = NULL;
+		const guint max_width = SLtt_Screen_Cols;
+		guint cur_width       = margin;
+
+		gboolean in_word = !g_unichar_isspace(g_utf8_get_char(line));
+		gboolean advance_line = TRUE;
+		while (*seg_end) {
+			gunichar ch = g_utf8_get_char(seg_end);
+			if (ch == INDENT_MARK_UCS) {
+				margin = cur_width;
+				advance_line = FALSE;
+				next_line = g_utf8_next_char(seg_end);
+				break;
+			}
+			guint ch_len;
+			if (g_unichar_iswide(ch))
+				ch_len = 2;
+			else
+				ch_len = 1;
+			if (cur_width + ch_len > max_width) {
+				/* This word extends beyond the current buffer.
+				 * Try to wrap in a way which doesn't break off this word. If
+				 * the word's the whole line, do a hard break.
+				 */
+				if (seg_start != last_word)
+					seg_end = last_word;
+				break;
+			}
+			cur_width += ch_len;
+			if (!in_word && !g_unichar_isspace(ch)) {
+				last_word = seg_end;
+				in_word = TRUE;
+			}
+			if (g_unichar_isspace(ch)) {
+				in_word = FALSE;
+			}
+			seg_end = g_utf8_next_char(seg_end);
+		}
+		if (!next_line)
+			next_line = skip_space(seg_end);
+		line = next_line;
+
+		thisline->start = seg_start;
+		thisline->end = seg_end;
+		thisline->advance = advance_line;
+	}
+
+	while (lines && bottom_row >= top_row) {
+		SLsmg_gotorc(bottom_row, lines->margin);
+		SLsmg_write_chars((unsigned char *)lines->start, (unsigned char *)lines->end);
+		/* We want to make sure we advance at least once. So, the last line we
+		 * write, we don't change bottom_row; and then we subtract at the very
+		 * end.
+		 *
+		 * Also, since the list is in reverse order, check the /previous/ line's
+		 * struct for whether we need to advance.
+		 */
+		if (lines->prev && lines->prev->advance)
+			bottom_row--;
+		lines = lines->prev;
 	}
 
 	return bottom_row - 1;

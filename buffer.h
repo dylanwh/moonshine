@@ -87,5 +87,8 @@ void buffer_scroll_to(Buffer *buffer, guint abs_offset);
  */
 void buffer_free(Buffer *buffer);
 
+#define INDENT_MARK_UCS 0xF0000
+#define INDENT_MARK_UTF "\xF3\xB0\x80\x80"
+
 #endif
 
