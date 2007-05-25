@@ -25,13 +25,7 @@ static int on_keypress(lua_State *L)
 	lua_pop(L, -1);
 	g_assert(s);
 
-	if (s != '\0' && s[1] == '\0')
-		g_string_append_c(scr->entry, s[0]);
-	else {
-		char *name = g_strconcat("on_key_", s, NULL);
-		moon_call(L, name, "");
-		g_free(name);
-	}
+	g_string_append_c(scr->entry, s[0]);
 
 	screen_refresh(scr);
 	return 0;
@@ -41,6 +35,7 @@ static int on_key_backspace(lua_State *L)
 {
 	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
 	g_string_truncate(scr->entry, scr->entry->len - 1);
+	screen_refresh(scr);
 	return 0;
 }
 
@@ -49,6 +44,7 @@ static int on_key_enter(lua_State *L)
 	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
 	screen_print(scr, scr->entry);
 	g_string_truncate(scr->entry, 0);
+	screen_refresh(scr);
 	return 0;
 }
 

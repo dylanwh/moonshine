@@ -26,9 +26,8 @@ ENDFOREACH ()
 
 SET(SLANG_CFLAGS "")
 SET(SLANG_LDFLAGS "-lslang")
-
-## We do this to have a chance finding slang on gentoo.
 IF (EXISTS "/usr/include/slang-2/slang.h")
+	MESSAGE(STATUS "Hmm, gentoo hides slang.h in its underpants...")
 	SET (SLANG_CFLAGS "-I/usr/include/slang-2")
 	SET (SLANG_LDFLAGS "-lslang-2")
 ENDIF()

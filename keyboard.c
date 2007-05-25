@@ -88,8 +88,15 @@ static gboolean on_input(
 	} else if (cond & G_IO_IN) {
 		Keyboard *kb = (Keyboard *)data;
 		const char *s = readkey(kb);
-		if (s)
-			moon_call(kb->lua, "on_keypress", "s", s);
+		if (s) {
+			if (s[0] != '\0' && s[1] == '\0') {
+				moon_call(kb->lua, "on_keypress", "s", s);
+			} else {
+				char *name = g_strconcat("on_key_", s, NULL);
+				moon_call(kb->lua, name, "");
+				g_free(name);
+			}
+		}
 		return TRUE;
 	} else {
 		return FALSE;

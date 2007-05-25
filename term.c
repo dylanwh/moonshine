@@ -12,6 +12,7 @@ void term_init(void)
 	SLutf8_enable (-1);
     SLsmg_utf8_enable(-1);
 	SLsmg_refresh();
+	/* SLsmg_embedded_escape_mode(1); */
 }
 
 
