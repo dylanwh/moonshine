@@ -183,8 +183,15 @@ static int try_render(Entry *e, guint lmargin) {
 		SLsmg_write_char(ch);
 		idx++;
 	}
-	fprintf(stderr, "try_render; width=%d maxwidth=%d; idx=%d; bu=%d; bs=%d; co=%d; vo=%d; cp=%d\n",
-			width, max_width, idx, e->bufused, e->bufsize, e->curs_off, e->view_off, curs_pos);
+	g_debug("try_render; width=%d maxwidth=%d; idx=%d; bu=%d; bs=%d; co=%d; vo=%d; cp=%d\n",
+			width, 
+			max_width, 
+			idx, 
+			(guint) e->bufused,
+			(guint) e->bufsize,
+			(guint) e->curs_off,
+			(guint) e->view_off,
+			(guint) curs_pos);
 
 	if (e->curs_off == e->bufused && width < max_width)
 		curs_pos = width;
