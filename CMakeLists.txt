@@ -1,7 +1,7 @@
 PROJECT (SPOON C)
 
 ADD_EXECUTABLE (spoon moon.c signal.c keyboard.c screen.c term.c protocol.c main.c 
-	buffer.c)
+	buffer.c entry.c)
 
 # Includes
 INCLUDE (CheckIncludeFile)
