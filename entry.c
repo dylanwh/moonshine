@@ -48,7 +48,8 @@ void entry_key(Entry *e, gunichar uc) {
 		e->bufsize += 128;
 		e->buffer = g_renew(gunichar, e->buffer, e->bufsize);
 	}
-	memmove(e->buffer + e->bufused + 1, e->buffer + e->bufused, e->bufused - e->curs_off);
+	memmove(e->buffer + e->curs_off + 1, e->buffer + e->curs_off,
+            sizeof(e->buffer[0]) * e->bufused - e->curs_off);
 	e->buffer[e->curs_off] = uc;
 	e->bufused++;
 	e->curs_off++;
