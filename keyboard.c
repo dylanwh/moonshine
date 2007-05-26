@@ -71,7 +71,13 @@ inline static void init_keymap(Keyboard *kb)
    	keyboard_define(kb, "^(kb)", "backspace");
    	keyboard_define(kb, "^(@8)", "enter");
    	keyboard_define(kb, "^(kD)", "delete");
-   	
+  
+  	/* terminfo LIES? */
+  	keyboard_define(kb, "^[[A", "up");
+  	keyboard_define(kb, "^[[A", "down");
+   	keyboard_define(kb, "^[[D", "left");
+   	keyboard_define(kb, "^[[C", "right");
+
    	keyboard_define(kb, "\r", "enter");
 }
 
