@@ -45,6 +45,14 @@ static int on_key_backspace(lua_State *L)
 	return 0;
 }
 
+static int on_key_delete(lua_State *L)
+{
+	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	entry_erase(scr->entry, 1);
+	screen_refresh(scr);
+	return 0;
+}
+
 static int on_key_enter(lua_State *L)
 {
 	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
@@ -102,6 +110,9 @@ Screen *screen_new(lua_State *L)
 
 	lua_pushlightuserdata(L, scr);
 	moon_export(L, "on_key_backspace", on_key_backspace, 1);
+
+	lua_pushlightuserdata(L, scr);
+	moon_export(L, "on_key_delete", on_key_delete, 1);
 
 	lua_pushlightuserdata(L, scr);
 	moon_export(L, "on_key_enter", on_key_enter, 1);
