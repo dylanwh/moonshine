@@ -228,7 +228,7 @@ void entry_erase(Entry *e, int count) {
 	if (count > 0) {
 		/* Delete chars after the current cursor location. */
 		int start = e->curs_off;
-		int end   = MAX(e->bufused, e->curs_off + count);
+		int end   = MIN(e->bufused, e->curs_off + count);
 		entry_erase_region(e, start, end);
 	} else {
 		/* Delete chars before the current cursor location */
@@ -252,7 +252,8 @@ void entry_erase_region(Entry *e, int start, int end) {
 
 	if (start == end)
 		return;
-	memmove(e->buffer + start, e->buffer + end, e->bufused - end);
+	memmove(e->buffer + start, e->buffer + end,
+            sizeof(e->buffer[0]) * (e->bufused - end));
 	e->bufused -= (end - start);
 
 	if (e->curs_off > end)
