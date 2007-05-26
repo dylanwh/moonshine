@@ -74,7 +74,7 @@ inline static void init_keymap(Keyboard *kb)
   
   	/* terminfo LIES? */
   	keyboard_define(kb, "^[[A", "up");
-  	keyboard_define(kb, "^[[A", "down");
+  	keyboard_define(kb, "^[[B", "down");
    	keyboard_define(kb, "^[[D", "left");
    	keyboard_define(kb, "^[[C", "right");
 
