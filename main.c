@@ -17,8 +17,8 @@
 
 static void mylog(const gchar *log_domain, UNUSED GLogLevelFlags log_level, const gchar *message, UNUSED gpointer unused_data)
 {
-	fprintf(stderr, "<%s> %s", log_domain, message);
-	fflush(stderr);
+	//fprintf(stderr, "<%s> %s", log_domain, message);
+	//fflush(stderr);
 }
 
 int main(int argc, char *argv[])
