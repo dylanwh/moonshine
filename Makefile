@@ -1,6 +1,6 @@
 
 all: build
-	cd build && cmake .. && make --no-print-directory spoon
+	cd build && cmake .. && make --no-print-directory moonshine
 
 install:
 	make --no-print-directory -C build install

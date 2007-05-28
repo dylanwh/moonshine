@@ -1,6 +1,6 @@
 /* vim: set ft=c.doxygen noexpandtab ts=4 sw=4 tw=80: */
-#ifndef __SPOON_BUFFER_H__
-#define __SPOON_BUFFER_H__
+#ifndef __MOONSHINE_BUFFER_H__
+#define __MOONSHINE_BUFFER_H__
 #include <glib.h>
 
 /** \file buffer.h

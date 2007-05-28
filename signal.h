@@ -1,6 +1,6 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#ifndef __SPOON_SIGNAL_H__
-#define __SPOON_SIGNAL_H__
+#ifndef __MOONSHINE_SIGNAL_H__
+#define __MOONSHINE_SIGNAL_H__
 
 #include <glib.h>
 #include <lua.h>
