@@ -26,6 +26,8 @@ static int on_keypress(lua_State *L)
 	const char *s = luaL_checkstring(L, 1);
 	lua_pop(L, -1);
 	g_assert(s);
+	g_assert(strlen(s) == 1); // keypress always gets passed a single character.
+
 
 	/* XXX: We just take the first byte of S as a unicode codepoint. This is
 	 *   very incorrect, but will do for now as a horrible hack. In the future,
@@ -142,7 +144,9 @@ void screen_refresh(Screen *scr)
 {
 	/* write the topic */
 	SLsmg_gotorc(0, 0);
-	SLsmg_write_nstring(scr->topic->str, scr->topic->len);
+	term_color_use("topic");
+	SLsmg_write_nstring(scr->topic->str, SLtt_Screen_Cols);
+	term_color_use("default");
 
 	/* render the buffer */
 	buffer_render(scr->buffer);

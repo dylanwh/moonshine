@@ -27,8 +27,9 @@ int main(int argc, char *argv[])
 	luaL_openlibs(L);
 	signal_init(L);
 	keyboard_new(L);
-	screen_new(L);
+	Screen *scr = screen_new(L);
 
+	term_color_set("topic", "lightgray", "blue");
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 
 	int quit(lua_State *L)
@@ -49,6 +50,7 @@ int main(int argc, char *argv[])
 
 	//screen_refresh(scr);
 	g_log_set_default_handler(mylog, NULL);
+	screen_refresh(scr);
 	g_main_loop_run(loop);
 
 	lua_close(L);

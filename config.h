@@ -2,6 +2,6 @@
 #ifndef __MOONSHINE_CONFIG_H__
 #define __MOONSHINE_CONFIG_H__
 
-#define UNUSED G_GNUC_UNUSED
+#define UNUSED __attribute__((unused))
 
 #endif
