@@ -76,14 +76,14 @@ static const char *skip_space(const char *in) {
 	return in;
 }
 
-typedef struct plan {
-	struct plan *prev;
-	guint margin;
-	const char *start, *end;
-	gboolean advance;
-} plan_t;
-
 static guint line_render(const char *line, guint bottom_row, guint top_row) {
+	typedef struct plan {
+		struct plan *prev;
+		guint margin;
+		const char *start, *end;
+		gboolean advance;
+		guint color;
+	} plan_t;
 
 	plan_t *lines = NULL;
 
@@ -91,6 +91,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	SLsmg_gotorc(bottom_row, 0);
 
 	guint margin = 0;
+	guint color  = 0;
 	while (*line) {
 		plan_t *thisline = alloca(sizeof *thisline);
 		thisline->prev = lines;
@@ -103,6 +104,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 		const char *next_line = NULL;
 		const guint max_width = SLtt_Screen_Cols;
 		guint cur_width       = margin;
+		guint next_color      = color;
 
 		gboolean in_word = !g_unichar_isspace(g_utf8_get_char(line));
 		gboolean advance_line = TRUE;
@@ -110,6 +112,12 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 			gunichar ch = g_utf8_get_char(seg_end);
 			if (ch == INDENT_MARK_UCS) {
 				margin = cur_width;
+				advance_line = FALSE;
+				next_line = g_utf8_next_char(seg_end);
+				break;
+			}
+			if (ch >= COLOR_MIN_UCS && ch <= COLOR_MAX_UCS) {
+				next_color = ch - COLOR_MIN_UCS;
 				advance_line = FALSE;
 				next_line = g_utf8_next_char(seg_end);
 				break;
@@ -142,9 +150,12 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 			next_line = skip_space(seg_end);
 		line = next_line;
 
-		thisline->start = seg_start;
-		thisline->end = seg_end;
-		thisline->advance = advance_line;
+		thisline->start		= seg_start;
+		thisline->end		= seg_end;
+		thisline->advance	= advance_line;
+		thisline->color		= color;
+		color				= next_color;
+
 	}
 
 	while (lines && bottom_row >= top_row) {

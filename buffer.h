@@ -89,6 +89,8 @@ void buffer_free(Buffer *buffer);
 
 #define INDENT_MARK_UCS 0xF0000
 #define INDENT_MARK_UTF "\xF3\xB0\x80\x80"
+#define COLOR_MIN_UCS   0xFC000
+#define COLOR_MAX_UCS   0xFCFFF
 
 #endif
 
