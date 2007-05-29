@@ -20,15 +20,13 @@ struct Screen {
 	Entry *entry;   ///< the text the user types into the client.
 };
 
+
 static int on_keypress(lua_State *L)
 {
-	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = moon_get_userdata(L, "screen"); 
 	const char *s = luaL_checkstring(L, 1);
-	lua_pop(L, -1);
+	lua_pop(L, 1);
 	g_assert(s);
-	g_assert(strlen(s) == 1); // keypress always gets passed a single character.
-
-
 	/* XXX: We just take the first byte of S as a unicode codepoint. This is
 	 *   very incorrect, but will do for now as a horrible hack. In the future,
 	 *   keypress needs to deal with gunichars, or utf8 sequences.
@@ -41,7 +39,7 @@ static int on_keypress(lua_State *L)
 
 static int on_key_backspace(lua_State *L)
 {
-	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = moon_get_userdata(L, "screen"); 
 	entry_erase(scr->entry, -1);
 	screen_refresh(scr);
 	return 0;
@@ -49,7 +47,7 @@ static int on_key_backspace(lua_State *L)
 
 static int on_key_delete(lua_State *L)
 {
-	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = moon_get_userdata(L, "screen"); 
 	entry_erase(scr->entry, 1);
 	screen_refresh(scr);
 	return 0;
@@ -57,7 +55,7 @@ static int on_key_delete(lua_State *L)
 
 static int on_key_enter(lua_State *L)
 {
-	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = moon_get_userdata(L, "screen"); 
 	gchar *str = entry_get(scr->entry);
 	if (!strcmp(str, "/quit")) {
 		/* XXX: until we have real command parsing */
@@ -75,7 +73,7 @@ static int on_key_enter(lua_State *L)
 }
 
 static int on_key_left(lua_State *L) {
-	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = moon_get_userdata(L, "screen"); 
 	buffer_print(scr->buffer, "LEFT");
 	entry_move(scr->entry, -1);
 	screen_refresh(scr);
@@ -83,7 +81,8 @@ static int on_key_left(lua_State *L) {
 }
 
 static int on_key_right(lua_State *L) {
-	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = moon_get_userdata(L, "screen"); 
+	buffer_print(scr->buffer, "LEFT");
 	buffer_print(scr->buffer, "RIGHT");
 	entry_move(scr->entry, 1);
 	screen_refresh(scr);
@@ -93,7 +92,7 @@ static int on_key_right(lua_State *L) {
 
 static int on_signal_SIGWINCH(lua_State *L)
 {
-	Screen *scr = lua_touserdata(L, lua_upvalueindex(1));
+	Screen *scr = moon_get_userdata(L, "screen"); 
 	term_resize();
 	screen_refresh(scr);
 	return 0;
@@ -101,33 +100,22 @@ static int on_signal_SIGWINCH(lua_State *L)
 
 Screen *screen_new(lua_State *L)
 {
-	Screen *scr = g_new(Screen, 1);
+	Screen *scr = lua_newuserdata(L, sizeof(Screen));
+	lua_setglobal(L, "screen");
 
 	scr->topic  = g_string_new("<topic>");
 	scr->buffer = buffer_new(100);
 	scr->entry  = entry_new(L);
 
-	lua_pushlightuserdata(L, scr);
-	moon_export(L, "on_keypress", on_keypress, 1);
-
-	lua_pushlightuserdata(L, scr);
-	moon_export(L, "on_key_backspace", on_key_backspace, 1);
-
-	lua_pushlightuserdata(L, scr);
-	moon_export(L, "on_key_delete", on_key_delete, 1);
-
-	lua_pushlightuserdata(L, scr);
-	moon_export(L, "on_key_enter", on_key_enter, 1);
-
-	lua_pushlightuserdata(L, scr);
-	moon_export(L, "on_key_left", on_key_left, 1);
-
-	lua_pushlightuserdata(L, scr);
-	moon_export(L, "on_key_right", on_key_right, 1);
+	lua_register(L, "on_keypress",      on_keypress);
+	lua_register(L, "on_key_backspace", on_key_backspace);
+	lua_register(L, "on_key_delete",    on_key_delete);
+	lua_register(L, "on_key_enter",     on_key_enter);
+	lua_register(L, "on_key_left",      on_key_left);
+	lua_register(L, "on_key_right",     on_key_right);
 
 	signal_catch(SIGWINCH);
-	lua_pushlightuserdata(L, scr);
-	moon_export(L, "on_signal_SIGWINCH", on_signal_SIGWINCH, 1);
+	lua_register(L, "on_signal_SIGWINCH", on_signal_SIGWINCH);
 
 	return scr;
 }

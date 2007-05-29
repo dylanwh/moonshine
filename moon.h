@@ -7,6 +7,6 @@
 #include <lua.h>
 
 gboolean moon_call(lua_State *L, const char *name, const char *sig, ...);
-void moon_export(lua_State *L, const char *name, lua_CFunction func, guint nargs);
+gpointer moon_get_userdata(lua_State *L, gchar *name);
 
 #endif

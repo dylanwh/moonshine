@@ -2,6 +2,7 @@
  
 #include "protocol.h"
 
+/* FIXME: Use GError instead? */
 GString *haver_strerror(HaverError err) {
 	switch(err) {
 		case HAVER_NO_ERROR: return g_string_new("No error");

@@ -57,7 +57,7 @@ void signal_init(lua_State *L)
 	channel = g_io_channel_unix_new(sigin);
 	names   = g_hash_table_new(g_direct_hash, g_direct_equal);
 	lua_state = L;
-	moon_export(L, "on_signal", on_signal, 0);
+	lua_register(L, "on_signal", on_signal);
 	g_io_add_watch(channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, got_input, NULL);
 }
 

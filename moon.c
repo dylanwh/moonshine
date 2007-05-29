@@ -14,26 +14,14 @@ gboolean moon_call(lua_State *L, const char *name, const char *sig, ...)
     lua_getglobal(L, name);  /* get function */
     if (lua_isnil(L, -1))
     	return FALSE;
-
     va_start(vl, sig);
-    /* push arguments */
     while (*sig)
     	switch (*sig++) {
-          	case 'd':  /* double argument */
-            	lua_pushnumber(L, va_arg(vl, double));
-            	break;
-          	case 'i':  /* int argument */
-            	lua_pushnumber(L, va_arg(vl, int));
-            	break;
-          	case 's':  /* string argument */
-            	lua_pushstring(L, va_arg(vl, char *));
-            	break;
-          	
-          	default:
-          		g_error("invalid option (%c)", *(sig - 1));
-          		break;
+          	case 'd': lua_pushnumber(L, va_arg(vl, double)); break;
+          	case 'i': lua_pushnumber(L, va_arg(vl, int)); break;
+          	case 's': lua_pushstring(L, va_arg(vl, char *)); break;
+          	default:  g_error("invalid option (%c)", *(sig - 1)); break;
         }
-    /* do the call */
     if (lua_pcall(L, argc, 0, 0) != 0)
     	g_error("error running function `%s': %s",
     			name, lua_tostring(L, -1));
@@ -41,8 +29,11 @@ gboolean moon_call(lua_State *L, const char *name, const char *sig, ...)
     return TRUE;
 }
 
-void moon_export(lua_State *L, const char *name, lua_CFunction func, guint nargs)
+gpointer moon_get_userdata(lua_State *L, gchar *name)
 {
-	lua_pushcclosure(L, func, nargs); // adds a closure to the stack.
-	lua_setglobal(L, name); // removes the closure from the stack
+	lua_getglobal(L, name);
+	gpointer ptr = lua_touserdata(L, -1);
+	lua_remove(L, -1);
+	g_assert(ptr);
+	return ptr;
 }
