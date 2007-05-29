@@ -5,20 +5,23 @@
 #include <glib.h>
 #include "config.h"
 
-#define HAVER_NO_ERROR			0 ///< Decode was successful
-#define HAVER_UNKNOWN_ESCAPE	1 ///< Unknown escape code in input
-#define HAVER_TRUNCATED_ESCAPE	2 ///< Truncated escape (eg, ESC NL or ESC TAB)
-#define HAVER_TRUNCATED_INPUT	3 ///< No newline at end of input
-#define HAVER_BAD_UTF8			4 ///< Input is invalid unicode
-#define HAVER_BAD_CHARS			5 ///< Input contains illegal characters
-#define HAVER_EMPTY_ARR			6 ///< An array of zero elements was passed to encode
+typedef enum {
+	HAVER_NO_ERROR,
+	HAVER_UNKNOWN_ESCAPE,
+	HAVER_TRUNCATED_ESCAPE,
+	HAVER_TRUNCATED_INPUT,
+	HAVER_BAD_UTF8,
+	HAVER_BAD_CHARS,
+	HAVER_EMPTY_ARR,
+} HaverError;
+
 
 /** \brief Returns a human-readable form of a haver error code
  *
  * \param err The error code in question
  * \return A new GString containing a human-readable error message
  */
-GString *haver_strerror(int err);
+GString *haver_strerror(HaverError err);
 
 /** \brief Breaks a haver protocol message into its tab-delimited items,
  *   replacing escape sequences.
