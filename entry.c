@@ -1,16 +1,15 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-
-#include "entry.h"
-#include <slang.h>
-#include <assert.h>
 #include <string.h>
+#include <slang.h>
+#include <glib.h>
+#include "entry.h"
 
 struct Entry {
 	gunichar *buffer;
-	size_t bufsize; /* The total size of the buffer in gunichars. Is zero iff buffer is NULL. */
-	size_t bufused; /* The length of the actual string in the buffer. */
-	size_t view_off; /* The index of the first visible character. May be out of range; entry_render will correct such issues. */
-	size_t curs_off; /* The index of the character the cursor is on. Must not be out of range (> bufused). */
+	gsize bufsize; /* The total size of the buffer in gunichars. Is zero iff buffer is NULL. */
+	gsize bufused; /* The length of the actual string in the buffer. */
+	gsize view_off; /* The index of the first visible character. May be out of range; entry_render will correct such issues. */
+	gsize curs_off; /* The index of the character the cursor is on. Must not be out of range (> bufused). */
 };
 
 /* XXX: This should be in a header or shared .c file somewhere, buffer.c uses
@@ -40,7 +39,7 @@ void entry_free(Entry *e)
 }
 
 void entry_key(Entry *e, gunichar uc) {
-	assert(e);
+	g_assert(e);
 	if (!uc || !g_unichar_isdefined(uc))
 		return; /* Filter invalid characters, hopefully. XXX: is this enough to deny the PUA? */
 	if (e->bufused + 1 > e->bufsize) {
@@ -56,10 +55,10 @@ void entry_key(Entry *e, gunichar uc) {
 }
 
 void entry_move(Entry *e, int offset) {
-	assert(e);
+	g_assert(e);
 	if (offset == 0) return;
 	
-	size_t new_off = e->curs_off + offset;
+	gsize new_off = e->curs_off + offset;
 	if ((new_off < e->curs_off) != (offset < 0)) {
 		/* Integer overflow has occured. Move the the end or start. */
 		if (offset < 0)
@@ -73,13 +72,13 @@ void entry_move(Entry *e, int offset) {
 }
 
 void entry_move_to(Entry *e, int absolute) {
-	assert(e);
+	g_assert(e);
 	if (!e->bufused) return;
 
 	if (absolute >= 0) {
 		e->curs_off = MIN(e->bufused, absolute);
 	} else { /* -1 is after the last char, -2 on the last, etc... */
-		/* Note: If absolute is too far negative, we'll get size_t wraparound here. */
+		/* Note: If absolute is too far negative, we'll get gsize wraparound here. */
 		e->curs_off = e->bufused + absolute + 1;
 		if (e->curs_off > e->bufused)
 			e->curs_off = 0;
@@ -87,7 +86,7 @@ void entry_move_to(Entry *e, int absolute) {
 }
 
 gchar *entry_get(Entry *e) {
-	assert(e);
+	g_assert(e);
 	if (e->bufused == 0) {
 		/* buffer may be NULL, so create the result manually */
 		gchar *p = g_malloc(1);
@@ -98,7 +97,7 @@ gchar *entry_get(Entry *e) {
 }
 
 void entry_clear(Entry *e) {
-	assert(e);
+	g_assert(e);
 	e->bufused = 0;
 	e->curs_off = e->view_off = 0;
 	/* If we have more than a page of buffer, free it, to prevent a single
@@ -203,8 +202,8 @@ static int try_render(Entry *e, guint lmargin) {
 }
 
 void entry_render(Entry *e, guint lmargin) {
-	assert(e);
-	assert(e->curs_off <= e->bufused);
+	g_assert(e);
+	g_assert(e->curs_off <= e->bufused);
 
 	if (try_render(e, lmargin) == -1) {
 		e->view_off = center_view(e, SLtt_Screen_Cols - lmargin);
@@ -221,7 +220,7 @@ void entry_render(Entry *e, guint lmargin) {
 }
 
 void entry_erase(Entry *e, int count) {
-	assert(e);
+	g_assert(e);
 	if (!count)
 		return;
 
@@ -243,12 +242,12 @@ void entry_erase(Entry *e, int count) {
 }
 
 void entry_erase_region(Entry *e, int start, int end) {
-	assert(e);
-	assert(start <= end);
-	assert(start <= e->bufused);
-	assert(end   <= e->bufused);
-	assert(start >= 0);
-	assert(end   >= 0);
+	g_assert(e);
+	g_assert(start <= end);
+	g_assert(start <= e->bufused);
+	g_assert(end   <= e->bufused);
+	g_assert(start >= 0);
+	g_assert(end   >= 0);
 
 	if (start == end)
 		return;
