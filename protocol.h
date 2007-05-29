@@ -35,7 +35,7 @@ GString *haver_strerror(HaverError err);
  * \return A GPtrArray of GStrings in UTF8 coding, if successful, or NULL
  *   otherwise.
  */
-GPtrArray *haver_decode(const gchar *line, const gchar **remain, int *error);
+GPtrArray *haver_decode(const gchar *line, const gchar **remain, HaverError *error);
 
 /** \brief Encodes a haver protocol message into a network-ready format.
  *
@@ -44,7 +44,7 @@ GPtrArray *haver_decode(const gchar *line, const gchar **remain, int *error);
  *   error code.
  * \return A GString in network-ready format if successful, or NULL otherwise.
  */
-GString *haver_encode(const GPtrArray *line, int *error);
+GString *haver_encode(const GPtrArray *line, HaverError *error);
 
 #endif
 

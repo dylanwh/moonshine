@@ -15,10 +15,10 @@ GString *haver_strerror(HaverError err) {
 	}
 }
 
-GPtrArray *haver_decode(const gchar *line, const gchar **remain, int *error) {
+GPtrArray *haver_decode(const gchar *line, const gchar **remain, HaverError *error) {
 	g_assert(line);
 
-	int dummy_err;
+	HaverError dummy_err;
 	const gchar *dummy_remain;
 	GPtrArray *temp_a = NULL;
 	GString *cur_s = NULL;
@@ -86,14 +86,14 @@ error_out:
 }
 
 struct enc_info {
-	int *error;
+	HaverError *error;
 	GString *accum;
 };
 
-GString *haver_encode(const GPtrArray *line, int *error) {
+GString *haver_encode(const GPtrArray *line, HaverError *error) {
 	g_assert(line);
 
-	int dummy_error;
+	HaverError dummy_error;
 	if (!error) error = &dummy_error;
 	*error = HAVER_NO_ERROR;
 
