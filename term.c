@@ -2,6 +2,9 @@
 #include <glib.h>
 #include <slang.h>
 #include <stdlib.h>
+#include "buffer.h"
+#include "term.h"
+#include "config.h"
 
 static GHashTable *term_colors;
 static int last_id = 0;
@@ -48,11 +51,31 @@ void term_color_set(gchar *name, gchar *fg, gchar *bg)
 
 void term_color_use(gchar *name)
 {
+	SLsmg_set_color(term_color_to_id(name));
+}
+
+int term_color_to_id(gchar *name) {
 	g_assert(term_colors);
 	gpointer color = g_hash_table_lookup(term_colors, name);
 	if (color)
-		SLsmg_set_color(GPOINTER_TO_INT(color));
+		return GPOINTER_TO_INT(color);
 	else
-		SLsmg_set_color(0);
+		return 0;
+
 }
 
+const gchar *term_color_to_utf8(gchar *name) {
+	                            /* This should be sufficient for all utf8 chars at
+								   7 bytes; just in case, use 8 as a sentinel */
+	static THREAD gchar buf[8] = { 0, 0, 0, 0, 0, 0, 0, 0x42 };
+	g_assert(buf[7] == 0x42);
+
+	gunichar ch = COLOR_MIN_UCS + term_color_to_id(name);
+	g_assert(ch <= COLOR_MAX_UCS); /* XXX: handle this failure better... */
+
+	gint len = g_unichar_to_utf8(ch, buf);
+	buf[len] = 0;
+	g_assert(buf[7] == 0x42);
+
+	return buf;
+}

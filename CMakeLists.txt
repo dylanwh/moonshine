@@ -1,7 +1,7 @@
 PROJECT (moonshine C)
 
 ADD_EXECUTABLE (moonshine moon.c signal.c keyboard.c screen.c term.c protocol.c main.c 
-	buffer.c entry.c)
+	buffer.c entry.c format.c)
 
 # Includes
 INCLUDE (CheckIncludeFile)

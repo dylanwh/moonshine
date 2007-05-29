@@ -92,18 +92,20 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 
 	guint margin = 0;
 	guint color  = 0;
+	guint temp_margin = 0;
 	while (*line) {
 		plan_t *thisline = alloca(sizeof *thisline);
 		thisline->prev = lines;
-		thisline->margin = margin;
+		thisline->margin = temp_margin ? temp_margin : margin;
 		lines = thisline;
+		temp_margin = 0;
 
 		const char *seg_start = line;
 		const char *seg_end   = line;
 		const char *last_word = line;
 		const char *next_line = NULL;
 		const guint max_width = SLtt_Screen_Cols;
-		guint cur_width       = margin;
+		guint cur_width       = thisline->margin;
 		guint next_color      = color;
 
 		gboolean in_word = !g_unichar_isspace(g_utf8_get_char(line));
@@ -117,6 +119,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 				break;
 			}
 			if (ch >= COLOR_MIN_UCS && ch <= COLOR_MAX_UCS) {
+				temp_margin = cur_width;
 				next_color = ch - COLOR_MIN_UCS;
 				advance_line = FALSE;
 				next_line = g_utf8_next_char(seg_end);
@@ -160,7 +163,9 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 
 	while (lines && bottom_row >= top_row) {
 		SLsmg_gotorc(bottom_row, lines->margin);
+		SLsmg_set_color(lines->color);
 		SLsmg_write_chars((unsigned char *)lines->start, (unsigned char *)lines->end);
+
 		/* We want to make sure we advance at least once. So, the last line we
 		 * write, we don't change bottom_row; and then we subtract at the very
 		 * end.

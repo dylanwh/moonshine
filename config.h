@@ -3,5 +3,6 @@
 #define __MOONSHINE_CONFIG_H__
 
 #define UNUSED __attribute__((unused))
+#define THREAD __thread
 
 #endif

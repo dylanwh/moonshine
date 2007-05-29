@@ -8,5 +8,7 @@ void term_reset(void);
 
 void term_color_set(gchar *name, gchar *fg, gchar *bg);
 void term_color_use(gchar *name);
+int term_color_to_id(gchar *name);
+const gchar *term_color_to_utf8(gchar *name);
 
 #endif

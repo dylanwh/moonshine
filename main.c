@@ -27,9 +27,9 @@ int main(int argc, char *argv[])
 	luaL_openlibs(L);
 	signal_init(L);
 	keyboard_new(L);
+	term_color_set("topic", "lightgray", "blue");
 	Screen *scr = screen_new(L);
 
-	term_color_set("topic", "lightgray", "blue");
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 
 	int quit(lua_State *L)
