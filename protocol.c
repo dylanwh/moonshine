@@ -20,7 +20,6 @@ GPtrArray *haver_decode(const gchar *line, const gchar **remain, HaverError *err
 
 	HaverError dummy_err;
 	const gchar *dummy_remain;
-	GPtrArray *temp_a = NULL;
 	GString *cur_s = NULL;
 	if (!error) error = &dummy_err;
 	if (!remain) remain = &dummy_remain;
@@ -31,7 +30,7 @@ GPtrArray *haver_decode(const gchar *line, const gchar **remain, HaverError *err
 		return NULL;
 	}
 
-	temp_a = g_ptr_array_new();
+	GPtrArray *temp_a = g_ptr_array_new();
 	while (*line) {
 		if (!cur_s) {
 			cur_s = g_string_new("");

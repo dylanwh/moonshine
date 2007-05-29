@@ -143,8 +143,8 @@ void screen_free(Screen *scr)
 void screen_refresh(Screen *scr)
 {
 	/* write the topic */
-	SLsmg_gotorc(0, 0);
 	term_color_use("topic");
+	SLsmg_gotorc(0, 0);
 	SLsmg_write_nstring(scr->topic->str, SLtt_Screen_Cols);
 	term_color_use("default");
 
