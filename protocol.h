@@ -15,7 +15,6 @@ typedef enum {
 	HAVER_EMPTY_ARR,
 } HaverError;
 
-
 /** \brief Returns a human-readable form of a haver error code
  *
  * \param err The error code in question

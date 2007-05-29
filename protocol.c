@@ -46,7 +46,7 @@ GPtrArray *haver_decode(const gchar *line, const gchar **remain, HaverError *err
 			case '\t':
 				cur_s = NULL;
 				break;
-			case '\x1F':
+			case '\e':
 				line++;
 				switch (*line) {
 					case '\0':
@@ -58,7 +58,7 @@ GPtrArray *haver_decode(const gchar *line, const gchar **remain, HaverError *err
 					case 'n': g_string_append_c(cur_s, '\n'); break;
 					case 'r': g_string_append_c(cur_s, '\r'); break;
 					case 't': g_string_append_c(cur_s, '\t'); break;
-					case 'e': g_string_append_c(cur_s, '\x1F'); break;
+					case 'e': g_string_append_c(cur_s, '\e'); break;
 					default:
 						*error = HAVER_UNKNOWN_ESCAPE;
 						goto error_out;
@@ -126,13 +126,13 @@ GString *haver_encode(const GPtrArray *line, HaverError *error) {
 		gchar *p = str->str;
 		while (*p) {
 			switch (*p) {
-				case '\n': g_string_append(info->accum, "\x1Fn"); break;
-				case '\r': g_string_append(info->accum, "\x1Fr"); break;
-				case '\t': g_string_append(info->accum, "\x1Ft"); break;
-						   /* XXX: \x1Fe breaks here, is there a less ugly
+				case '\n': g_string_append(info->accum, "\en"); break;
+				case '\r': g_string_append(info->accum, "\er"); break;
+				case '\t': g_string_append(info->accum, "\et"); break;
+						   /* XXX: \x2Fe breaks here, is there a less ugly
 							* way for it to be interpreted properly?
 							*/
-				case '\x1F': g_string_append(info->accum, "\x1F" "e"); break;
+				case '\e': g_string_append(info->accum, "\ee"); break;
 				default: g_string_append_c(info->accum, *p); break;
 			}
 			p++;
