@@ -1,6 +1,7 @@
-/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#ifndef __SPOON_PROTOCOL_H__
-#define __SPOON_PROTOCOL_H__
+/* vim: set ft=c.doxygen noexpandtab ts=4 sw=4 tw=80 */
+#ifndef __MOONSHINE_PROTOCOL_H__
+#define __MOONSHINE_PROTOCOL_H__
+
 #include <glib.h>
 #include "config.h"
 
