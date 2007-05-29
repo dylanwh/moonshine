@@ -65,17 +65,16 @@ int term_color_to_id(gchar *name) {
 }
 
 const gchar *term_color_to_utf8(gchar *name) {
-	                            /* This should be sufficient for all utf8 chars at
-								   7 bytes; just in case, use 8 as a sentinel */
-	static THREAD gchar buf[8] = { 0, 0, 0, 0, 0, 0, 0, 0x42 };
-	g_assert(buf[7] == 0x42);
+	                            /* Per g_unichar_to_utf8 docs we need 6 chars *
+								 * here; add one for NUL					  */
+	static THREAD gchar buf[7];
 
 	gunichar ch = COLOR_MIN_UCS + term_color_to_id(name);
 	g_assert(ch <= COLOR_MAX_UCS); /* XXX: handle this failure better... */
 
 	gint len = g_unichar_to_utf8(ch, buf);
+	g_assert(len < sizeof buf);
 	buf[len] = 0;
-	g_assert(buf[7] == 0x42);
 
 	return buf;
 }
