@@ -52,7 +52,7 @@ void entry_key(Entry *e, gunichar uc) {
 		e->buffer = g_renew(gunichar, e->buffer, e->bufsize);
 	}
 	memmove(e->buffer + e->curs_off + 1, e->buffer + e->curs_off,
-            sizeof(e->buffer[0]) * e->bufused - e->curs_off);
+			sizeof(e->buffer[0]) * (e->bufused - e->curs_off));
 	e->buffer[e->curs_off] = uc;
 	e->bufused++;
 	e->curs_off++;
@@ -256,7 +256,7 @@ void entry_erase_region(Entry *e, int start, int end) {
 	if (start == end)
 		return;
 	memmove(e->buffer + start, e->buffer + end,
-            sizeof(e->buffer[0]) * (e->bufused - end));
+			sizeof(e->buffer[0]) * (e->bufused - end));
 	e->bufused -= (end - start);
 
 	if (e->curs_off > end)
