@@ -43,6 +43,10 @@ void entry_key(Entry *e, gunichar uc) {
 	if (!uc || !g_unichar_isdefined(uc))
 		return; /* Filter invalid characters, hopefully. XXX: is this enough to deny the PUA? */
 	if (e->bufused + 1 > e->bufsize) {
+		/* If e->bufused * sizeof(e->buffer[0]) > 2**32, then there's a theoretical heap overflow on Really Big Systems.
+		 * Let's just clamp it to something nice and sane like 16kilochars
+		 */
+		if (e->bufsize >= 16384) return;
 		/* We assume most lines will be relatively small, so just increase by 128 each time */
 		e->bufsize += 128;
 		e->buffer = g_renew(gunichar, e->buffer, e->bufsize);
