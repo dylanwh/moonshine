@@ -18,9 +18,11 @@ typedef enum {
 /** \brief Returns a human-readable form of a haver error code
  *
  * \param err The error code in question
- * \return A new GString containing a human-readable error message
+ * \return A string containing a human-readable error message. In general,
+ *   this string should be considered valid only as long as the current
+ *   thread is running, and only until said thread calls haver_strerror again.
  */
-GString *haver_strerror(HaverError err);
+const char *haver_strerror(HaverError err);
 
 /** \brief Breaks a haver protocol message into its tab-delimited items,
  *   replacing escape sequences.

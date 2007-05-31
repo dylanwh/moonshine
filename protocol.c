@@ -3,15 +3,15 @@
 #include "protocol.h"
 
 /* FIXME: Use GError instead? */
-GString *haver_strerror(HaverError err) {
+const char *haver_strerror(HaverError err) {
 	switch(err) {
-		case HAVER_NO_ERROR: return g_string_new("No error");
-		case HAVER_UNKNOWN_ESCAPE: return g_string_new("Unknown escape sequence");
-		case HAVER_TRUNCATED_ESCAPE: return g_string_new("Truncated escape sequence");
-		case HAVER_TRUNCATED_INPUT: return g_string_new("Truncated input");
-		case HAVER_BAD_UTF8: return g_string_new("Bad utf8 sequence in input");
-		case HAVER_BAD_CHARS: return g_string_new("Illegal characters in input");
-		case HAVER_EMPTY_ARR: return g_string_new("Empty list of strings in encode");
+		case HAVER_NO_ERROR: return "No error";
+		case HAVER_UNKNOWN_ESCAPE: return "Unknown escape sequence";
+		case HAVER_TRUNCATED_ESCAPE: return "Truncated escape sequence";
+		case HAVER_TRUNCATED_INPUT: return "Truncated input";
+		case HAVER_BAD_UTF8: return "Bad utf8 sequence in input";
+		case HAVER_BAD_CHARS: return "Illegal characters in input";
+		case HAVER_EMPTY_ARR: return "Empty list of strings in encode";
 		default: g_assert_not_reached();
 	}
 }
