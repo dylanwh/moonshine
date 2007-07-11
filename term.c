@@ -40,7 +40,6 @@ void term_reset(void)
 }
 
 /* Color related functions */
-
 void term_color_set(gchar *name, gchar *fg, gchar *bg)
 {
 	g_assert(term_colors);

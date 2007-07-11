@@ -129,9 +129,6 @@ GString *haver_encode(const GPtrArray *line, HaverError *error) {
 				case '\n': g_string_append(info->accum, "\en"); break;
 				case '\r': g_string_append(info->accum, "\er"); break;
 				case '\t': g_string_append(info->accum, "\et"); break;
-						   /* XXX: \x2Fe breaks here, is there a less ugly
-							* way for it to be interpreted properly?
-							*/
 				case '\e': g_string_append(info->accum, "\ee"); break;
 				default: g_string_append_c(info->accum, *p); break;
 			}
