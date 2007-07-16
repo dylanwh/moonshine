@@ -1,6 +1,6 @@
 PROJECT (moonshine C)
 
-ADD_EXECUTABLE (moonshine moon.c signal.c keyboard.c screen.c term.c protocol.c main.c 
+ADD_EXECUTABLE (moonshine screen.c term.c protocol.c util.c main.c 
 	buffer.c entry.c format.c)
 
 # Includes
@@ -32,14 +32,14 @@ IF (EXISTS "/usr/include/slang-2/slang.h")
 ENDIF()
 
 ## Now we add these the the flags passed to the C compiler.
-ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline")
+ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline -I/usr/include/gc")
 ADD_DEFINITIONS(${SLANG_CFLAGS})
 ADD_DEFINITIONS(${GLIB_CFLAGS})
 ADD_DEFINITIONS(${LUA_CFLAGS})
 
 # And add the link flags to moonshine.
 SET_TARGET_PROPERTIES(moonshine PROPERTIES LINK_FLAGS 
-	"${GLIB_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS} -levent")
+	"${GLIB_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS} -levent -lgc")
 
 CONFIGURE_FILE(${moonshine_SOURCE_DIR}/docs/Doxyfile.in
 	${moonshine_BINARY_DIR}/docs/Doxyfile

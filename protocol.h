@@ -3,7 +3,7 @@
 #define __MOONSHINE_PROTOCOL_H__
 
 #include <glib.h>
-#include "config.h"
+#include "moonshine.h"
 
 typedef enum {
 	HAVER_NO_ERROR,

@@ -7,7 +7,7 @@
 
 typedef struct Entry Entry;
 
-Entry *entry_new(lua_State *L);
+Entry *entry_new(void);
 
 void entry_free(Entry *);
 

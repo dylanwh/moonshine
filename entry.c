@@ -4,6 +4,9 @@
 #include <glib.h>
 #include "entry.h"
 
+/* TODO: Remove dependence on glib */
+/* TODO: Use libgc if possible. */
+
 struct Entry {
 	gunichar *buffer;
 	gsize bufsize; /* The total size of the buffer in gunichars. Is zero iff buffer is NULL. */
@@ -21,7 +24,7 @@ __attribute__((pure)) static int charwidth(gunichar ch) {
 		return 1;
 }
 
-Entry *entry_new(lua_State *L)
+Entry *entry_new(void)
 {
 	Entry *e = g_new(Entry, 1);
 	e->buffer = NULL;

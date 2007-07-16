@@ -1,17 +1,20 @@
 /* vim: set ft=c.doxygen noexpandtab ts=4 sw=4 tw=80 cindent: */
 
-#include "format.h"
-#include "buffer.h"
-#include "term.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "format.h"
+#include "buffer.h"
+#include "term.h"
+
+/* TODO: remove dependence on glib */
+
 GString *format_parse(gchar *input, ...) {
 	GString *out = g_string_sized_new(strlen(input));
-
 	gchar *p = input;
+
 	while (1) {
 		gchar *oldp = p;
 		gchar *nextesc = strchr(p, '%');
@@ -54,7 +57,7 @@ GString *format_parse(gchar *input, ...) {
 						gchar name[end - start + 1];
 						memcpy(name, start, sizeof name - 1);
 						name[sizeof name - 1] = '\0';
-						g_string_append(out, term_color_to_utf8(name));
+						g_string_append(out, name); //term_color_to_utf8(name));
 						p = end + 1;
 						break;
 					} else { goto unknown_esc; }
