@@ -1,12 +1,18 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 : */
-#include <glib.h>
-#include <slang.h>
 #include <stdlib.h>
-#include "buffer.h"
-#include "term.h"
 #include "moonshine.h"
 
-//static int last_id = 0;
+static unsigned char utf8_length[256] =
+{
+  0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 31 */
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 63 */
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 95 */
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 127 */
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 159 */
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 191 */
+  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  /* - 223 */
+  3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1   /* - 255 */
+};
 
 void term_init(void)
 {
@@ -23,6 +29,23 @@ void term_init(void)
 	//g_hash_table_insert(term_colors, "inverse", GINT_TO_POINTER(last_id++));
 }
 
+gunichar term_getkey(void)
+{
+	int ch = SLang_getkey();
+	g_assert(ch <= 256);
+
+	int len = utf8_length[ch];
+	g_assert(len != 0);
+
+	gchar buf[8];
+	int i = 0;
+	buf[i++] = (gchar) ch;
+
+	while (i < len)
+		buf[i++] = (gchar) SLang_getkey();
+
+	return g_utf8_get_char(buf);
+}
 
 void term_resize(void)
 {

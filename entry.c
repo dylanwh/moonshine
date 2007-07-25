@@ -1,11 +1,8 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#include <string.h>
-#include <slang.h>
-#include <glib.h>
+#include "moonshine.h"
 #include "entry.h"
 
-/* TODO: Remove dependence on glib */
-/* TODO: Use libgc if possible. */
+#include <string.h>
 
 struct Entry {
 	gunichar *buffer;
@@ -15,14 +12,7 @@ struct Entry {
 	gsize curs_off; /* The index of the character the cursor is on. Must not be out of range (> bufused). */
 };
 
-/* XXX: This should be in a header or shared .c file somewhere, buffer.c uses
- * a reimplementation too */
-__attribute__((pure)) static int charwidth(gunichar ch) {
-	if (g_unichar_iswide(ch))
-		return 2;
-	else
-		return 1;
-}
+
 
 Entry *entry_new(void)
 {
@@ -144,7 +134,7 @@ static guint center_view(Entry *e, guint width) {
 
 		if (left_w < right_w || right_i == e->bufused) {
 			gunichar ch = e->buffer[left_i];
-			int cwidth = charwidth(ch);
+			int cwidth = unicode_charwidth(ch);
 			if (cwidth + total_width > width)
 				break;
 			left_i--;
@@ -153,7 +143,7 @@ static guint center_view(Entry *e, guint width) {
 				right_w += cwidth;
 		} else {
 			gunichar ch = e->buffer[right_i];
-			int cwidth = charwidth(ch);
+			int cwidth = unicode_charwidth(ch);
 			if (cwidth + total_width > width)
 				break;
 			right_i++;
@@ -167,10 +157,10 @@ static int try_render(Entry *e, guint lmargin) {
 	guint idx = e->view_off;
 	guint width = 0;
 	int curs_pos = -1;
-	const guint max_width = SLtt_Screen_Cols - lmargin;
+	const guint max_width = TERM_COLS - lmargin;
 
-	SLsmg_gotorc(SLtt_Screen_Rows - 1, lmargin);
-	SLsmg_erase_eol();
+	term_goto(TERM_LINES - 1, lmargin);
+	term_erase_eol();
 
 	if (e->view_off >= e->bufused && e->view_off != 0)
 		return -1;
@@ -179,18 +169,14 @@ static int try_render(Entry *e, guint lmargin) {
 		if (idx == e->curs_off)
 			curs_pos = width + lmargin;
 		gunichar ch = e->buffer[idx];
-		guint charwidth;
-		if (g_unichar_iswide(ch))
-			charwidth = 2;
-		else
-			charwidth = 1;
+		guint charwidth = unicode_charwidth(ch);
 		if (charwidth + width > max_width)
 			break;
 		width += charwidth;
-		SLsmg_write_char(ch);
+		term_write_char(ch);
 		idx++;
 	}
-	g_debug("try_render; width=%d maxwidth=%d; idx=%d; bu=%d; bs=%d; co=%d; vo=%d; cp=%d\n",
+/*	g_debug("try_render; width=%d maxwidth=%d; idx=%d; bu=%d; bs=%d; co=%d; vo=%d; cp=%d\n",
 			width, 
 			max_width, 
 			idx, 
@@ -198,13 +184,13 @@ static int try_render(Entry *e, guint lmargin) {
 			(guint) e->bufsize,
 			(guint) e->curs_off,
 			(guint) e->view_off,
-			(guint) curs_pos);
+			(guint) curs_pos);*/
 
 	if (e->curs_off == e->bufused && width < max_width)
 		curs_pos = width;
 
 	if (curs_pos != -1)
-		SLsmg_gotorc(SLtt_Screen_Rows - 1, curs_pos);
+		term_goto(TERM_LINES - 1, curs_pos);
 	return curs_pos;
 }
 
@@ -213,7 +199,7 @@ void entry_render(Entry *e, guint lmargin) {
 	g_assert(e->curs_off <= e->bufused);
 
 	if (try_render(e, lmargin) == -1) {
-		e->view_off = center_view(e, SLtt_Screen_Cols - lmargin);
+		e->view_off = center_view(e, TERM_COLS - lmargin);
 		if (try_render(e, lmargin) == -1) {
 			/* This should never happen, but just in case. */
 			if (e->curs_off == 0) {

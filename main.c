@@ -1,26 +1,9 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-
 #include "moonshine.h"
-#include "term.h"
-#include "screen.h"
+#include "entry.h"
+
+#include <string.h>
 #include <ctype.h>
-
-/* borrowed from slang */
-static unsigned char lmap[256] =
-{
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 31 */
-	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 63 */
-	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 95 */
-	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 127 */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 159 */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 191 */
-	2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  /* - 223 */
-	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1   /* - 255 */
-};
-
-
-
-
 
 void on_signal(int fd, short event, void *arg)
 {
@@ -30,33 +13,11 @@ void on_signal(int fd, short event, void *arg)
 
 void on_input(int fd, short event, void *arg)
 {
-	int c = SLang_getkey();
-	SLsmg_gotorc(0, 0);
-
-	if (isascii(c) && iscntrl(c)) {
-		if (c == '\e') {
-			if (SLang_input_pending(1)) {
-				char key = SLang_getkey();
-				SLsmg_printf("M-%c", key);
-			} else {
-				SLsmg_printf("esc");
-			}
-		} else {
-			SLsmg_printf("C-%c", c ^ 64);
-		}
-	} else {
-		unsigned char buf[7];
-		unsigned char len = lmap[c];
-		int pos = 1;
-
-		buf[0] = (unsigned char)c;
-		while (len-- > 1) {
-			buf[pos++] = (unsigned char)SLang_getkey();
-		}
-		buf[pos] = '\0';
-		SLsmg_printf("%s", buf);
-	}
-	SLsmg_refresh();
+	Entry *entry = arg;
+	gunichar c = term_getkey();
+	entry_key(entry, c);
+	entry_render(entry, 2);
+	term_refresh();
 }
 
 int main(int argc, char *argv[])
@@ -64,17 +25,27 @@ int main(int argc, char *argv[])
 	Event sigint;
 	Event sigterm;
 	Event input;
-	term_init();
-	event_init();
+	Entry *entry;
+	LuaState *L;
 
-	/* Initalize one event */
+	event_init();
+	term_init();
+
+	entry = entry_new();
+	L = moon_init();
+	//keymap_init(L);
+	if (luaL_dofile(L, "lua/boot.lua")) {
+		const char *err = lua_tostring(L, -1);
+		g_error("Cannot boot: %s", err);
+	}
+
 	event_set(&sigint, SIGINT, EV_SIGNAL|EV_PERSIST, on_signal, NULL);
 	event_add(&sigint, NULL);
 
 	event_set(&sigterm, SIGTERM, EV_SIGNAL|EV_PERSIST, on_signal, NULL);
 	event_add(&sigterm, NULL);
 
-	event_set(&input, fileno(stdin), EV_READ|EV_PERSIST, on_input, NULL);
+	event_set(&input, fileno(stdin), EV_READ|EV_PERSIST, on_input, entry);
 	event_add(&input, NULL);
 
 	event_dispatch();

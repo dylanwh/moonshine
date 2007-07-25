@@ -4,7 +4,7 @@
 #include "buffer.h"
 
 #include <signal.h>
-
+#if 0
 struct Screen {
 	gchar *topic; ///< The first line of the screen.
 	Buffer *buffer; ///< Where chat messages pile up.
@@ -21,7 +21,7 @@ void on_signal_winch(int fd, short event, void *arg)
 
 Screen *screen_new(void)
 {
-	Screen *scr = emalloc(sizeof(Screen));
+	Screen *scr = g_malloc(sizeof(Screen));
 
 	scr->topic  = "<topic>";
 	scr->buffer = buffer_new(100);
@@ -48,3 +48,4 @@ void screen_refresh(Screen *scr)
 	/* finally, write to the real display */
 	SLsmg_refresh();
 }
+#endif
