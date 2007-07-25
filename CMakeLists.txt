@@ -12,7 +12,6 @@ INCLUDE (CheckCSourceCompiles)
 # ENABLE_TESTING()
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 
-
 ## As far as I know, the *_INCDIR and *_LIBDIR variables are useless.
 PKGCONFIG (glib-2.0 GLIB_INCDIR GLIB_LIBDIR GLIB_LDFLAGS GLIB_CFLAGS)
 FOREACH(package bob lua5.1 lua50 lua)
