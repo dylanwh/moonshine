@@ -1,6 +1,6 @@
 PROJECT (moonshine C)
 
-ADD_EXECUTABLE (moonshine term.c entry.c util.c main.c)
+ADD_EXECUTABLE (moonshine term.c entry.c lib_entry.c util.c main.c)
 
 # Includes
 INCLUDE (CheckIncludeFile)

@@ -11,7 +11,7 @@ Entry *entry_new(void);
 
 void entry_free(Entry *);
 
-void entry_key(Entry *, gunichar uc) __attribute__((nonnull));
+void entry_keypress(Entry *, gunichar uc) __attribute__((nonnull));
 void entry_move(Entry *, int offset) __attribute__((nonnull));
 void entry_move_to(Entry *, int absolute) __attribute__((nonnull));
 gchar *entry_get(Entry *) __attribute__((nonnull));

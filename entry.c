@@ -1,7 +1,6 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include "moonshine.h"
 #include "entry.h"
-
 #include <string.h>
 
 struct Entry {
@@ -11,8 +10,6 @@ struct Entry {
 	gsize view_off; /* The index of the first visible character. May be out of range; entry_render will correct such issues. */
 	gsize curs_off; /* The index of the character the cursor is on. Must not be out of range (> bufused). */
 };
-
-
 
 Entry *entry_new(void)
 {
@@ -31,7 +28,7 @@ void entry_free(Entry *e)
 	g_free(e);
 }
 
-void entry_key(Entry *e, gunichar uc) {
+void entry_keypress(Entry *e, gunichar uc) {
 	g_assert(e);
 	if (!uc || !g_unichar_isdefined(uc))
 		return; /* Filter invalid characters, hopefully. XXX: is this enough to deny the PUA? */

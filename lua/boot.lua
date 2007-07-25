@@ -4,7 +4,6 @@
 do
 	local keys = {}
 	local last_key = nil
-
 	function bind(spec, f)
 		local k = keys
 		local function index(s, i)
@@ -42,14 +41,22 @@ do
 	function on_input_reset()
 		last_key = nil
 	end
+end
 
-	function on_keypress(key)
-		-- entry:keypress(key)
-	end
+local entry = Entry.new()
+function on_keypress(key)
+	entry:keypress(key)
+	entry:render()
 end
 
 bind("^[[D", function () print("left") end)
 bind("^C", os.exit)
 bind("·", function () on_input(".") end)
-
-
+bind("^?", function ()
+	entry:erase(-1) 
+	entry:render()
+end)
+bind("^M", function ()
+	entry:clear()
+	entry:render()
+end)

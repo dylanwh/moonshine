@@ -44,4 +44,6 @@ gunichar term_getkey(void);
 //Screen *screen_new(void);
 //void screen_refresh(Screen *scr);
 
+int Entry_register (lua_State *L);
+
 #endif

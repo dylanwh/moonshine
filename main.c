@@ -50,15 +50,14 @@ int main(int argc, char *argv[])
 	Event sigint;
 	Event sigterm;
 	Event input;
-	Entry *entry;
 	LuaState *L;
 
 	event_init();
 	term_init();
 	atexit(term_reset);
-
-	entry = entry_new();
+	
 	L = moon_init();
+	Entry_register(L);
 	lua_pushcfunction(L, make_keyspec);
 	lua_setglobal(L, "make_keyspec");
 
