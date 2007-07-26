@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <gnet.h>
 
+void on_signal(int fd, short event, void *arg)
+{
+	printf("signal: %d\n", fd);
+	//event_loopexit(NULL);
+}
 
 static char *hostname = "chat.haverdev.org";
 static int port = 7575;
@@ -109,10 +114,7 @@ int main(int argc, char *argv[])
 	modBuffer_register(L);
 
 
-	if (luaL_dofile(L, "lua/boot.lua")) {
-		const char *err = lua_tostring(L, -1);
-		g_error("Cannot boot: %s", err);
-	}
+	boot_lua(L);
 
 	g_io_add_watch(input, G_IO_IN, on_input, L);
 
