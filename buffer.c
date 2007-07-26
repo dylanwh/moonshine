@@ -66,7 +66,7 @@ void buffer_set_history_max(Buffer *b, guint newmax) {
 	purge(b);
 }
 
-int buffer_get_history_max(const Buffer *b) {
+guint buffer_get_history_max(const Buffer *b) {
 	return b->history_max;
 }
 

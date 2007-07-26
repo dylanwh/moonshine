@@ -21,13 +21,13 @@ Buffer *buffer_new(guint history_len);
  * \param b The buffer to modify
  * \param newlen The new maximum scrollback length
  */
-void buffer_set_history_len(Buffer *b, guint newlen);
+void buffer_set_history_max(Buffer *b, guint newlen);
 
 /** \brief Returns the scrollback length limit of a buffer.
  *
  * \param b The buffer to query
  */
-int buffer_get_history_len(const Buffer *b);
+guint buffer_get_history_max(const Buffer *b);
 
 /** \brief Renders a buffer to the screen
  *
