@@ -25,26 +25,6 @@ void on_input(int fd, short event, void *arg)
 	moon_call(L, "on_input_reset", "");
 }
 
-/* make_keyspec turns strings like "^A" into "\001", and so on. */
-int make_keyspec(LuaState *L)
-{
-	const char *str = luaL_checkstring(L, 1);
-	int len = strlen(str);
-	GString *buf = g_string_sized_new(len);
-
-	for (int i = 0; i < len; i++) {
-		if (str[i] == '^') {
-			g_string_append_c(buf, str[i + 1] ^ 64);
-			i++;
-		} else {
-			g_string_append_c(buf, str[i]);
-		}
-	}
-	lua_pushstring(L, buf->str);
-	g_string_free(buf, TRUE);
-	return 1;
-}
-
 int main(int argc, char *argv[])
 {
 	Event sigint;
@@ -54,13 +34,8 @@ int main(int argc, char *argv[])
 
 	event_init();
 	term_init();
-	atexit(term_reset);
-	
 	L = moon_init();
-	Entry_register(L);
-	lua_pushcfunction(L, make_keyspec);
-	lua_setglobal(L, "make_keyspec");
-
+	
 	//keymap_init(L);
 	if (luaL_dofile(L, "lua/boot.lua")) {
 		const char *err = lua_tostring(L, -1);
@@ -78,6 +53,7 @@ int main(int argc, char *argv[])
 
 	event_dispatch();
 
-	//term_reset();
+	term_reset();
+	lua_close(L);
 	return 0;
 }

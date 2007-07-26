@@ -3,7 +3,6 @@
 #ifndef __MOONSHINE_ENTRY_H__
 #define __MOONSHINE_ENTRY_H__
 #include <glib.h>
-#include <lua.h>
 
 typedef struct Entry Entry;
 

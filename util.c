@@ -13,6 +13,8 @@ LuaState *moon_init(void)
 {
 	LuaState *L = lua_open();
 	luaL_openlibs(L);
+	modapp_register(L);
+	modEntry_register(L);
 	return L;
 }
 

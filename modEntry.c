@@ -127,7 +127,7 @@ static const LuaLReg Entry_meta[] = {
   	{0, 0}
 };
 
-int Entry_register (lua_State *L)
+void modEntry_register (lua_State *L)
 {
   	luaL_register(L, ENTRY, Entry_methods); /* create methods table, add it to
   											   the globals */
@@ -141,6 +141,5 @@ int Entry_register (lua_State *L)
   	lua_pushvalue(L, -3);               /* dup methods table*/
   	lua_rawset(L, -3);                  /* hide metatable:
                                            metatable.__metatable = methods */
-  	lua_pop(L, 1);                      /* drop metatable */
-  	return 1;                           /* return methods on the stack */
+  	lua_pop(L, 2);                      /* drop metatable and methods */
 }
