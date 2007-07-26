@@ -90,7 +90,6 @@ static int Entry_render(LuaState *L)
 	Entry *e = checkEntry(L, 1);
 	guint lmargin = luaL_optint(L, 2, 0);
 	entry_render(e, lmargin);
-	term_refresh();
 	return 0;
 }
 

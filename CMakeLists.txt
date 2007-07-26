@@ -2,7 +2,7 @@ PROJECT (moonshine C)
 
 ADD_EXECUTABLE (moonshine term.c 
 	buffer.c entry.c 
-	modEntry.c modapp.c 
+	modEntry.c modBuffer.c modapp.c 
 	util.c main.c)
 
 # Includes

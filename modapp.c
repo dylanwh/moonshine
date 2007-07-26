@@ -22,6 +22,12 @@ static int app_make_keyspec(LuaState *L)
 	return 1;
 }
 
+static int app_refresh(LuaState *L)
+{
+	term_refresh();
+	return 0;
+}
+
 static int app_exit(LuaState *L)
 {
 	event_loopexit(NULL);
@@ -31,6 +37,7 @@ static int app_exit(LuaState *L)
 static LuaLReg functions[] = {
 	{ "make_keyspec", app_make_keyspec },
 	{ "exit", app_exit },
+	{ "refresh", app_refresh },
 	{ 0, 0 }
 };
 

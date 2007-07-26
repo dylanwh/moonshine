@@ -15,6 +15,7 @@ LuaState *moon_init(void)
 	luaL_openlibs(L);
 	modapp_register(L);
 	modEntry_register(L);
+	modBuffer_register(L);
 	return L;
 }
 

@@ -12,6 +12,13 @@ void on_signal(int fd, short event, void *arg)
 	event_loopexit(NULL);
 }
 
+void on_sigwinch(int fd, short event, void *arg)
+{
+	LuaState *L = arg;
+	term_resize();
+	moon_call(L, "on_resize", "");
+}
+
 void on_input(int fd, short event, void *arg)
 {
 	LuaState *L = arg;
@@ -29,6 +36,7 @@ int main(int argc, char *argv[])
 {
 	Event sigint;
 	Event sigterm;
+	Event sigwinch;
 	Event input;
 	LuaState *L;
 
@@ -47,6 +55,9 @@ int main(int argc, char *argv[])
 
 	event_set(&sigterm, SIGTERM, EV_SIGNAL|EV_PERSIST, on_signal, NULL);
 	event_add(&sigterm, NULL);
+
+	event_set(&sigwinch, SIGWINCH, EV_SIGNAL|EV_PERSIST, on_sigwinch, L);
+	event_add(&sigwinch, NULL);
 
 	event_set(&input, fileno(stdin), EV_READ|EV_PERSIST, on_input, L);
 	event_add(&input, NULL);

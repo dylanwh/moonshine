@@ -45,6 +45,7 @@ gunichar term_getkey(void);
 //void screen_refresh(Screen *scr);
 
 void modEntry_register (lua_State *L); // Provides the Entry class.
+void modBuffer_register (lua_State *L); // Provides the Buffer class.
 void modapp_register(LuaState *L);
 
 #endif
