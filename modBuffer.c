@@ -125,7 +125,7 @@ static int Buffer_format(LuaState *L) {
 						gchar name[end - start + 1];
 						memcpy(name, start, sizeof name - 1);
 						name[sizeof name - 1] = '\0';
-						g_string_append(out, name); //term_color_to_utf8(name));
+						g_string_append(out, term_color_to_utf8(name));
 						p = end + 1;
 						break;
 					} else { goto unknown_esc; }

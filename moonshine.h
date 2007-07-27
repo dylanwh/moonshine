@@ -33,6 +33,12 @@ void term_init(void);
 void term_resize(void);
 void term_reset(void);
 gunichar term_getkey(void);
+
+void term_color_set(const char *name, const char *fg, const char *bg);
+void term_color_use(const char *name);
+int term_color_to_id(const char *name);
+const char *term_color_to_utf8(const char *name);
+
 #define term_refresh    SLsmg_refresh
 #define term_goto       SLsmg_gotorc
 #define TERM_COLS       SLtt_Screen_Cols 

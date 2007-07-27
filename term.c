@@ -1,5 +1,10 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 : */
 #include "moonshine.h"
+#include "buffer.h"
+#include <string.h>
+
+static GHashTable *term_colors;
+static int last_id = 0;
 
 static unsigned char utf8_length[256] =
 {
@@ -24,8 +29,10 @@ void term_init(void)
 	SLsmg_refresh();
 	/* SLsmg_embedded_escape_mode(1); */
 
-	//g_hash_table_insert(term_colors, "default", GINT_TO_POINTER(last_id++));
-	//g_hash_table_insert(term_colors, "inverse", GINT_TO_POINTER(last_id++));
+	term_colors = g_hash_table_new(g_str_hash, g_str_equal);
+	g_hash_table_insert(term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
+	g_hash_table_insert(term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
+	term_color_set("bob", "red", "black");
 }
 
 gunichar term_getkey(void)
@@ -36,15 +43,14 @@ gunichar term_getkey(void)
 	int len = utf8_length[ch];
 	g_assert(len != 0);
 
-	gchar buf[8];
-	for (int j = 0; j < 8; j++)
-		buf[j] = 0;
+	char buf[7];
+	memset(buf, 0, sizeof buf);
 
 	int i = 0;
-	buf[i++] = (gchar) ch;
+	buf[i++] = (const char) ch;
 
 	while (i < len)
-		buf[i++] = (gchar) SLang_getkey();
+		buf[i++] = (const char) SLang_getkey();
 
 	g_assert(g_utf8_validate(buf, -1, NULL));
 	return g_utf8_get_char(buf);
@@ -60,4 +66,44 @@ void term_reset(void)
 {
 	SLsmg_reset_smg ();
 	SLang_reset_tty ();
+	g_hash_table_destroy(term_colors);
+}
+
+/* Color related functions */
+void term_color_set(const char *name, const char *fg, const char *bg)
+{
+	g_assert(term_colors);
+	last_id += 1;
+	g_hash_table_insert(term_colors, g_strdup(name), GINT_TO_POINTER(last_id));
+	SLtt_set_color( last_id, (char *)name, (char *) fg, (char *)bg);
+}
+
+void term_color_use(const char *name)
+{
+	SLsmg_set_color(term_color_to_id(name));
+}
+
+int term_color_to_id(const char *name) {
+	g_assert(term_colors);
+	gpointer color = g_hash_table_lookup(term_colors, name);
+	if (color)
+		return GPOINTER_TO_INT(color);
+	else
+		return 0;
+}
+
+const char *term_color_to_utf8(const char *name)
+{
+	/* Per g_unichar_to_utf8 docs we need 6 chars *
+	 * here; add one for NUL					  */
+	static THREAD char buf[7];
+
+	gunichar ch = BUFFER_COLOR_MIN_UCS + term_color_to_id(name);
+	g_assert(ch <= BUFFER_COLOR_MAX_UCS); /* XXX: handle this failure better... */
+
+	gint len = g_unichar_to_utf8(ch, buf);
+	g_assert(len < sizeof buf);
+	buf[len] = 0;
+
+	return buf;
 }
