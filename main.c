@@ -7,18 +7,16 @@
 #include <stdlib.h>
 #include <gnet.h>
 
-UNUSED static void on_signal(int fd, short event, void *arg)
-{
-	printf("signal: %d\n", fd);
-	//event_loopexit(NULL);
-}
 
-UNUSED static void on_sigwinch(int fd, short event, void *arg)
+static char *hostname = "chat.haverdev.org";
+static int port = 7575;
+
+static GOptionEntry entries[] = 
 {
-	LuaState *L = arg;
-	term_resize();
-	moon_call(L, "on_resize", "");
-}
+	{ "hostname", 'H', 0, G_OPTION_ARG_STRING, &hostname, "hostname to use ", "host" },
+	{ "port", 'p', 0, G_OPTION_ARG_INT, &port, "conntect to port P", "P" },
+	{ NULL }
+};
 
 static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer arg)
 {
@@ -48,6 +46,7 @@ static void on_conn (GConn *conn, GConnEvent *event, gpointer data)
 	  	    {
 	  	      	gnet_conn_timeout (conn, 0);	/* reset timeout */
 	  	      	gnet_conn_readline (conn);
+	  	      	moon_call(L, "print", "s", "connected");
 	  	      	break;
 	  	    }
 	  	case GNET_CONN_READ:
@@ -66,23 +65,21 @@ static void on_conn (GConn *conn, GConnEvent *event, gpointer data)
 	  	case GNET_CONN_CLOSE:
 	  	    {
 	  	      	gnet_conn_delete (conn);
-	  	      	exit (EXIT_SUCCESS);
+	  	      	moon_call(L, "print", "s", "connection close");
 	  	      	break;
 	  	    }
 
 	  	case GNET_CONN_TIMEOUT:
 	  	    {
 	  	      	gnet_conn_delete (conn);
-	  	      	fprintf (stderr, "Connection timeout\n");
-	  	      	exit (EXIT_FAILURE);
+	  	      	moon_call(L, "print", "s", "connection timeout");
 	  	      	break;
 	  	    }
 
 	  	case GNET_CONN_ERROR:
 	  	    {
 	  	      	gnet_conn_delete (conn);
-	  	      	fprintf (stderr, "Connection failure\n");
-	  	      	exit (EXIT_FAILURE);
+	  	      	moon_call(L, "print", "s", "connection failure");
 	  	      	break;
 	  	    }
 
@@ -93,11 +90,19 @@ static void on_conn (GConn *conn, GConnEvent *event, gpointer data)
 
 int main(int argc, char *argv[])
 {
+	GError *error = NULL;
+	GOptionContext *context;
+
+	context = g_option_context_new ("- a console haver client");
+	g_option_context_add_main_entries (context, entries, NULL);
+	//g_option_context_add_group (context, gtk_get_option_group (TRUE));
+	g_option_context_parse (context, &argc, &argv, &error);
+
 	term_init();
 	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 	LuaState *L = lua_open();
-	GConn *conn = gnet_conn_new("localhost", 7575, on_conn, L);
+	GConn *conn = gnet_conn_new(hostname, port, on_conn, L);
 
 	luaL_openlibs(L);
 	modapp_register(L, loop);
