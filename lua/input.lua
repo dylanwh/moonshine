@@ -1,3 +1,15 @@
+-- GLOBALS: bind, on_input, on_input_reset.
+--
+-- This hooks into on_input and on_input_reset.
+-- It provides bind(keysequence, f) which causes f to be invoked when the
+-- keysequence is seen in sucessive calls to on_input().
+-- on_input_reset() is called as a sort-of safeguard against being stuck waiting
+-- for input. 
+--
+-- Keys are UTF8 strings.
+--
+-- unbound keys are passed to on_keypress(), which is defined in ui.lua.
+
 local keys = {}
 local last_key = nil
 

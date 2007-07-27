@@ -30,7 +30,12 @@ static int app_refresh(LuaState *L)
 
 static int app_exit(LuaState *L)
 {
-	event_loopexit(NULL);
+	lua_getfield(L, LUA_REGISTRYINDEX, "glib.loop");
+	GMainLoop *loop = lua_touserdata(L, -1);
+	lua_pop(L, 1);
+	g_assert(loop);
+
+	g_main_loop_quit(loop);
 	return 0;
 }
 
@@ -41,8 +46,10 @@ static LuaLReg functions[] = {
 	{ 0, 0 }
 };
 
-void modapp_register(LuaState *L)
+void modapp_register(LuaState *L, GMainLoop *loop)
 {
 	luaL_register(L, APP, functions);
 	lua_pop(L, 1);
+	lua_pushlightuserdata(L, loop);
+	lua_setfield(L, LUA_REGISTRYINDEX, "glib.loop");
 }

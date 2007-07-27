@@ -23,8 +23,7 @@ typedef lua_State    LuaState;
 typedef luaL_reg     LuaLReg;
 
 /* util.c: utility functions */
-LuaState *moon_init(void);
-gboolean moon_call(lua_State *L, const char *name, const char *sig, ...);
+gboolean moon_call(LuaState *L, const char *name, const char *sig, ...);
 PURE int unicode_charwidth(gunichar ch);
 
 /* term.c: terminal routines. */
@@ -39,13 +38,8 @@ gunichar term_getkey(void);
 #define term_erase_eol  SLsmg_erase_eol
 #define term_write_char SLsmg_write_char
 
-/* screen.c: high-level terminal routines. */
-//typedef struct Screen Screen;
-//Screen *screen_new(void);
-//void screen_refresh(Screen *scr);
-
 void modEntry_register (lua_State *L); // Provides the Entry class.
 void modBuffer_register (lua_State *L); // Provides the Buffer class.
-void modapp_register(LuaState *L);
+void modapp_register(LuaState *L, GMainLoop *loop);
 
 #endif

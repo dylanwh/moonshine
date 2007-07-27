@@ -9,16 +9,6 @@
 #include <unistd.h>
 #include <string.h>
 
-LuaState *moon_init(void)
-{
-	LuaState *L = lua_open();
-	luaL_openlibs(L);
-	modapp_register(L);
-	modEntry_register(L);
-	modBuffer_register(L);
-	return L;
-}
-
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
 {
 	int argc = strlen(sig);

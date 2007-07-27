@@ -37,12 +37,16 @@ gunichar term_getkey(void)
 	g_assert(len != 0);
 
 	gchar buf[8];
+	for (int j = 0; j < 8; j++)
+		buf[j] = 0;
+
 	int i = 0;
 	buf[i++] = (gchar) ch;
 
 	while (i < len)
 		buf[i++] = (gchar) SLang_getkey();
 
+	g_assert(g_utf8_validate(buf, -1, NULL));
 	return g_utf8_get_char(buf);
 }
 

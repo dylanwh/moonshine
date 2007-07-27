@@ -5,66 +5,121 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <gnet.h>
 
-void on_signal(int fd, short event, void *arg)
+UNUSED static void on_signal(int fd, short event, void *arg)
 {
 	printf("signal: %d\n", fd);
-	event_loopexit(NULL);
+	//event_loopexit(NULL);
 }
 
-void on_sigwinch(int fd, short event, void *arg)
+UNUSED static void on_sigwinch(int fd, short event, void *arg)
 {
 	LuaState *L = arg;
 	term_resize();
 	moon_call(L, "on_resize", "");
 }
 
-void on_input(int fd, short event, void *arg)
+static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer arg)
 {
 	LuaState *L = arg;
-	do {
-		gunichar c = term_getkey();
-		char buf[8];
-		g_unichar_to_utf8(c, buf);
-		moon_call(L, "on_input", "s", buf);
-	} while (SLang_input_pending(-20));
+	if (cond & G_IO_IN) {
+		do {
+			gunichar c = term_getkey();
+			char buf[8];
+			for (int i = 0; i < sizeof(buf); i++)
+				buf[i] = 0;
+			g_unichar_to_utf8(c, buf);
+			moon_call(L, "on_input", "s", buf);
+		} while (SLang_input_pending(1));
+		//moon_call(L, "on_input_reset", "");
+		return TRUE;
+	}
+	return FALSE;
+}
 
-	moon_call(L, "on_input_reset", "");
+static void on_conn (GConn *conn, GConnEvent *event, gpointer data)
+{
+	LuaState *L = data;
+
+	switch (event->type)
+	{
+	  	case GNET_CONN_CONNECT:
+	  	    {
+	  	      	gnet_conn_timeout (conn, 0);	/* reset timeout */
+	  	      	gnet_conn_readline (conn);
+	  	      	break;
+	  	    }
+	  	case GNET_CONN_READ:
+	  	    {
+	  	      	/* Write line out */
+	  	      	moon_call(L, "on_line", "s", event->buffer);
+	  	      	gnet_conn_readline (conn);
+	  	      	break;
+	  	    }
+	  	case GNET_CONN_WRITE:
+	  	    {
+	  	      	; /* do nothing */
+	  	      	break;
+	  	    }
+
+	  	case GNET_CONN_CLOSE:
+	  	    {
+	  	      	gnet_conn_delete (conn);
+	  	      	exit (EXIT_SUCCESS);
+	  	      	break;
+	  	    }
+
+	  	case GNET_CONN_TIMEOUT:
+	  	    {
+	  	      	gnet_conn_delete (conn);
+	  	      	fprintf (stderr, "Connection timeout\n");
+	  	      	exit (EXIT_FAILURE);
+	  	      	break;
+	  	    }
+
+	  	case GNET_CONN_ERROR:
+	  	    {
+	  	      	gnet_conn_delete (conn);
+	  	      	fprintf (stderr, "Connection failure\n");
+	  	      	exit (EXIT_FAILURE);
+	  	      	break;
+	  	    }
+
+	  	default:
+	  	    g_assert_not_reached ();
+	}
 }
 
 int main(int argc, char *argv[])
 {
-	Event sigint;
-	Event sigterm;
-	Event sigwinch;
-	Event input;
-	LuaState *L;
-
-	event_init();
 	term_init();
-	L = moon_init();
-	
-	//keymap_init(L);
+	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
+	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
+	LuaState *L = lua_open();
+	GConn *conn = gnet_conn_new("localhost", 7575, on_conn, L);
+
+	luaL_openlibs(L);
+	modapp_register(L, loop);
+	modEntry_register(L);
+	modBuffer_register(L);
+
+
 	if (luaL_dofile(L, "lua/boot.lua")) {
 		const char *err = lua_tostring(L, -1);
 		g_error("Cannot boot: %s", err);
 	}
 
-	event_set(&sigint, SIGINT, EV_SIGNAL|EV_PERSIST, on_signal, NULL);
-	event_add(&sigint, NULL);
+	g_io_add_watch(input, G_IO_IN, on_input, L);
 
-	event_set(&sigterm, SIGTERM, EV_SIGNAL|EV_PERSIST, on_signal, NULL);
-	event_add(&sigterm, NULL);
+	gnet_conn_connect (conn);
+	gnet_conn_set_watch_error (conn, TRUE);
+	gnet_conn_timeout (conn, 30000);
 
-	event_set(&sigwinch, SIGWINCH, EV_SIGNAL|EV_PERSIST, on_sigwinch, L);
-	event_add(&sigwinch, NULL);
-
-	event_set(&input, fileno(stdin), EV_READ|EV_PERSIST, on_input, L);
-	event_add(&input, NULL);
-
-	event_dispatch();
+	g_main_loop_run(loop);
 
 	term_reset();
 	lua_close(L);
+
 	return 0;
 }
