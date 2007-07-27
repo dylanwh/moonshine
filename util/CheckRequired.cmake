@@ -11,6 +11,18 @@ ELSE()
 	MESSAGE(STATUS "Good, we have pkg-config")
 ENDIF()
 
+IF (NOT GLIB_LDFLAGS)
+	MESSAGE(SEND_ERROR "moonshine requires glib-2.0")
+ELSE()
+	MESSAGE(STATUS "Good, we have glib")
+ENDIF()
+
+IF (NOT GNET_LDFLAGS)
+	MESSAGE(SEND_ERROR "moonshine requires gnet-2.0")
+ELSE()
+	MESSAGE(STATUS "Good, we have gnet")
+ENDIF()
+
 IF (NOT LUA)
 	MESSAGE(SEND_ERROR "moonshine requires lua")
 ELSE()
