@@ -7,11 +7,8 @@
 #include <stdlib.h>
 #include <gnet.h>
 
-void on_signal(int fd, short event, void *arg)
-{
-	printf("signal: %d\n", fd);
-	//event_loopexit(NULL);
-}
+static char *user_boot_path = NULL;
+extern const char lua_embed_boot[];
 
 static char *hostname = "chat.haverdev.org";
 static int port = 7575;
@@ -20,8 +17,47 @@ static GOptionEntry entries[] =
 {
 	{ "hostname", 'H', 0, G_OPTION_ARG_STRING, &hostname, "hostname to use ", "host" },
 	{ "port", 'p', 0, G_OPTION_ARG_INT, &port, "conntect to port P", "P" },
+	{ "boot", 'b', 0, G_OPTION_ARG_STRING, &user_boot_path, "LUA bootstrap code to use", "bootfile" },
 	{ NULL }
 };
+
+static int boot_lua(lua_State *L) {
+	if (user_boot_path) {
+		if (!luaL_dofile(L, user_boot_path))
+			return 0;
+		else
+			lua_pop(L, 1);
+	}
+	char *userhome = getenv("HOME");
+	if (userhome) {
+		static const char suffix[] = "/.moonshine/boot.lua";
+		char fullpath[strlen(userhome) + sizeof(suffix) + 1];
+		strcpy(fullpath, userhome);
+		strcat(fullpath, suffix);
+		if (!luaL_dofile(L, fullpath))
+			return 0;
+		else
+			lua_pop(L, 1);
+	}
+	if (!luaL_dofile(L, "/usr/share/moonshine/boot.lua"))
+		return 0;
+	else
+		lua_pop(L, 1);
+	/* (luaL_loadfile(L, filename) || lua_pcall(L, 0, LUA_MULTRET, 0)) */
+	if (luaL_loadbuffer(L, lua_embed_boot, strlen(lua_embed_boot), "embedded boot.lua")) {
+		const char *err = lua_tostring(L, -1);
+		g_error("BUG: Cannot load in-core boot.lua: %s", err);
+		exit(EXIT_FAILURE);
+	}
+	int ret = lua_pcall(L, 0, LUA_MULTRET, 0);
+	if (ret == 0) {
+		return 0;
+	} else {
+		const char *err = lua_tostring(L, -1);
+		g_error("BUG: Boot from in-core boot.lua failed after pcall: %s", err);
+		exit(EXIT_FAILURE);
+	}
+}
 
 static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer arg)
 {
@@ -112,7 +148,6 @@ int main(int argc, char *argv[])
 	modapp_register(L, loop);
 	modEntry_register(L);
 	modBuffer_register(L);
-
 
 	boot_lua(L);
 
