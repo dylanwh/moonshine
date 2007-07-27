@@ -46,13 +46,13 @@ static void on_conn (GConn *conn, GConnEvent *event, gpointer data)
 	  	    {
 	  	      	gnet_conn_timeout (conn, 0);	/* reset timeout */
 	  	      	gnet_conn_readline (conn);
-	  	      	moon_call(L, "print", "s", "connected");
+	  	      	moon_call(L, "on_connect", "si", hostname, port);
 	  	      	break;
 	  	    }
 	  	case GNET_CONN_READ:
 	  	    {
 	  	      	/* Write line out */
-	  	      	moon_call(L, "on_line", "s", event->buffer);
+	  	      	moon_call(L, "on_read", "s", event->buffer);
 	  	      	gnet_conn_readline (conn);
 	  	      	break;
 	  	    }
@@ -65,24 +65,23 @@ static void on_conn (GConn *conn, GConnEvent *event, gpointer data)
 	  	case GNET_CONN_CLOSE:
 	  	    {
 	  	      	gnet_conn_delete (conn);
-	  	      	moon_call(L, "print", "s", "connection close");
+	  	      	moon_call(L, "on_close", "si", hostname, port);
 	  	      	break;
 	  	    }
 
 	  	case GNET_CONN_TIMEOUT:
 	  	    {
 	  	      	gnet_conn_delete (conn);
-	  	      	moon_call(L, "print", "s", "connection timeout");
+	  	      	moon_call(L, "on_timeout", "si", hostname, port);
 	  	      	break;
 	  	    }
 
 	  	case GNET_CONN_ERROR:
 	  	    {
 	  	      	gnet_conn_delete (conn);
-	  	      	moon_call(L, "print", "s", "connection failure");
+	  	      	moon_call(L, "on_error", "si", hostname, port);
 	  	      	break;
 	  	    }
-
 	  	default:
 	  	    g_assert_not_reached ();
 	}

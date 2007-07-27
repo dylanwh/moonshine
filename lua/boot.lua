@@ -7,7 +7,7 @@ function print(...)
 	ui:render()
 end
 
-function on_line(ln)
+function on_msg(ln)
 	ui:print(ln)
 	ui:render()
 end
