@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <gnet.h>
 
-static char *user_boot_path = NULL;
 extern const char lua_embed_boot[];
 
+static char *user_boot_path = NULL;
 static char *hostname = "chat.haverdev.org";
 static int port = 7575;
 
