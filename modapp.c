@@ -2,6 +2,8 @@
 #include <string.h>
 #define APP "app"
 
+#include "buffer.h"
+
 /* make_keyspec turns strings like "^A" into "\001", and so on. */
 static int app_make_keyspec(LuaState *L)
 {
@@ -38,6 +40,8 @@ static int app_exit(LuaState *L)
 	g_main_loop_quit(loop);
 	return 0;
 }
+
+
 
 static LuaLReg functions[] = {
 	{ "make_keyspec", app_make_keyspec },

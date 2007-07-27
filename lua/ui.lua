@@ -31,12 +31,16 @@ local function expose(object, field, method)
 	end
 end
 
-expose(ui, 'buffer', 'print')
 expose(ui, 'entry', 'keypress')
 expose(ui, 'entry', 'move')
 expose(ui, 'entry', 'erase')
 expose(ui, 'entry', 'clear')
 expose(ui, 'entry', 'get')
+
+function ui:print(fmt, ...)
+	local s = ui.buffer.format(fmt, arg)
+	ui.buffer:print(s)
+end
 
 function ui:render()
 	self.buffer:render()
