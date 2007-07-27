@@ -112,15 +112,15 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 		gboolean advance_line = TRUE;
 		while (*seg_end) {
 			gunichar ch = g_utf8_get_char(seg_end);
-			if (ch == INDENT_MARK_UCS) {
+			if (ch == BUFFER_INDENT_MARK_UCS) {
 				margin = cur_width;
 				advance_line = FALSE;
 				next_line = g_utf8_next_char(seg_end);
 				break;
 			}
-			if (ch >= COLOR_MIN_UCS && ch <= COLOR_MAX_UCS) {
+			if (ch >= BUFFER_COLOR_MIN_UCS && ch <= BUFFER_COLOR_MAX_UCS) {
 				temp_margin = cur_width;
-				next_color = ch - COLOR_MIN_UCS;
+				next_color = ch - BUFFER_COLOR_MIN_UCS;
 				advance_line = FALSE;
 				next_line = g_utf8_next_char(seg_end);
 				break;

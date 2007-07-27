@@ -87,10 +87,10 @@ void buffer_scroll_to(Buffer *buffer, guint abs_offset);
  */
 void buffer_free(Buffer *buffer);
 
-#define INDENT_MARK_UCS 0xF0000
-#define INDENT_MARK_UTF "\xF3\xB0\x80\x80"
-#define COLOR_MIN_UCS   0xFC000
-#define COLOR_MAX_UCS   0xFCFFF
+#define BUFFER_INDENT_MARK_UCS 0xF0000
+#define BUFFER_INDENT_MARK_UTF "\xF3\xB0\x80\x80"
+#define BUFFER_COLOR_MIN_UCS   0xFC000
+#define BUFFER_COLOR_MAX_UCS   0xFCFFF
 
 #endif
 
