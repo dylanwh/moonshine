@@ -24,6 +24,8 @@ typedef luaL_reg     LuaLReg;
 
 /* util.c: utility functions */
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...);
+void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[]);
+
 PURE int unicode_charwidth(gunichar ch);
 
 /* term.c: terminal routines. */

@@ -1,7 +1,7 @@
 #include "moonshine.h"
 #include "entry.h"
-
 #include <string.h>
+
 #define ENTRY "Entry"
 
 static Entry *toEntry (lua_State *L, int index)
@@ -126,19 +126,7 @@ static const LuaLReg Entry_meta[] = {
   	{0, 0}
 };
 
-void modEntry_register (lua_State *L)
+void modEntry_register (LuaState *L)
 {
-  	luaL_register(L, ENTRY, Entry_methods); /* create methods table, add it to
-  											   the globals */
-  	luaL_newmetatable(L, ENTRY);          /* create metatable for Entry, and add
-  											 it to the Lua registry */
-  	luaL_openlib(L, 0, Entry_meta, 0);    /* fill metatable */
-  	lua_pushliteral(L, "__index");
-  	lua_pushvalue(L, -3);               /* dup methods table*/
-  	lua_rawset(L, -3);                  /* metatable.__index = methods */
-  	lua_pushliteral(L, "__metatable");
-  	lua_pushvalue(L, -3);               /* dup methods table*/
-  	lua_rawset(L, -3);                  /* hide metatable:
-                                           metatable.__metatable = methods */
-  	lua_pop(L, 2);                      /* drop metatable and methods */
+	moon_class_create(L, ENTRY, Entry_methods, Entry_meta);
 }

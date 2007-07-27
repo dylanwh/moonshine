@@ -41,8 +41,6 @@ static int app_exit(LuaState *L)
 	return 0;
 }
 
-
-
 static LuaLReg functions[] = {
 	{ "make_keyspec", app_make_keyspec },
 	{ "exit", app_exit },

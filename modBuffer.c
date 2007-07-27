@@ -195,22 +195,9 @@ static const LuaLReg Buffer_meta[] = {
   	{0, 0}
 };
 
-void modBuffer_register (lua_State *L)
-{
-  	luaL_register(L, BUFFER, Buffer_methods); /* create methods table, add it to
-  											   the globals */
-  	lua_pushstring(L, BUFFER_INDENT_MARK_UTF);
-  	lua_setfield(L, -2, "INDENT_MARK");
 
-  	luaL_newmetatable(L, BUFFER);          /* create metatable for Buffer, and add
-  											 it to the Lua registry */
-  	luaL_openlib(L, 0, Buffer_meta, 0);    /* fill metatable */
-  	  	lua_pushliteral(L, "__index");
-  	lua_pushvalue(L, -3);               /* dup methods table*/
-  	lua_rawset(L, -3);                  /* metatable.__index = methods */
-  	lua_pushliteral(L, "__metatable");
-  	lua_pushvalue(L, -3);               /* dup methods table*/
-  	lua_rawset(L, -3);                  /* hide metatable:
-                                           metatable.__metatable = methods */
-  	lua_pop(L, 2);                      /* drop metatable and methods */
+void modBuffer_register(LuaState *L)
+{
+	moon_class_create(L, BUFFER, Buffer_methods, Buffer_meta);
 }
+
