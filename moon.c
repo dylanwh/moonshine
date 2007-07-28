@@ -32,7 +32,7 @@ void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], 
   	luaL_newmetatable(L, class);      /* create metatable for Buffer, and add it
   										 to the Lua registry */
   	luaL_openlib(L, 0, meta, 0);      /* fill metatable */
-  	  	lua_pushliteral(L, "__index");
+  	lua_pushliteral(L, "__index");
   	lua_pushvalue(L, -3);             /* dup methods table*/
   	lua_rawset(L, -3);                /* metatable.__index = methods */
   	lua_pushliteral(L, "__metatable");
@@ -44,36 +44,11 @@ void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], 
 
 void moon_boot(LuaState *L, char *user_boot_path)
 {
-	if (user_boot_path) {
-		if (!luaL_dofile(L, user_boot_path))
-			return;
-		else
-			lua_pop(L, 1);
-	}
-	char *userhome = getenv("HOME");
-	if (userhome) {
-		static const char suffix[] = "/.moonshine/boot.lua";
-		char fullpath[strlen(userhome) + sizeof(suffix) + 1];
-		strcpy(fullpath, userhome);
-		strcat(fullpath, suffix);
-		if (!luaL_dofile(L, fullpath))
-			return;
-		else
-			lua_pop(L, 1);
-	}
-	if (!luaL_dofile(L, "/usr/share/moonshine/boot.lua"))
-		return;
-	else
-		lua_pop(L, 1);
-
 	if (luaL_loadbuffer(L, moon_boot_embed, strlen(moon_boot_embed), "embedded boot.lua")) {
 		const char *err = lua_tostring(L, -1);
 		g_error("BUG: Cannot load in-core boot.lua: %s", err);
 	}
-	int ret = lua_pcall(L, 0, LUA_MULTRET, 0);
-	if (ret == 0) {
-		return;
-	} else {
+	if (lua_pcall(L, 0, LUA_MULTRET, 0) != 0) {
 		const char *err = lua_tostring(L, -1);
 		g_error("BUG: Boot from in-core boot.lua failed after pcall: %s", err);
 	}
