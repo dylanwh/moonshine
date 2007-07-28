@@ -1,11 +1,7 @@
 PROJECT (moonshine C)
 
-ADD_EXECUTABLE (moonshine term.c 
-	buffer.c entry.c 
-	modEntry.c modBuffer.c modapp.c 
-	util.c main.c
-	${moonshine_BINARY_DIR}/embed.o
-    )
+ADD_EXECUTABLE (moonshine term.c moon.c buffer.c entry.c modEntry.c modBuffer.c
+	modapp.c util.c main.c ${moonshine_BINARY_DIR}/moon_boot.o)
 
 # Includes
 INCLUDE (CheckIncludeFile)
@@ -52,10 +48,15 @@ CONFIGURE_FILE(${moonshine_SOURCE_DIR}/docs/Doxyfile.in
 
 ADD_CUSTOM_TARGET(api-docs ALL ${DOXYGEN} docs/Doxyfile)
 
+ADD_CUSTOM_COMMAND(OUTPUT ${moonshine_BINARY_DIR}/moon_boot.o
+	COMMAND as -o     ${moonshine_BINARY_DIR}/moon_boot.o moon_boot.S
+	MAIN_DEPENDENCY   ${moonshine_SOURCE_DIR}/moon_boot.S 
+	DEPENDS           ${moonshine_SOURCE_DIR}/lua/boot.lua
+	WORKING_DIRECTORY ${moonshine_SOURCE_DIR})
+
 # Install rules.
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)
 
 INCLUDE(util/CheckRequired.cmake)
 
-ADD_CUSTOM_COMMAND(OUTPUT ${moonshine_BINARY_DIR}/embed.o COMMAND as -o ${moonshine_BINARY_DIR}/embed.o embed.S MAIN_DEPENDENCY ${moonshine_SOURCE_DIR}/embed.S DEPENDS ${moonshine_SOURCE_DIR}/lua/boot.lua WORKING_DIRECTORY ${moonshine_SOURCE_DIR})
 

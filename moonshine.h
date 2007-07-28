@@ -3,6 +3,8 @@
 #define __MOONSHINE_H__
 
 #include <signal.h>
+#include <string.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/time.h>
 
@@ -22,10 +24,15 @@ typedef struct event Event;
 typedef lua_State    LuaState;
 typedef luaL_reg     LuaLReg;
 
-/* util.c: utility functions */
+/* moon.c: lua functions */
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...);
 void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[]);
+void moon_boot(LuaState *L, char *user_boot_path);
 
+/* moon_boot.S */
+extern const char moon_boot_embed[];
+
+/* util.c: utility functions */
 PURE int unicode_charwidth(gunichar ch);
 
 /* term.c: terminal routines. */
