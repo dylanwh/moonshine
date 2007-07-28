@@ -29,7 +29,7 @@ ELSE()
 	MESSAGE(STATUS "Good, we have lua (${LUA})")
 ENDIF()
 
-INCLUDE (util/SlangVersion.cmake)
+INCLUDE (cmake/SlangVersion.cmake)
 IF (SLANG_VERSION LESS 20000)
 	MESSAGE(SEND_ERROR "moonshine requires slang-2")
 ELSE ()

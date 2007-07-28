@@ -1,5 +1,5 @@
 #include "moonshine.h"
-
+#include "packages.h"
 
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
 {
@@ -42,15 +42,54 @@ void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], 
   	lua_pop(L, 2);                    /* drop metatable and methods */
 }
 
+static int package_loader(LuaState *L)
+{
+	const char *pkg = lua_tostring(L, lua_upvalueindex(1));
+	const char *src = lua_tostring(L, lua_upvalueindex(2));
+	if (luaL_loadbuffer(L, src, strlen(src), pkg)) {
+		const char *err = lua_tostring(L, -1);
+		g_error("BUG: Cannot load in-core %s.lua: %s", pkg, err);
+		exit(EXIT_FAILURE);
+	} 
+	else if (lua_pcall(L, 0, LUA_MULTRET, 0)) {
+		const char *err = lua_tostring(L, -1);
+		g_error("BUG: Boot from in-core %s.lua failed after pcall: %s", pkg, err);
+		exit(EXIT_FAILURE);
+	} else {
+		return 0;
+	}
+}
+
+static int package_finder(LuaState *L)
+{
+	const char *pkg = luaL_checkstring(L, 1);
+	for (int i = 0; i < sizeof packages; i++) {
+		if (strcmp(packages[i].filename, pkg) == 0) {
+			lua_pushstring(L, pkg);
+			lua_pushstring(L, packages[i].content);
+			lua_pushcclosure(L, package_loader, 2);
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void moon_boot(LuaState *L, char *user_boot_path)
 {
-	if (luaL_loadbuffer(L, moon_boot_embed, strlen(moon_boot_embed), "embedded boot.lua")) {
+	/* table.insert(package.loaders, package_finder) */
+	lua_register(L, "package_finder", package_finder);
+	if (luaL_dostring(L, "table.insert(package.loaders, package_finder)")) {
 		const char *err = lua_tostring(L, -1);
-		g_error("BUG: Cannot load in-core boot.lua: %s", err);
+		g_error("BUG: error adding package loader: %s", err);
+		exit(EXIT_FAILURE);
 	}
-	if (lua_pcall(L, 0, LUA_MULTRET, 0) != 0) {
+	lua_pushnil(L);
+	lua_setglobal(L, "package_finder");
+
+	if (luaL_dostring(L, "require('boot')")) {
 		const char *err = lua_tostring(L, -1);
-		g_error("BUG: Boot from in-core boot.lua failed after pcall: %s", err);
+		g_error("BUG: error booting: %s", err);
+		exit(EXIT_FAILURE);
 	}
 }
 

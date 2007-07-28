@@ -9,7 +9,6 @@
 -- Keys are UTF8 strings.
 --
 -- unbound keys are passed to on_keypress(), which is defined in ui.lua.
-
 local keys = {}
 local last_key = nil
 

@@ -1,13 +1,16 @@
-PROJECT (moonshine C)
+PROJECT (MOONSHINE C)
 
-ADD_EXECUTABLE (moonshine term.c moon.c buffer.c entry.c modEntry.c modBuffer.c
-	modapp.c util.c main.c ${moonshine_BINARY_DIR}/moon_boot.o)
+ADD_EXECUTABLE (moonshine term.c packages.h moon.c buffer.c entry.c
+	modEntry.c modBuffer.c modapp.c util.c main.c)
 
 # Includes
 INCLUDE (CheckIncludeFile)
 INCLUDE (FindDoxygen)
 INCLUDE (UsePkgConfig)
 INCLUDE (CheckCSourceCompiles)
+
+SET(SRC "${MOONSHINE_SOURCE_DIR}")
+SET(BIN "${MOONSHINE_BINARY_DIR}") 
 
 # Options
 # ENABLE_TESTING()
@@ -32,7 +35,7 @@ IF (EXISTS "/usr/include/slang-2/slang.h")
 ENDIF()
 
 ## Now we add these the the flags passed to the C compiler.
-ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline")
+ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline -I${BIN}")
 ADD_DEFINITIONS(${SLANG_CFLAGS})
 ADD_DEFINITIONS(${GLIB_CFLAGS})
 ADD_DEFINITIONS(${GNET_CFLAGS})
@@ -42,21 +45,26 @@ ADD_DEFINITIONS(${LUA_CFLAGS})
 SET_TARGET_PROPERTIES(moonshine PROPERTIES LINK_FLAGS 
 	"${GLIB_LDFLAGS} ${GNET_LDFLAGS} ${LUA_LDFLAGS} ${SLANG_LDFLAGS}")
 
-CONFIGURE_FILE(${moonshine_SOURCE_DIR}/docs/Doxyfile.in
-	${moonshine_BINARY_DIR}/docs/Doxyfile
+CONFIGURE_FILE(${SRC}/docs/Doxyfile.in
+	${BIN}/docs/Doxyfile
 	@ONLY IMMEDIATE)
 
-ADD_CUSTOM_TARGET(api-docs ALL ${DOXYGEN} docs/Doxyfile)
+# ADD_CUSTOM_TARGET(api-docs ALL ${DOXYGEN} docs/Doxyfile)
 
-ADD_CUSTOM_COMMAND(OUTPUT ${moonshine_BINARY_DIR}/moon_boot.o
-	COMMAND as -o     ${moonshine_BINARY_DIR}/moon_boot.o moon_boot.S
-	MAIN_DEPENDENCY   ${moonshine_SOURCE_DIR}/moon_boot.S 
-	DEPENDS           ${moonshine_SOURCE_DIR}/lua/boot.lua
-	WORKING_DIRECTORY ${moonshine_SOURCE_DIR})
+FILE(GLOB PACKAGES ${SRC}/lua/*.lua)
+ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/packages.h
+	COMMAND perl ${SRC}/cmake/embed-packages.pl 
+	${PACKAGES} > ${BIN}/packages.h
+	MAIN_DEPENDENCY ${SRC}/cmake/embed-packages.pl DEPENDS ${PACKAGES}
+	WORKING_DIRECTORY ${SRC})
+
+SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS
+	"${BIN}/packages.h")
+
 
 # Install rules.
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)
 
-INCLUDE(util/CheckRequired.cmake)
+INCLUDE(cmake/CheckRequired.cmake)
 
 
