@@ -26,7 +26,7 @@ ENDIF()
 IF (NOT LUA)
 	MESSAGE(SEND_ERROR "moonshine requires lua")
 ELSE()
-	MESSAGE(STATUS "Good, we have lua (${LUA}, ${LUA_LDFLAGS})")
+	MESSAGE(STATUS "Good, we have lua (${LUA})")
 ENDIF()
 
 INCLUDE (cmake/SlangVersion.cmake)
