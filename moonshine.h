@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#include <event.h>
 #include <slang.h>
 #include <lua.h>
 #include <lualib.h>
@@ -20,7 +19,6 @@
 #define THREAD __thread
 
 /* typedefs */
-typedef struct event Event;
 typedef lua_State    LuaState;
 typedef luaL_reg     LuaLReg;
 

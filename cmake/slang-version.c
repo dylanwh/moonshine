@@ -4,4 +4,5 @@
 int main(int argc, char *argv[])
 {
 	printf("SLANG_VERSION=%d\n", SLANG_VERSION);
+	return 0;
 }

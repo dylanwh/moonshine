@@ -33,6 +33,11 @@ IF (EXISTS "/usr/include/slang-2/slang.h")
 	SET (SLANG_CFLAGS "-I/usr/include/slang-2")
 	SET (SLANG_LDFLAGS "-lslang-2")
 ENDIF()
+IF (EXISTS "/opt/local/include/slang.h")
+	MESSAGE(STATUS "I small darwin or macosx ports.")
+	SET (SLANG_CFLAGS "-I/opt/local/include")
+	SET (SLANG_LDFLAGS "-L/opt/local/lib -lslang")
+ENDIF()
 
 ## Now we add these the the flags passed to the C compiler.
 ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline -I${BIN}")
@@ -40,6 +45,7 @@ ADD_DEFINITIONS(${SLANG_CFLAGS})
 ADD_DEFINITIONS(${GLIB_CFLAGS})
 ADD_DEFINITIONS(${GNET_CFLAGS})
 ADD_DEFINITIONS(${LUA_CFLAGS})
+
 
 # And add the link flags to moonshine.
 SET_TARGET_PROPERTIES(moonshine PROPERTIES LINK_FLAGS 
