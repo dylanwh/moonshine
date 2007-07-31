@@ -1,14 +1,23 @@
 PROJECT (MOONSHINE C)
-
 SET(SRC "${MOONSHINE_SOURCE_DIR}")
 SET(BIN "${MOONSHINE_BINARY_DIR}") 
-
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
-
-ADD_EXECUTABLE (moonshine term.c packages.h moon.c buffer.c entry.c
+SET(SOURCES term.c moon.c buffer.c entry.c
 	modEntry.c modBuffer.c modapp.c util.c main.c)
+
+OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
+
+IF (EMBED_LUA)
+	MESSAGE(STATUS "Will embed lua packages")
+	SET(SOURCES ${SOURCES} packages.h)
+ELSE()
+	MESSAGE(STATUS "Will not embed lua packages")
+ENDIF ()
+
+
+ADD_EXECUTABLE(moonshine ${SOURCES})
 
 FIND_PACKAGE(LUA REQUIRED)
 FIND_PACKAGE(SLANG REQUIRED)
@@ -22,13 +31,18 @@ TARGET_LINK_LIBRARIES(moonshine ${GLIB_LIBRARY} ${GNET_LIBRARY} ${SLANG_LIBRARY}
 	${LUA_LIBRARY})
 
 ## Now we add these the the flags passed to the C compiler.
-ADD_DEFINITIONS("-std=gnu99 -Werror -Wall -Winline -I${BIN}")
+ADD_DEFINITIONS("-std=gnu99 -Wall -Winline -I${BIN}")
 ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GNET_DEFINITIONS}")
+
+CONFIGURE_FILE(${SRC}/config.h.in
+	${BIN}/config.h
+	@ONLY IMMEDIATE)
 
 #CONFIGURE_FILE(${SRC}/docs/Doxyfile.in
 #	${BIN}/docs/Doxyfile
 #	@ONLY IMMEDIATE)
 
+IF (EMBED_LUA)
 FILE(GLOB PACKAGES ${SRC}/lua/*.lua)
 ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/packages.h
 	COMMAND perl ${SRC}/cmake/embed-packages.pl 
@@ -37,6 +51,7 @@ ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/packages.h
 	WORKING_DIRECTORY ${SRC})
 
 SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/packages.h")
+ENDIF()
 
 # Install rules.
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)

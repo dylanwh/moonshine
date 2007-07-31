@@ -24,7 +24,7 @@ typedef luaL_reg     LuaLReg;
 /* moon.c: lua functions */
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...);
 void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[]);
-void moon_boot(LuaState *L, char *user_boot_path);
+void moon_boot(LuaState *L);
 
 /* moon_boot.S */
 extern const char moon_boot_embed[];

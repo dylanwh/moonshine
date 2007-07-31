@@ -1,5 +1,8 @@
 #include "moonshine.h"
+
+#if EMBED_LUA
 #include "packages.h"
+#endif
 
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
 {
@@ -42,6 +45,7 @@ void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], 
   	lua_pop(L, 2);                    /* drop metatable and methods */
 }
 
+#if EMBED_LUA
 static int package_loader(LuaState *L)
 {
 	const char *pkg = lua_tostring(L, lua_upvalueindex(1));
@@ -73,9 +77,11 @@ static int package_finder(LuaState *L)
 	}
 	return 0;
 }
+#endif
 
-void moon_boot(LuaState *L, char *user_boot_path)
+void moon_boot(LuaState *L)
 {
+#	if EMBED_LUA
 	/* table.insert(package.loaders, package_finder) */
 	lua_register(L, "package_finder", package_finder);
 	if (luaL_dostring(L, "table.insert(package.loaders, package_finder)")) {
@@ -85,11 +91,10 @@ void moon_boot(LuaState *L, char *user_boot_path)
 	}
 	lua_pushnil(L);
 	lua_setglobal(L, "package_finder");
-
+#	endif
 	if (luaL_dostring(L, "require('boot')")) {
 		const char *err = lua_tostring(L, -1);
 		g_error("BUG: error booting: %s", err);
 		exit(EXIT_FAILURE);
 	}
 }
-
