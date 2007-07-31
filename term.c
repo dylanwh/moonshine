@@ -96,7 +96,7 @@ const char *term_color_to_utf8(const char *name)
 {
 	/* Per g_unichar_to_utf8 docs we need 6 chars *
 	 * here; add one for NUL					  */
-	static THREAD char buf[7];
+	static char buf[7];
 
 	gunichar ch = BUFFER_COLOR_MIN_UCS + term_color_to_id(name);
 	g_assert(ch <= BUFFER_COLOR_MAX_UCS); /* XXX: handle this failure better... */

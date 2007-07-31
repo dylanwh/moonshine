@@ -16,7 +16,6 @@
 
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 
-#define THREAD __thread
 
 /* typedefs */
 typedef lua_State    LuaState;
