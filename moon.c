@@ -1,6 +1,6 @@
 #include "moonshine.h"
 
-#if EMBED_LUA
+#ifdef EMBED_LUA
 #	include "packages.h"
 #endif
 
@@ -45,7 +45,7 @@ void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], 
   	lua_pop(L, 2);                    /* drop metatable and methods */
 }
 
-#if EMBED_LUA
+#ifdef EMBED_LUA
 static int package_loader(LuaState *L)
 {
 	const char *pkg = lua_tostring(L, lua_upvalueindex(1));
@@ -81,7 +81,7 @@ static int package_finder(LuaState *L)
 
 void moon_boot(LuaState *L)
 {
-#	if EMBED_LUA
+#	ifdef EMBED_LUA
 	/* table.insert(package.loaders, package_finder) */
 	lua_register(L, "package_finder", package_finder);
 	if (luaL_dostring(L, "table.insert(package.loaders, package_finder)")) {
