@@ -38,8 +38,9 @@ ELSE (GLIB_LIBRARY AND GLIB_INCLUDE_DIR)
 
 
 
-	SET(GLIB_DEFINITIONS ${_GLIBCflags})
-	SET (GLIB_DEFINITIONS CACHE STRING "compiler switches required for glib")
+	SET(GLIB_DEFINITIONS ${_GLIBCflags} 
+		CACHE STRING "compiler switches required for glib")
+
 	FIND_PATH(GLIB_INCLUDE_DIR
     	NAMES glib.h
     	PATHS ${_GLIBIncDir}
