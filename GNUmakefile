@@ -7,7 +7,7 @@ build:
 	mkdir -p build
 
 configure: build
-	cd build && cmake .
+	cd build && cmake ..
 	
 compile: configure
 	make -C build --no-print-directory moonshine
