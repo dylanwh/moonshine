@@ -1,6 +1,22 @@
 
-all: build
-	cd build && cmake .. && make --no-print-directory moonshine
+default: configure
+
+all: configure compile
+
+build:
+	mkdir -p build
+
+configure: build
+	cd build && cmake .
+	
+compile: configure
+	make -C build --no-print-directory moonshine
+
+purge:
+	rm -rf build
+
+
+
 
 install:
 	make --no-print-directory -C build install
@@ -13,11 +29,5 @@ api-docs:
 
 posthook:
 	#-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl
-
-purge:
-	rm -rf build
-
-build:
-	mkdir -p build
 
 .PHONY: all posthook purge install test
