@@ -44,3 +44,6 @@ SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/packages.h"
 
 # Install rules.
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)
+
+
+INCLUDE(CheckRequired)
