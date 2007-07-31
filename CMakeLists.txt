@@ -4,20 +4,16 @@ SET(BIN "${MOONSHINE_BINARY_DIR}")
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
-SET(SOURCES term.c moon.c buffer.c entry.c
-	modEntry.c modBuffer.c modapp.c util.c main.c)
+ADD_EXECUTABLE(moonshine term.c moon.c buffer.c entry.c modEntry.c modBuffer.c
+	modapp.c util.c main.c)
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
 
 IF (EMBED_LUA)
 	MESSAGE(STATUS "Will embed lua packages")
-	SET(SOURCES ${SOURCES} packages.h)
 ELSE()
 	MESSAGE(STATUS "Will not embed lua packages")
-ENDIF ()
-
-
-ADD_EXECUTABLE(moonshine ${SOURCES})
+ENDIF()
 
 FIND_PACKAGE(LUA REQUIRED)
 FIND_PACKAGE(SLANG REQUIRED)
@@ -43,14 +39,14 @@ CONFIGURE_FILE(${SRC}/config.h.in
 #	@ONLY IMMEDIATE)
 
 IF (EMBED_LUA)
-FILE(GLOB PACKAGES ${SRC}/lua/*.lua)
-ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/packages.h
-	COMMAND perl ${SRC}/cmake/embed-packages.pl 
-	${PACKAGES} > ${BIN}/packages.h
-	MAIN_DEPENDENCY ${SRC}/cmake/embed-packages.pl DEPENDS ${PACKAGES}
-	WORKING_DIRECTORY ${SRC})
+	FILE(GLOB PACKAGES ${SRC}/lua/*.lua)
+	ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/packages.h
+		COMMAND perl ${SRC}/cmake/embed-packages.pl 
+		${PACKAGES} > ${BIN}/packages.h
+		MAIN_DEPENDENCY ${SRC}/cmake/embed-packages.pl DEPENDS ${PACKAGES}
+		WORKING_DIRECTORY ${SRC})
 
-SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/packages.h")
+	SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/packages.h")
 ENDIF()
 
 # Install rules.

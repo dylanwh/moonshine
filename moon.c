@@ -1,7 +1,7 @@
 #include "moonshine.h"
 
 #if EMBED_LUA
-#include "packages.h"
+#	include "packages.h"
 #endif
 
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)

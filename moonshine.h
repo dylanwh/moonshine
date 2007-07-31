@@ -14,6 +14,8 @@
 #include <lauxlib.h>
 #include <glib.h>
 
+#include "config.h"
+
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 
 
