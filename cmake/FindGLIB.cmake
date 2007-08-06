@@ -34,12 +34,10 @@ ELSE (GLIB_LIBRARY AND GLIB_INCLUDE_DIR)
  	    /opt/lib/glib-2.0/include
  	    /usr/lib64/glib-2.0/include
  	    /usr/lib/glib-2.0/include
+ 	    /opt/local/lib/glib-2.0/include
  	    /sw/lib/glib-2.0/include)
 
 
-
-	SET(GLIB_DEFINITIONS ${_GLIBCflags} 
-		CACHE STRING "compiler switches required for glib")
 
 	FIND_PATH(GLIB_INCLUDE_DIR
     	NAMES glib.h
@@ -48,6 +46,7 @@ ELSE (GLIB_LIBRARY AND GLIB_INCLUDE_DIR)
     	/usr/include/glib-2.0
     	/usr/local/include/glib-2.0
     	/opt/local/include/glib-2.0
+    	/opt/local/lib/glib-2.0/include
     	/sw/include/glib-2.0)
 
 	FIND_LIBRARY(GLIB_LIBRARY
@@ -59,10 +58,12 @@ ELSE (GLIB_LIBRARY AND GLIB_INCLUDE_DIR)
     	/opt/local/lib
     	/sw/lib)
 
-	IF (GLIB_LIBRARY AND GLIB_INCLUDE_DIR)
+	IF (GLIB_LIBRARY AND GLIB_INCLUDE_DIR AND GLIBCONFIG_INCLUDE_DIR)
+		SET(GLIB_DEFINITIONS ${_GLIBCflags} 
+			CACHE STRING "compiler switches required for glib")
 		SET(GLIB_INCLUDE_DIRS ${GLIB_INCLUDE_DIR} ${GLIBCONFIG_INCLUDE_DIR})
     	SET(GLIB_FOUND TRUE)
-	ENDIF (GLIB_LIBRARY AND GLIB_INCLUDE_DIR)
+	ENDIF ()
 
 	IF (GLIB_FOUND)
     	IF (NOT GLIB_FIND_QUIETLY)
