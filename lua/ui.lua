@@ -74,11 +74,15 @@ end
 
 bind("^[[D", ui.left)
 bind("^[[C", ui.right)
+bind("^Y", function ()
+	ui:print("FOO: %1, %2", "bar", "baz");
+	ui:render()
+end)
 bind("^?",  ui.backspace)
 bind("^C", app.shutdown)
 bind("^X", app.shutdown)
 bind("^M", function ()
-	ui:print(ui:get())
+	ui:print("%{bob}<you>%{default} %|%1", ui:get())
 	ui:clear()
 	ui:render()
 end)

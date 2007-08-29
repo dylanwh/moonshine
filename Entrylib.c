@@ -126,7 +126,7 @@ static const LuaLReg Entry_meta[] = {
   	{0, 0}
 };
 
-void modEntry_register (LuaState *L)
+void Entrylib_open (LuaState *L)
 {
 	moon_class_create(L, ENTRY, Entry_methods, Entry_meta);
 }

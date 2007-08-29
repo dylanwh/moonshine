@@ -196,7 +196,7 @@ static const LuaLReg Buffer_meta[] = {
 };
 
 
-void modBuffer_register(LuaState *L)
+void Bufferlib_open(LuaState *L)
 {
 	moon_class_create(L, BUFFER, Buffer_methods, Buffer_meta);
 }

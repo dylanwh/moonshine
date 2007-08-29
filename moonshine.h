@@ -13,7 +13,7 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <glib.h>
-
+#include <gnet.h>
 #include "config.h"
 
 #define UNUSED __attribute__((unused))
@@ -52,8 +52,9 @@ const char *term_color_to_utf8(const char *name);
 #define term_erase_eol  SLsmg_erase_eol
 #define term_write_char SLsmg_write_char
 
-void modEntry_register (lua_State *L); // Provides the Entry class.
-void modBuffer_register (lua_State *L); // Provides the Buffer class.
-void modapp_register(LuaState *L);
+void Entrylib_open (lua_State *L); // Provides the Entry class.
+void Bufferlib_open (lua_State *L); // Provides the Buffer class.
+void applib_open(LuaState *L);
+void netlib_open(LuaState *L);
 
 #endif

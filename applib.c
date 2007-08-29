@@ -2,8 +2,6 @@
 #include <string.h>
 #define APP "app"
 
-#include "buffer.h"
-
 static GMainLoop *app_mainloop;
 static GIOChannel *app_input;
 static gboolean running = FALSE;
@@ -46,6 +44,7 @@ static int app_make_keyspec(LuaState *L)
 	return 1;
 }
 
+/* This should be term_refresh... */
 static int app_refresh(LuaState *L)
 {
 	term_refresh();
@@ -70,7 +69,7 @@ static int app_boot(LuaState *L)
 	g_io_channel_unref(app_input);
 	g_main_loop_unref(app_mainloop);
 	term_reset();
-	g_print("Bye!\n");
+	g_print("Bye!\n");	
 	return 0;
 }
 
@@ -90,7 +89,7 @@ static LuaLReg functions[] = {
 	{ 0, 0 }
 };
 
-void modapp_register(LuaState *L)
+void applib_open(LuaState *L)
 {
 	luaL_register(L, APP, functions);
 	lua_pop(L, 1);

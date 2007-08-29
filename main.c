@@ -31,9 +31,10 @@ int main(int argc, char *argv[])
 
 	LuaState *L = lua_open();
 	luaL_openlibs(L);
-	modapp_register(L);
-	modEntry_register(L);
-	modBuffer_register(L);
+	applib_open(L);
+	netlib_open(L);
+	Entrylib_open(L);
+	Bufferlib_open(L);
 
 	moon_boot(L);
 	
