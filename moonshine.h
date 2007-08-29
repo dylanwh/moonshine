@@ -54,6 +54,6 @@ const char *term_color_to_utf8(const char *name);
 
 void modEntry_register (lua_State *L); // Provides the Entry class.
 void modBuffer_register (lua_State *L); // Provides the Buffer class.
-void modapp_register(LuaState *L, GMainLoop *loop);
+void modapp_register(LuaState *L);
 
 #endif
