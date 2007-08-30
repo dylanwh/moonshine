@@ -1,0 +1,4 @@
+-- GLOBALS: cmd, eval(). 
+
+
+cmd = {}
