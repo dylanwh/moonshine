@@ -4,14 +4,14 @@
 
 #define ENTRY "Entry"
 
-static Entry *toEntry (lua_State *L, int index)
+static Entry *toEntry (LuaState *L, int index)
 {
   	Entry **e = lua_touserdata(L, index);
   	if (e == NULL) luaL_typerror(L, index, ENTRY);
   	return *e;
 }
 
-static Entry *checkEntry (lua_State *L, int index)
+static Entry *checkEntry (LuaState *L, int index)
 {
   	Entry **e;
   	luaL_checktype(L, index, LUA_TUSERDATA);
@@ -20,7 +20,7 @@ static Entry *checkEntry (lua_State *L, int index)
   	return *e;
 }
 
-static Entry *pushEntry (lua_State *L)
+static Entry *pushEntry (LuaState *L)
 {
   	Entry **e = (Entry **)lua_newuserdata(L, sizeof(Entry *));
   	luaL_getmetatable(L, ENTRY);
@@ -29,13 +29,13 @@ static Entry *pushEntry (lua_State *L)
   	return *e;
 }
 
-static int Entry_new (lua_State *L)
+static int Entry_new (LuaState *L)
 {
   	pushEntry(L);
   	return 1;
 }
 
-static int Entry_keypress(lua_State *L)
+static int Entry_keypress(LuaState *L)
 {
   	Entry *e = checkEntry(L, 1);
   	const char *c = luaL_checkstring(L, 2);
@@ -105,14 +105,14 @@ static const LuaLReg Entry_methods[] = {
   	{0, 0}
 };
 
-static int Entry_gc (lua_State *L)
+static int Entry_gc (LuaState *L)
 {
 	Entry *e = toEntry(L, 1);
 	entry_free(e);
   	return 0;
 }
 
-static int Entry_tostring (lua_State *L)
+static int Entry_tostring (LuaState *L)
 {
   	char buff[32];
   	sprintf(buff, "%p", toEntry(L, 1));

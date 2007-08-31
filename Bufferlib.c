@@ -5,14 +5,14 @@
 
 #define BUFFER "Buffer"
 
-static Buffer *toBuffer (lua_State *L, int index)
+static Buffer *toBuffer (LuaState *L, int index)
 {
   	Buffer **e = lua_touserdata(L, index);
   	if (e == NULL) luaL_typerror(L, index, BUFFER);
   	return *e;
 }
 
-static Buffer *checkBuffer (lua_State *L, int index)
+static Buffer *checkBuffer (LuaState *L, int index)
 {
   	Buffer **e;
   	luaL_checktype(L, index, LUA_TUSERDATA);
@@ -21,7 +21,7 @@ static Buffer *checkBuffer (lua_State *L, int index)
   	return *e;
 }
 
-static Buffer *pushBuffer (lua_State *L, guint size)
+static Buffer *pushBuffer (LuaState *L, guint size)
 {
   	Buffer **e = (Buffer **)lua_newuserdata(L, sizeof(Buffer *));
   	luaL_getmetatable(L, BUFFER);
@@ -30,7 +30,7 @@ static Buffer *pushBuffer (lua_State *L, guint size)
   	return *e;
 }
 
-static int Buffer_new (lua_State *L)
+static int Buffer_new (LuaState *L)
 {
 	guint size = luaL_optint(L, 1, 1024);
   	pushBuffer(L, size);
@@ -112,7 +112,8 @@ static int Buffer_format(LuaState *L) {
 				{
 					lua_rawgeti(L, 2, *(nextesc + 1) - '0');
 					const char *s = lua_tostring(L, -1);
-					g_string_append(out, s);
+					if (s != NULL)
+						g_string_append(out, s);
 					p = nextesc + 2;
 					lua_pop(L, 1);
 					break;
@@ -174,14 +175,14 @@ static const LuaLReg Buffer_methods[] = {
   	{0, 0}
 };
 
-static int Buffer_gc (lua_State *L)
+static int Buffer_gc (LuaState *L)
 {
 	Buffer *e = toBuffer(L, 1);
 	buffer_free(e);
   	return 0;
 }
 
-static int Buffer_tostring (lua_State *L)
+static int Buffer_tostring (LuaState *L)
 {
   	char buff[32];
   	sprintf(buff, "%p", toBuffer(L, 1));

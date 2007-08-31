@@ -5,7 +5,8 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
 ADD_EXECUTABLE(moonshine term.c moon.c buffer.c entry.c Entrylib.c Bufferlib.c
-	applib.c netlib.c util.c main.c)
+	netlib.c
+	applib.c util.c main.c)
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
 
