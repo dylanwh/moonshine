@@ -20,12 +20,18 @@ static Entry *checkEntry (LuaState *L, int index)
   	return *e;
 }
 
-static int Entry_new (LuaState *L)
+static Entry *pushEntry (LuaState *L)
 {
   	Entry **e = (Entry **)lua_newuserdata(L, sizeof(Entry *));
   	luaL_getmetatable(L, ENTRY);
   	lua_setmetatable(L, -2);
   	*e = entry_new();
+  	return *e;
+}
+
+static int Entry_new (LuaState *L)
+{
+  	pushEntry(L);
   	return 1;
 }
 

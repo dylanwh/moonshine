@@ -2,6 +2,28 @@
 #include <string.h>
 #define APP "app"
 
+static GMainLoop *app_mainloop;
+static GIOChannel *app_input;
+static gboolean running = FALSE;
+
+static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer data)
+{
+	LuaState *L = data;
+	if (cond & G_IO_IN) {
+		do {
+			gunichar c = term_getkey();
+			char buf[8];
+			for (int i = 0; i < sizeof(buf); i++)
+				buf[i] = 0;
+			g_unichar_to_utf8(c, buf);
+			moon_call(L, "on_input", "s", buf);
+		} while (SLang_input_pending(1));
+		//moon_call(L, "on_input_reset", "");
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /* make_keyspec turns strings like "^A" into "\001", and so on. */
 static int app_make_keyspec(LuaState *L)
 {
@@ -20,6 +42,13 @@ static int app_make_keyspec(LuaState *L)
 	lua_pushstring(L, buf->str);
 	g_string_free(buf, TRUE);
 	return 1;
+}
+
+/* This should be term_refresh... */
+static int app_refresh(LuaState *L)
+{
+	term_refresh();
+	return 0;
 }
 
 static int app_boot(LuaState *L)
