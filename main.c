@@ -1,15 +1,7 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include "moonshine.h"
-#include "entry.h"
 
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <gnet.h>
-
-//static void on_conn (GConn *conn, GConnEvent *event, gpointer data);
-
-
+/* Option definitions. {{{1 */
 static char *hostname = "chat.haverdev.org";
 static int port = 7575;
 
@@ -19,6 +11,29 @@ static GOptionEntry entries[] =
 	{ "port", 'p', 0, G_OPTION_ARG_INT, &port, "connect to port P", "P" },
 	{ NULL }
 };
+/* }}} */
+
+GIOChannel *std
+
+static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer data)
+{
+	LuaState *L = data;
+	if (cond & G_IO_IN) {
+		do {
+			gunichar c = term_getkey();
+			char buf[8];
+			for (int i = 0; i < sizeof(buf); i++)
+				buf[i] = 0;
+			g_unichar_to_utf8(c, buf);
+			moon_call(L, "on_input", "s", buf);
+		} while (SLang_input_pending(1));
+		//moon_call(L, "on_input_reset", "");
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
 
 int main(int argc, char *argv[])
 {
@@ -35,11 +50,14 @@ int main(int argc, char *argv[])
 	Entrylib_open(L);
 	Bufferlib_open(L);
 	netlib_open(L);
+	moon_loader_init(L);
 
-	moon_boot(L);
-	
+	GMainLoop *loop   = g_main_loop_new(NULL, FALSE);
+	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
+
+	moon_require(L, "boot");
+
 	lua_close(L);
-
 	return 0;
 }
 

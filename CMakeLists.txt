@@ -4,7 +4,7 @@ SET(BIN "${MOONSHINE_BINARY_DIR}")
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
-ADD_EXECUTABLE(moonshine term.c moon.c buffer.c entry.c Entrylib.c Bufferlib.c
+ADD_EXECUTABLE(moonshine term.c moon.c buffer.c entry.c Entrylib.c 
 	netlib.c
 	applib.c util.c main.c)
 

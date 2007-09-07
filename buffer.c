@@ -1,13 +1,8 @@
-/* vim: set ft=c.doxygen noexpandtab ts=4 sw=4 tw=80: */
-
-#include <glib.h>
-#include <slang.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
+#include "moonshine.h"
 #include "buffer.h"
+#include <string.h>
 
+/* Buffer {{{1 */
 struct Buffer {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
 	 * for now).  head and tail, of course, point to the head and tail of the
@@ -20,17 +15,20 @@ struct Buffer {
 	GList *view; ///< tail of the list.
 	GList *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
 
-	/** Counters for list purging. history_max is the maximum amount of
+	/** Counters for list purging. histsize is the maximum amount of
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
 	 */
-	guint history_max, scrollback, scrollfwd;
+	guint histsize, scrollback, scrollfwd;
 };
+/* }}} */
 
-static void purge(Buffer *b) {
-	if (b->scrollback > b->history_max) {
+/* utility functions {{{1 */
+static void purge(Buffer *b)
+{
+	if (b->scrollback > b->histsize) {
 		GList *head = b->head;
-		guint reap  = b->scrollback - b->history_max;
+		guint reap  = b->scrollback - b->histsize;
 		g_assert(head);
 		/* Walk from the tail down to tail + reap, freeing strings as we go.
 		 * Then just break the link between the two lists, and free the dead
@@ -51,32 +49,15 @@ static void purge(Buffer *b) {
 	}
 }
 
-Buffer *buffer_new(guint history_max) {
-	g_assert(history_max > 0);
-	Buffer *b = g_new(Buffer, 1);
-	b->head = b->view = b->tail = NULL;
-	b->history_max = history_max;
-	b->scrollback = b->scrollfwd = 0;
-	return b;
-}
-
-void buffer_set_history_max(Buffer *b, guint newmax) {
-	g_assert(newmax > 0);
-	b->history_max = newmax;
-	purge(b);
-}
-
-guint buffer_get_history_max(const Buffer *b) {
-	return b->history_max;
-}
-
-static const char *skip_space(const char *in) {
+static const char *skip_space(const char *in)
+{
 	while (*in && g_unichar_isspace(g_utf8_get_char(in)))
 		in = g_utf8_next_char(in);
 	return in;
 }
 
-static guint line_render(const char *line, guint bottom_row, guint top_row) {
+static guint line_render(const char *line, guint bottom_row, guint top_row)
+{
 	typedef struct plan {
 		struct plan *prev;
 		guint margin;
@@ -181,7 +162,81 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	return bottom_row - 1;
 }
 
-void buffer_render(Buffer *buffer) {
+static void scroll_up(Buffer *buffer, guint offset)
+{
+	while (offset-- && buffer->scrollback > 1) {
+		buffer->scrollback--;
+		buffer->scrollfwd++;
+		g_assert(buffer->view);
+		buffer->view = buffer->view->prev;
+		g_assert(buffer->view);
+	}
+}
+
+static void scroll_down(Buffer *buffer, guint offset)
+{
+	while (offset-- && buffer->scrollfwd) {
+		buffer->scrollback++;
+		buffer->scrollfwd--;
+		g_assert(buffer->view);
+		buffer->view = buffer->view->next;
+		g_assert(buffer->view);
+	}
+}
+/* }}} */
+
+/* Lua type functions {{{1 */
+#define BUFFER "Buffer"
+static Buffer *toBuffer (LuaState *L, int index)
+{
+  	Buffer *buffer = lua_touserdata(L, index);
+  	if (buffer == NULL) luaL_typerror(L, index, BUFFER);
+  	return buffer;
+}
+
+static Buffer *checkBuffer (LuaState *L, int index)
+{
+  	Buffer *buffer;
+  	luaL_checktype(L, index, LUA_TUSERDATA);
+  	buffer = (Buffer *)luaL_checkudata(L, index, BUFFER);
+  	if (buffer == NULL) luaL_typerror(L, index, BUFFER);
+  	return buffer;
+}
+/* }}} */
+
+/* Methods {{{1 */
+static int Buffer_new (LuaState *L)
+{
+	guint histsize = luaL_optint(L, 1, 1024);
+  	Buffer *buffer = lua_newuserdata(L, sizeof(Buffer));
+  	buffer->head = buffer->view = buffer->tail = NULL;
+	buffer->histsize = histsize;
+	buffer->scrollback = buffer->scrollfwd = 0;
+
+	luaL_getmetatable(L, BUFFER);
+  	lua_setmetatable(L, -2);
+  	return 1;
+}
+
+static int Buffer_set_histsize(LuaState *L)
+{
+	Buffer *buffer = checkBuffer(L, 1);
+	guint newmax = luaL_checkinteger(L, 2);
+	buffer->histsize = newmax;
+	purge(buffer);
+	return 0;
+}
+
+static int Buffer_get_histsize(LuaState *L)
+{
+	Buffer *buffer = checkBuffer(L, 1);
+	lua_pushinteger(L, buffer->histsize);
+	return 1;
+}
+
+static int Buffer_render(LuaState *L)
+{
+	Buffer *buffer = checkBuffer(L, 1);
 	int top_row = 1;
 	int bottom_row = SLtt_Screen_Rows - 2;
 	GList *ptr = buffer->view;
@@ -195,16 +250,21 @@ void buffer_render(Buffer *buffer) {
 		bottom_row = line_render(ptr->data, bottom_row, top_row);
 		ptr = ptr->prev;
 	}
+	return 0;
 }
 
-void buffer_print(Buffer *buffer, const char *text) {
-	assert(g_utf8_validate(text, -1, NULL));
+static int Buffer_print(LuaState *L)
+{
+	Buffer *buffer = checkBuffer(L, 1);
+	const char *text = luaL_checkstring(L, 2);
+	g_assert(g_utf8_validate(text, -1, NULL));
 
 	char *copy = g_strdup(text);
 	GList *elem = g_list_alloc();
+
 	elem->data = copy;
-	
 	elem->prev = buffer->tail;
+
 	if (buffer->tail)
 		buffer->tail->next = elem;
 	if (!buffer->head)
@@ -217,38 +277,26 @@ void buffer_print(Buffer *buffer, const char *text) {
 	}
 	buffer->tail = elem;
 	purge(buffer);
+	return 0;
 }
 
-static void scroll_up(Buffer *buffer, guint offset) {
-	while (offset-- && buffer->scrollback > 1) {
-		buffer->scrollback--;
-		buffer->scrollfwd++;
-		g_assert(buffer->view);
-		buffer->view = buffer->view->prev;
-		g_assert(buffer->view);
-	}
-}
-
-static void scroll_down(Buffer *buffer, guint offset) {
-	while (offset-- && buffer->scrollfwd) {
-		buffer->scrollback++;
-		buffer->scrollfwd--;
-		g_assert(buffer->view);
-		buffer->view = buffer->view->next;
-		g_assert(buffer->view);
-	}
-}
-
-void buffer_scroll(Buffer *buffer, int offset) {
+static int Buffer_scroll(LuaState *L)
+{
+	Buffer *buffer = checkBuffer(L, 1);
+	int offset = luaL_checkinteger(L, 2);
 	if (offset > 0)
 		scroll_up(buffer, offset);
 	else {
 		scroll_down(buffer, -offset);
 		purge(buffer);
 	}
+	return 0;
 }
 
-void buffer_scroll_to(Buffer *buffer, guint abs_offset) {
+static int Buffer_scroll_to(LuaState *L)
+{
+	Buffer *buffer = checkBuffer(L, 1);
+	guint abs_offset = luaL_checkinteger(L, 2);
 	/* Scroll down to the bottom by twiddling pointers, then scroll up to the
 	 * desired position
 	 */
@@ -257,11 +305,48 @@ void buffer_scroll_to(Buffer *buffer, guint abs_offset) {
 	buffer->scrollfwd = 0;
 	scroll_up(buffer, abs_offset);
 	purge(buffer);
+	return 0;
+}
+/* }}} */
+
+/* Meta Methods {{{1 */
+static int Buffer_gc (LuaState *L)
+{
+	Buffer *buffer = toBuffer(L, 1);
+	buffer_free(buffer);
+  	return 0;
 }
 
-void buffer_free(Buffer *buffer) {
-	for(GList *ptr = buffer->head; ptr; ptr = ptr->next)
-		g_free(ptr->data);
-	g_list_free(buffer->head);
-	g_free(buffer);
+
+static int Buffer_tostring (LuaState *L)
+{
+  	char buff[32];
+  	sprintf(buff, "%p", toBuffer(L, 1));
+  	lua_pushfstring(L, "Buffer (%s)", buff);
+  	return 1;
+}
+/* }}} */
+
+/* Lua function tables {{{1 */
+static const LuaLReg Buffer_methods[] = {
+  	{"new",           Buffer_new},
+  	{"set_histsize",  Buffer_set_histsize},
+  	{"get_histsize",  Buffer_get_histsize},
+  	{"render",        Buffer_render},
+  	{"print",         Buffer_print},
+  	{"scroll",        Buffer_scroll},
+  	{"scroll_to",     Buffer_scroll_to},
+  	{0, 0}
+};
+
+static const LuaLReg Buffer_meta[] = {
+  	{"__gc",       Buffer_gc},
+  	{"__tostring", Buffer_tostring},
+  	{0, 0}
+};
+/* }}} */
+
+void Bufferlib_open(LuaState *L)
+{
+	moon_class_create(L, BUFFER, Buffer_methods, Buffer_meta);
 }

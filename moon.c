@@ -77,11 +77,9 @@ static int package_finder(LuaState *L)
 	}
 	return 0;
 }
-#endif
 
-void moon_boot(LuaState *L)
+void moon_loader_init(LuaState *L)
 {
-#	ifdef EMBED_LUA
 	/* table.insert(package.loaders, package_finder) */
 	lua_register(L, "package_finder", package_finder);
 	if (luaL_dostring(L, "table.insert(package.loaders, package_finder)")) {
@@ -91,10 +89,5 @@ void moon_boot(LuaState *L)
 	}
 	lua_pushnil(L);
 	lua_setglobal(L, "package_finder");
-#	endif
-	if (luaL_dostring(L, "require('boot')")) {
-		const char *err = lua_tostring(L, -1);
-		g_error("BUG: error booting: %s", err);
-		exit(EXIT_FAILURE);
-	}
 }
+#endif
