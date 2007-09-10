@@ -20,17 +20,17 @@ struct Buffer {
 	GList *view; ///< tail of the list.
 	GList *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
 
-	/** Counters for list purging. history_max is the maximum amount of
+	/** Counters for list purging. histsize is the maximum amount of
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
 	 */
-	guint history_max, scrollback, scrollfwd;
+	guint histsize, scrollback, scrollfwd;
 };
 
 static void purge(Buffer *b) {
-	if (b->scrollback > b->history_max) {
+	if (b->scrollback > b->histsize) {
 		GList *head = b->head;
-		guint reap  = b->scrollback - b->history_max;
+		guint reap  = b->scrollback - b->histsize;
 		g_assert(head);
 		/* Walk from the tail down to tail + reap, freeing strings as we go.
 		 * Then just break the link between the two lists, and free the dead
@@ -51,23 +51,23 @@ static void purge(Buffer *b) {
 	}
 }
 
-Buffer *buffer_new(guint history_max) {
-	g_assert(history_max > 0);
+Buffer *buffer_new(guint histsize) {
+	g_assert(histsize > 0);
 	Buffer *b = g_new(Buffer, 1);
 	b->head = b->view = b->tail = NULL;
-	b->history_max = history_max;
+	b->histsize = histsize;
 	b->scrollback = b->scrollfwd = 0;
 	return b;
 }
 
-void buffer_set_history_max(Buffer *b, guint newmax) {
+void buffer_set_histsize(Buffer *b, guint newmax) {
 	g_assert(newmax > 0);
-	b->history_max = newmax;
+	b->histsize = newmax;
 	purge(b);
 }
 
-guint buffer_get_history_max(const Buffer *b) {
-	return b->history_max;
+guint buffer_get_histsize(const Buffer *b) {
+	return b->histsize;
 }
 
 static const char *skip_space(const char *in) {

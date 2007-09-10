@@ -10,17 +10,16 @@
 -- We are guranteed that the current terminal size information is gathered by
 -- the C-side before calling on_resize().
 --
--- There are a few cmd functions define UI:
+-- There are a few ui functions define UI:
 --   left
 --   right
 --   backspace
 -- which can be used like so:
--- bind("^[[D", cmd.left)
-
+-- bind("^[[D", ui.left)
 
 ui = {
-	buffer = Buffer.new(),
-	entry = Entry.new(),
+	buffer = Buffer(),
+	entry = Entry(),
 }
 
 local function expose(object, field, method)
@@ -59,17 +58,17 @@ function on_resize()
 end
 
 
-function cmd.left() 
+function ui.left() 
 	ui:move(-1)
 	ui:render()
 end
 
-function cmd.right()
+function ui.right()
 	ui:move(1)
 	ui:render()
 end
 
-function cmd.backspace()
+function ui.backspace()
 	ui:erase(-1) 
 	ui:render()
 end

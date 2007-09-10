@@ -4,6 +4,20 @@
 #	include "packages.h"
 #endif
 
+LuaState *moon_new(void)
+{
+	LuaState *L = lua_open();
+	luaL_openlibs(L);
+	luaopen_Buffer(L);
+	luaopen_Entry(L);
+	luaopen_Topic(L);
+	luaopen_format(L);
+#	ifdef EMBED_LUA
+	moon_loader_init(L);
+#	endif
+	return L;
+}
+
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
 {
 	int argc = strlen(sig);
@@ -77,11 +91,9 @@ static int package_finder(LuaState *L)
 	}
 	return 0;
 }
-#endif
 
-void moon_boot(LuaState *L)
+void moon_loader_init(LuaState *L)
 {
-#	ifdef EMBED_LUA
 	/* table.insert(package.loaders, package_finder) */
 	lua_register(L, "package_finder", package_finder);
 	if (luaL_dostring(L, "table.insert(package.loaders, package_finder)")) {
@@ -91,10 +103,5 @@ void moon_boot(LuaState *L)
 	}
 	lua_pushnil(L);
 	lua_setglobal(L, "package_finder");
-#	endif
-	if (luaL_dostring(L, "require('boot')")) {
-		const char *err = lua_tostring(L, -1);
-		g_error("BUG: error booting: %s", err);
-		exit(EXIT_FAILURE);
-	}
 }
+#endif

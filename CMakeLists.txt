@@ -4,9 +4,10 @@ SET(BIN "${MOONSHINE_BINARY_DIR}")
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
-ADD_EXECUTABLE(moonshine term.c moon.c buffer.c entry.c Entrylib.c Bufferlib.c
-	netlib.c
-	applib.c util.c main.c)
+ADD_EXECUTABLE(moonshine term.c moon.c 
+	buffer.c entry.c
+	buffer.wrap.c  entry.wrap.c 
+	util.c main.c)
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
 
@@ -22,7 +23,7 @@ FIND_PACKAGE(GLIB REQUIRED)
 FIND_PACKAGE(GNET REQUIRED)
 
 INCLUDE_DIRECTORIES(BEFORE ${SLANG_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${BIN}
-	${GLIB_INCLUDE_DIRS} ${GNET_INCLUDE_DIRS})	
+	${GLIB_INCLUDE_DIRS} ${GNET_INCLUDE_DIRS} ${SRC})	
 
 TARGET_LINK_LIBRARIES(moonshine ${GLIB_LIBRARY} ${GNET_LIBRARY} ${SLANG_LIBRARY}
 	${LUA_LIBRARY})
@@ -34,6 +35,19 @@ ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GNET_DEFINITIONS}")
 CONFIGURE_FILE(${SRC}/config.h.in
 	${BIN}/config.h
 	@ONLY IMMEDIATE)
+
+
+MACRO(LUAWRAP file)
+ADD_CUSTOM_COMMAND(
+	OUTPUT "${BIN}/${file}.c"
+	COMMAND lua ${file} > ${BIN}/${file}.c 
+	DEPENDS "${file}" wrap.lua
+	WORKING_DIRECTORY ${SRC})
+ENDMACRO()
+
+LUAWRAP("entry.wrap")
+LUAWRAP("buffer.wrap")
+LUAWRAP("topic.wrap")
 
 #CONFIGURE_FILE(${SRC}/docs/Doxyfile.in
 #	${BIN}/docs/Doxyfile

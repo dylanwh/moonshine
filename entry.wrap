@@ -1,0 +1,76 @@
+-- vim: ft=wrap:
+require "wrap"
+include "moonshine.h"
+include "entry.h"
+class 'Entry' (boxed)
+
+method 'new' [[
+	Entry **e = pushEntry(L);
+	*e = entry_new();
+	return 1;
+]] 
+
+method 'keypress' [[
+  	Entry *e = checkEntry(L, 1);
+  	const char *c = luaL_checkstring(L, 2);
+  	gunichar uc = g_utf8_get_char(c);
+  	entry_keypress(e, uc);
+  	return 0;
+]]
+
+method 'move' [[
+	Entry *e = checkEntry(L, 1);
+	int offset = luaL_checkinteger(L, 2);
+	entry_move(e, offset);
+	return 0;
+]]
+
+method 'move_to' [[
+	Entry *e     = checkEntry(L, 1);
+	int absolute = luaL_checkinteger(L, 2);
+	entry_move_to(e, absolute);
+	return 0;
+]]
+
+method 'get' [[
+	Entry *e = checkEntry(L, 1);
+	char *s = entry_get(e);
+	lua_pushstring(L, s);
+	g_free(s);
+	return 1;
+]]
+
+method 'clear' [[
+	Entry *e = checkEntry(L, 1);
+	entry_clear(e);
+	return 0;
+]]
+
+method 'erase' [[
+	Entry *e = checkEntry(L, 1);
+	int count = luaL_checkinteger(L, 2);
+	entry_erase(e, count);
+	return 0;
+]]
+
+method 'render' [[
+	Entry *e = checkEntry(L, 1);
+	guint lmargin = luaL_optint(L, 2, 0);
+	entry_render(e, lmargin);
+	return 0;
+]]
+
+meta '__gc' [[
+	Entry *e = toEntry(L, 1);
+	entry_free(e);
+  	return 0;
+]]
+
+meta '__tostring' [[
+	char buff[32];
+  	sprintf(buff, "%p", toEntry(L, 1));
+  	lua_pushfstring(L, "Entry (%s)", buff);
+  	return 1;
+]]
+
+finish ()

@@ -1,0 +1,45 @@
+-- vim: set ft=wrap:
+require("wrap")
+include "moonshine.h"
+include "topic.h"
+class "Topic" {
+	text = "char*",
+}
+
+method 'new' [[
+	const char *text = luaL_checkstring(L, 1);
+	Topic *t = pushTopic(L);
+	t->text = g_strdup(text);
+	return 1;
+]]
+
+method 'set' [[
+	Topic *t = checkTopic(L, 1);
+	const char *text = luaL_checkinteger(L, 2);
+	if (t->text)
+		g_free(t->text);
+	t->text = g_strdup(text);
+	return 0;
+]]
+
+method 'render' [[
+	Topic *t = checkTopic(L, 1);
+	term_gotorc(0, 0);
+	term_use_color("topic");
+	term_write_char(t->text);
+	term_use_color("default");
+	return 0;
+]]
+
+meta '__tostring' [[
+	char buf[32];
+	sprintf(buf, "%p", toTopic(L, 1));
+	lua_pushfstring(L, "Topic (%s)", buf);
+]]
+
+meta '__gc' [[
+	Topic *t = toTopic(L, 1);
+	g_free(t->text);
+]]
+
+finish ()
