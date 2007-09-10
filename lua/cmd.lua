@@ -1,15 +1,31 @@
 -- GLOBALS: cmd, eval(). 
 
+declare "cmd"
+declare "eval"
+
 cmd = {}
 
 function cmd.QUIT(text)
-	app.shutdown()
+	shutdown()
+end
+function cmd.unknown(word, arg)
+	ui:print("word: %1, arg = %2", word, arg)
+end
+
+function cmd.SPAM(text)
+	for i = 1, 200 do
+		ui:print(text)
+	end
+end
+
+function cmd.TOPIC(text)
+	ui:set_topic(text)
 end
 
 function eval(line)
-	word, arg = line:match("/(%w+) ?(.*)")
+	local word, arg = line:match("^/(%w+) ?(.*)")
 	if word then
-		WORD = string.upper(word)
+		local WORD = string.upper(word)
 		if cmd[WORD] then
 			return cmd[WORD](arg)
 		elseif cmd.unknown then

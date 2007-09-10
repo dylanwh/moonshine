@@ -64,16 +64,17 @@ function class(name)
 	CLASS = name
 	return function (t)
 		if type(t) == 'table' then
-			print ("typedef struct {")
+			print (line(3).."typedef struct {")
 			for k, v in pairs(t) do
 				print ("\t"..v..' '..k..";")
 			end
 			print ("} "..name..";")
 			local s = UNBOXED:gsub("<CLASS>", CLASS)
-			print(line(3)..s)
+			print(s)
 		else
 			t()
 		end
+		print(line(3))
 	end
 end
 

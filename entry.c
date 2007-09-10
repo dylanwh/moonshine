@@ -170,7 +170,7 @@ static int try_render(Entry *e, guint lmargin) {
 		if (charwidth + width > max_width)
 			break;
 		width += charwidth;
-		term_write_char(ch);
+		term_write_gunichar(ch);
 		idx++;
 	}
 

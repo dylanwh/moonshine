@@ -9,6 +9,11 @@
 -- Keys are UTF8 strings.
 --
 -- unbound keys are passed to on_keypress(), which is defined in ui.lua.
+
+declare "bind"
+declare "on_input"
+declare "on_input_reset"
+
 local keys = {}
 local last_key = nil
 
@@ -17,9 +22,9 @@ function bind(spec, f)
 	local function index(s, i)
 		return s:sub(i+1, i+1)
 	end
-	-- app.make_keyspec translates ^A into 0, etc.
-	spec = app.make_keyspec(spec)
-	last = spec:len() - 1
+	-- make_keyspec translates ^A into 0, etc.
+	local spec = make_keyspec(spec)
+	local last = spec:len() - 1
 	for i = 0, last, 1 do
 		local x = index(spec, i)
 		if i == last then

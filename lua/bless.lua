@@ -1,3 +1,5 @@
+declare "bless"
+
 function bless(t)
 	local mt = getmetatable(t)
 	if not mt then
@@ -12,5 +14,3 @@ end
 bless(Topic)
 bless(Entry)
 bless(Buffer)
-bless(Client)
-

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-
+#include "moonshine.h"
 #include "buffer.h"
 
 struct Buffer {
@@ -88,7 +88,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	plan_t *lines = NULL;
 
 	g_assert(bottom_row >= top_row);
-	SLsmg_gotorc(bottom_row, 0);
+	term_goto(bottom_row, 0);
 
 	guint margin = 0;
 	guint color  = 0;
@@ -104,7 +104,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 		const char *seg_end   = line;
 		const char *last_word = line;
 		const char *next_line = NULL;
-		const guint max_width = SLtt_Screen_Cols;
+		const guint max_width = TERM_COLS; //SLtt_Screen_Cols;
 		guint cur_width       = thisline->margin;
 		guint next_color      = color;
 
@@ -162,7 +162,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	}
 
 	while (lines && bottom_row >= top_row) {
-		SLsmg_gotorc(bottom_row, lines->margin);
+		term_goto(bottom_row, lines->margin);
 		SLsmg_set_color(lines->color);
 		SLsmg_write_chars((unsigned char *)lines->start, (unsigned char *)lines->end);
 
@@ -187,8 +187,8 @@ void buffer_render(Buffer *buffer) {
 	GList *ptr = buffer->view;
 
 	for (int i = top_row; i <= bottom_row; i++) {
-		SLsmg_gotorc(i, 0);
-		SLsmg_erase_eol();
+		term_goto(i, 0);
+		term_erase_eol();
 	}
 
 	while (ptr && bottom_row >= top_row) {

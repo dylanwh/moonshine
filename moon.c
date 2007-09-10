@@ -4,14 +4,16 @@
 #	include "packages.h"
 #endif
 
+#define moon_ccall(L, f) (lua_pushcfunction(L, f), lua_call(L, 0, 0))
+
 LuaState *moon_new(void)
 {
 	LuaState *L = lua_open();
 	luaL_openlibs(L);
-	luaopen_Buffer(L);
-	luaopen_Entry(L);
-	luaopen_Topic(L);
-	luaopen_format(L);
+	moon_ccall(L, luaopen_Buffer);
+	moon_ccall(L, luaopen_Entry);
+	moon_ccall(L, luaopen_Topic);
+
 #	ifdef EMBED_LUA
 	moon_loader_init(L);
 #	endif

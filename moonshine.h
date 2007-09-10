@@ -39,7 +39,6 @@ PURE int unicode_charwidth(gunichar ch);
 /* term.c: terminal routines. */
 void term_init(void);
 void term_resize(void);
-void term_reset(void);
 void term_color_set(const char *name, const char *fg, const char *bg);
 void term_color_use(const char *name);
 int term_color_to_id(const char *name);
@@ -50,7 +49,8 @@ gunichar term_getkey(void);
 #define TERM_COLS       SLtt_Screen_Cols 
 #define TERM_LINES      SLtt_Screen_Rows
 #define term_erase_eol  SLsmg_erase_eol
-#define term_write_char SLsmg_write_char
+#define term_write_gunichar SLsmg_write_char
+#define term_write_chars(s) SLsmg_write_nchars(s, strlen(s))
 #define term_input_pending SLang_input_pending
 /* loop.c */
 void loop_start(void);
@@ -62,8 +62,8 @@ void loop_shutdown(void);
 /* lua modules */
 int luaopen_Entry(LuaState *L);
 int luaopen_Buffer(LuaState *L);
-int luaopen_Client(LuaState *L);
-
+int luaopen_Topic(LuaState *L);
+int luaopen_app(LuaState *L);
 
 
 #endif
