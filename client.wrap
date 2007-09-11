@@ -1,5 +1,6 @@
 -- vim: set ft=wrap:
-require("wrap")
+require "wrap"
+
 include "moonshine.h"
 class "Client" {
 	conn = "GConn *",
@@ -11,7 +12,51 @@ print (line(2,2))
 print [[
 static void on_event(GConn *conn, GConnEvent *event, gpointer data)
 {
-	g_assert_not_reached();
+	Client *c = data;
+	LuaState *L = c->L;
+	// push function
+	lua_rawgeti(L, LUA_REGISTRYINDEX, c->callback);
+	// push ClientRef
+	lua_getfield(L, LUA_REGISTRYINDEX, "ClientRef");
+	// push light userdata
+	lua_pushlightuserdata(L, c);
+	// pop-push
+	lua_gettable(L, -2);
+	lua_remove(L, -2);
+
+	switch (event->type) {
+		case GNET_CONN_READ:
+			lua_pushstring(L, "read");
+			lua_pushstring(L, event->buffer);
+			break;
+		case GNET_CONN_CONNECT:
+			gnet_conn_timeout (conn, 0);/* reset timeout */
+			lua_pushstring(L, "connect");
+			lua_pushnil(L);
+			break;
+		case GNET_CONN_WRITE:
+			lua_pushstring(L, "write");
+			lua_pushnil(L);
+			break;
+		case GNET_CONN_TIMEOUT:
+			lua_pushstring(L, "timeout");
+			lua_pushnil(L);
+			break;
+		case GNET_CONN_ERROR:
+			lua_pushstring(L, "error");
+			lua_pushnil(L);
+			break;
+		case GNET_CONN_CLOSE:
+			lua_pushstring(L, "close");
+			lua_pushnil(L);
+			break;
+		case GNET_CONN_READABLE:
+		case GNET_CONN_WRITABLE:
+			g_assert_not_reached();
+			break;
+	}
+
+	lua_pcall(L, 3, 0, 0);
 }
 ]]
 
@@ -72,6 +117,8 @@ meta '__gc' [[
 	return 0;
 ]]
 
+meta '__tostring' (default)
+
 finish [[
 	lua_newtable(L);               // t = {}   push
 	lua_newtable(L);               // mt = {}  push
@@ -80,5 +127,4 @@ finish [[
 	lua_setmetatable(L, -2);       // setmetatable(t, mt) pop 
 	lua_setfield(L,                // pop
 		LUA_REGISTRYINDEX, "ClientRef");
-
 ]]
