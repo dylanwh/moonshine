@@ -1,4 +1,3 @@
-declare "bless"
 
 function bless(t)
 	local mt = getmetatable(t)

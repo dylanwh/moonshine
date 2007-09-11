@@ -1,32 +1,29 @@
--- GLOBALS: cmd, eval(). 
-
-declare "cmd"
-declare "eval"
+-- GLOBALS: cmd, eval().
 
 cmd = {}
 
 function cmd.QUIT(text)
 	shutdown()
 end
-function cmd.unknown(word, arg)
-	ui:print("word: %1, arg = %2", word, arg)
-end
 
 function cmd.SPAM(text)
 	for i = 1, 200 do
-		ui:print(text)
+		ui.print(text)
 	end
 end
 
-declare "c"
-function cmd.TEST(text)
-	c = Client.new("foo.org", 10, function () end)
-	ui:print(tostring(c.connect))
-	ui:render()
+function cmd.FOO(text)
+	for k,v in pairs(ClientRef) do
+		ui.print("%1 %|%2", k, v)
+	end
+end
+
+function cmd.unknown(word, arg)
+	ui.print("word: %1, arg = %2", word, arg)
 end
 
 function cmd.TOPIC(text)
-	ui:set_topic(text)
+	ui.topic:set(text)
 end
 
 function eval(line)

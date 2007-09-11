@@ -1,13 +1,16 @@
-bind("^[[D", ui.left)
-bind("^[[C", ui.right)
-bind("^?",  ui.backspace)
+keypress_hook = ui.keypress
+
+bind("^[[D", ui.key_left)
+bind("^[[C", ui.key_right)
+bind("^?",  ui.key_backspace)
 
 bind("^C", shutdown)
 bind("^X", shutdown)
 
 bind("^M", function ()
-	local line = ui:get()
+	local line = ui.entry:get()
 	eval(line)
-	ui:clear()
-	ui:render()
+	ui.entry:clear()
+	ui.render()
 end)
+

@@ -24,9 +24,8 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer dat
 			for (int i = 0; i < sizeof(buf); i++)
 				buf[i] = 0;
 			g_unichar_to_utf8(c, buf);
-			moon_call(L, "on_input", "s", buf);
+			moon_call(L, "input_hook", "s", buf);
 		} while (term_input_pending(1));
-		//moon_call(L, "on_input_reset", "");
 		return TRUE;
 	}
 	return FALSE;
@@ -83,9 +82,9 @@ int main(int argc, char *argv[])
 	term_init();
 	g_io_add_watch(input, G_IO_IN, on_input, L);
 
-	moon_call(L, "on_boot", "");
+	moon_call(L, "boot_hook", "");
 	g_main_loop_run(loop);
-	moon_call(L, "on_shutdown", "");
+	moon_call(L, "shutdown_hook", "");
 
 	g_io_channel_unref(input);
 	g_main_loop_unref(loop);

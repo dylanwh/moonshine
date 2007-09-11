@@ -12,6 +12,9 @@ print (line(2,2))
 print [[
 static void on_event(GConn *conn, GConnEvent *event, gpointer data)
 {
+	g_assert(conn);
+	g_assert(data);
+	g_assert(event);
 	Client *c = data;
 	LuaState *L = c->L;
 	// push function
@@ -113,7 +116,9 @@ method 'hostname' [[
 meta '__gc' [[
 	Client *c = toClient(L, 1);
 	luaL_unref(L, LUA_REGISTRYINDEX, c->callback);
-	gnet_conn_delete(c->conn);
+	g_assert(c->conn);
+	gnet_conn_disconnect(c->conn);
+	gnet_conn_unref(c->conn);
 	return 0;
 ]]
 
@@ -122,7 +127,7 @@ meta '__tostring' (default)
 finish [[
 	lua_newtable(L);               // t = {}   push
 	lua_newtable(L);               // mt = {}  push
-	lua_pushstring(L, "v");        // val = "v" push
+	lua_pushstring(L, "kv");        // val = "v" push
 	lua_setfield(L, -2, "__mode"); // mt.__mode = val pop
 	lua_setmetatable(L, -2);       // setmetatable(t, mt) pop 
 	lua_setfield(L,                // pop
