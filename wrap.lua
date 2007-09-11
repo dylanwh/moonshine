@@ -1,6 +1,7 @@
-function line(n)
+function line(n,x)
+	if not x then x = 0 end
 	local t = debug.getinfo(n)
-	return "#line ".. ( t.currentline - 1) .. ' "' .. t.short_src .. '"\n'
+	return "#line ".. ( t.currentline + x ) .. ' "' .. t.short_src .. '"\n'
 end
 
 local CLASS
@@ -74,7 +75,6 @@ function class(name)
 		else
 			t()
 		end
-		print(line(3))
 	end
 end
 
@@ -85,16 +85,30 @@ function boxed()
 end
 
 function method(name)
-	local l = line(3)
+	local l = line(3,1)
 	return function(code)
 		print(l.."static int "..CLASS.."_"..name.."(LuaState *L)\n{\n"..code.."}\n")
 		table.insert(METHODS, name)
 	end
 end
 
+default = function ()
+	local s = [[
+	char buff[32];
+  	sprintf(buff, "%p", to<CLASS>(L, 1));
+  	lua_pushfstring(L, "<CLASS> (%s)", buff);
+  	return 1;
+]]
+  	s = s:gsub("<CLASS>", CLASS)
+  	return s
+end
+
 function meta(name)
-	local l = line(3)
+	local l = line(3,1)
 	return function(code)
+		if type(code) == 'function' then
+			code = code()
+		end
 		print(l.."static int "..CLASS.."_"..name.."(LuaState *L)\n{\n"..code.."}\n")
 		table.insert(META, name)
 	end

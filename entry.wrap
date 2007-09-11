@@ -66,11 +66,6 @@ meta '__gc' [[
   	return 0;
 ]]
 
-meta '__tostring' [[
-	char buff[32];
-  	sprintf(buff, "%p", toEntry(L, 1));
-  	lua_pushfstring(L, "Entry (%s)", buff);
-  	return 1;
-]]
+meta '__tostring' (default)
 
 finish ()

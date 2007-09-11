@@ -31,12 +31,7 @@ method 'render' [[
 	return 0;
 ]]
 
-meta '__tostring' [[
-	char buf[32];
-	sprintf(buf, "%p", toTopic(L, 1));
-	lua_pushfstring(L, "Topic (%s)", buf);
-	return 1;
-]]
+meta '__tostring' (default)
 
 meta '__gc' [[
 	Topic *t = toTopic(L, 1);
