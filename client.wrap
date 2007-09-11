@@ -1,0 +1,84 @@
+-- vim: set ft=wrap:
+require("wrap")
+include "moonshine.h"
+class "Client" {
+	conn = "GConn *",
+	L    = "LuaState *",
+	callback = "int",
+}
+
+print (line(2,2))
+print [[
+static void on_event(GConn *conn, GConnEvent *event, gpointer data)
+{
+	g_assert_not_reached();
+}
+]]
+
+method 'new' [[
+	const char *hostname = luaL_checkstring(L, 1);
+	guint port           = luaL_checkint(L, 2);
+	lua_pushvalue(L, 3);
+	int callback = luaL_ref(L, LUA_REGISTRYINDEX);
+	Client *c = pushClient(L);
+	c->callback = callback;
+	c->L        = L;
+	c->conn     = gnet_conn_new(hostname, port, on_event, c);
+	lua_getfield(L, LUA_REGISTRYINDEX, "ClientRef");
+	lua_pushlightuserdata(L, c); // the key, a light userdata of "c"
+	lua_pushvalue(L, -3);        // copy the heavy userdata "c" to the top of the stack.
+	lua_settable(L, -3);         // Client[light c] = heavy c.
+	lua_pop(L, 1);               // Remove Client from the stack
+	return 1;                    // return the heavy userdata
+]]
+
+method 'connect' [[
+	Client *c = checkClient(L, 1);
+	gnet_conn_connect(c->conn);
+	gnet_conn_set_watch_error (c->conn, TRUE);
+	gnet_conn_timeout (c->conn, 30000);
+	return 0;
+]]
+
+method 'disconnect' [[
+	Client *c = checkClient(L, 1);
+	gnet_conn_disconnect(c->conn);
+	return 0;
+]]
+
+method 'write' [[
+	Client *c = checkClient(L, 1);
+	const char *msg = luaL_checkstring(L, 2);
+	gnet_conn_write(c->conn, (char *)msg, strlen(msg));
+	return 0;
+]]
+
+method 'readline' [[
+	Client *c = checkClient(L, 1);
+	gnet_conn_readline(c->conn);
+	return 0;
+]]
+
+method 'hostname' [[
+	Client *c = checkClient(L, 1);
+	lua_pushstring(L, c->conn->hostname);
+	return 1;
+]]
+
+meta '__gc' [[
+	Client *c = toClient(L, 1);
+	luaL_unref(L, LUA_REGISTRYINDEX, c->callback);
+	gnet_conn_delete(c->conn);
+	return 0;
+]]
+
+finish [[
+	lua_newtable(L);               // t = {}   push
+	lua_newtable(L);               // mt = {}  push
+	lua_pushstring(L, "v");        // val = "v" push
+	lua_setfield(L, -2, "__mode"); // mt.__mode = val pop
+	lua_setmetatable(L, -2);       // setmetatable(t, mt) pop 
+	lua_setfield(L,                // pop
+		LUA_REGISTRYINDEX, "ClientRef");
+
+]]

@@ -7,7 +7,8 @@ SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 ADD_EXECUTABLE(moonshine term.c moon.c 
 	buffer.c entry.c
 	app.c
-	buffer.wrap.c  entry.wrap.c topic.wrap.c 
+	buffer.wrap.c  entry.wrap.c topic.wrap.c
+	client.wrap.c
 	util.c main.c)
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
@@ -49,6 +50,7 @@ ENDMACRO()
 LUAWRAP("entry.wrap")
 LUAWRAP("buffer.wrap")
 LUAWRAP("topic.wrap")
+LUAWRAP("client.wrap")
 
 #CONFIGURE_FILE(${SRC}/docs/Doxyfile.in
 #	${BIN}/docs/Doxyfile

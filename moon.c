@@ -13,6 +13,7 @@ LuaState *moon_new(void)
 	moon_ccall(L, luaopen_Buffer);
 	moon_ccall(L, luaopen_Entry);
 	moon_ccall(L, luaopen_Topic);
+	moon_ccall(L, luaopen_Client);
 
 #	ifdef EMBED_LUA
 	moon_loader_init(L);

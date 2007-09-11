@@ -122,13 +122,18 @@ local function export(table, var)
 	print ("\t{0, 0}\n};")
 end
 
-function finish ()
+function finish (code)
 	print(line(2))
 	assert (CLASS)
 	export(METHODS, "methods")
 	export(META, "meta")
 	print ("int luaopen_"..CLASS.."(LuaState *L)\n{")
 	print ('\tmoon_class_create(L, "'..CLASS..'", '..CLASS..'_methods, '..CLASS..'_meta);')
+	if code then
+		io.stdout:write(line(3,-2))
+		io.stdout:write(code)
+		print(line(2))
+	end
 	print ('\treturn 1;')
 	print ("}")
 end

@@ -52,18 +52,12 @@ gunichar term_getkey(void);
 #define term_write_gunichar SLsmg_write_char
 #define term_write_chars(s) SLsmg_write_nchars(s, strlen(s))
 #define term_input_pending SLang_input_pending
-/* loop.c */
-void loop_start(void);
-void loop_shutdown(void);
-
-/* input.c */
-
 
 /* lua modules */
 int luaopen_Entry(LuaState *L);
 int luaopen_Buffer(LuaState *L);
 int luaopen_Topic(LuaState *L);
 int luaopen_app(LuaState *L);
-
+int luaopen_Client(LuaState *L);
 
 #endif

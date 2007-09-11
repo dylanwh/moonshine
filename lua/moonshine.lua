@@ -1,4 +1,6 @@
+
 require "strict"
+
 require "bless"
 require "bind" 
 require "ui"
@@ -15,3 +17,5 @@ function on_shutdown()
 	ui:print("Shutdown: %1", "bob")
 	ui:render()
 end
+
+

@@ -18,6 +18,13 @@ function cmd.SPAM(text)
 	end
 end
 
+declare "c"
+function cmd.TEST(text)
+	c = Client.new("foo.org", 10, function () end)
+	ui:print(tostring(c.connect))
+	ui:render()
+end
+
 function cmd.TOPIC(text)
 	ui:set_topic(text)
 end
