@@ -11,6 +11,9 @@ require "config"
 declare "on_client"
 function on_client(client, event, msg)
 	ui:print("%1%| %2", event, msg)
+	if event == 'connect' or event == 'read' then
+		client:readline()
+	end
 	ui:render()
 end
 
