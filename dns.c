@@ -76,7 +76,7 @@ void dns_start(void)
 	dns_source = g_source_new(&dns_source_functions, sizeof(GSource));
 	g_source_set_callback(dns_source, (GSourceFunc) dns_source_worker, NULL, NULL);
 
-	dns_pool   = g_thread_pool_new((GFunc) dns_pool_worker, NULL, 10, TRUE, NULL);
+	dns_pool   = g_thread_pool_new((GFunc) dns_pool_worker, NULL, -1, FALSE, NULL);
 
 	g_source_attach(dns_source, NULL);
 }
