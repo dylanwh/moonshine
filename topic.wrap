@@ -1,7 +1,7 @@
 -- vim: set ft=wrap:
 require("wrap")
 include "moonshine.h"
-class "Topic" {
+class 'Topic' {
 	text = "char*"
 }
 

@@ -4,8 +4,8 @@ bind("^[[D", ui.key_left)
 bind("^[[C", ui.key_right)
 bind("^?",  ui.key_backspace)
 
-bind("^C", shutdown)
-bind("^X", shutdown)
+bind("^C", quit)
+bind("^X", quit)
 
 bind("^M", function ()
 	local line = ui.entry:get()

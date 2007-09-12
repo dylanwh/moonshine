@@ -12,6 +12,7 @@ print (line(2,2))
 print [[
 static void on_event(GConn *conn, GConnEvent *event, gpointer data)
 {
+	Client *c = data;
 	g_assert(conn);
 	g_assert(data);
 	g_assert(event);

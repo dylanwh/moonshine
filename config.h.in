@@ -1,1 +1,2 @@
 #cmakedefine EMBED_LUA
+#cmakedefine HAVE_GETHOSTBYNAME_R

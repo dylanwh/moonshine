@@ -1,11 +1,17 @@
 PROJECT (MOONSHINE C)
+INCLUDE(CheckFunctionExists)
+
 SET(SRC "${MOONSHINE_SOURCE_DIR}")
 SET(BIN "${MOONSHINE_BINARY_DIR}") 
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
-ADD_EXECUTABLE(moonshine term.c moon.c buffer.c entry.c modEntry.c modBuffer.c
-	modapp.c util.c main.c)
+ADD_EXECUTABLE(moonshine term.c moon.c 
+	buffer.c entry.c
+	app.c
+	buffer.wrap.c  entry.wrap.c topic.wrap.c
+	client.wrap.c
+	util.c main.c dns.c)
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
 
@@ -29,6 +35,8 @@ TARGET_LINK_LIBRARIES(moonshine ${GLIB_LIBRARY} ${GNET_LIBRARY} ${SLANG_LIBRARY}
 ## Now we add these the the flags passed to the C compiler.
 ADD_DEFINITIONS("-std=gnu99 -Wall -Winline -I${BIN}")
 ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GNET_DEFINITIONS}")
+
+CHECK_FUNCTION_EXISTS(gethostbyname_r HAVE_GETHOSTBYNAME_R)
 
 CONFIGURE_FILE(${SRC}/config.h.in
 	${BIN}/config.h

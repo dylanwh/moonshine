@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <netdb.h>
 
 #include <slang.h>
 #include <lua.h>
@@ -14,6 +15,7 @@
 #include <lauxlib.h>
 #include <glib.h>
 #include <gnet.h>
+
 #include "config.h"
 
 #define UNUSED __attribute__((unused))
@@ -52,6 +54,10 @@ gunichar term_getkey(void);
 #define term_write_gunichar SLsmg_write_char
 #define term_write_chars(s) SLsmg_write_nchars(s, strlen(s))
 #define term_input_pending SLang_input_pending
+
+/* dns.c */
+typedef void (*DNSCallback)(struct hostent *result, int errno, void *userdata);
+void dns_lookup(const char *name, DNSCallback callback, void *userdata);
 
 /* lua modules */
 int luaopen_Entry(LuaState *L);

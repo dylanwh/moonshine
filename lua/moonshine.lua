@@ -18,11 +18,12 @@ function boot_hook()
 	do
 		local c = Client.new("localhost", 7575, client_hook)
 		c:connect()
+		c:free()
 	end
 	collectgarbage();
 end
 
-function shutdown_hook()
+function quit_hook()
 	ui.print("Shutdown: %1", "bob")
 	ui.render()
 end

@@ -1,9 +1,8 @@
-#include "dns.h"
-#include <glib.h>
+#include "moonshine.h"
+
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,7 +11,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
 
 typedef struct dnsreq {
     /* On buffer overflow, we immediately invoke callback with ERANGE */
@@ -76,7 +74,7 @@ static void clone_hostent(struct hostent * restrict dest, void * restrict *auxda
         strcpy(dest->h_aliases[i], src->h_aliases[i]);
     }
     dest->h_aliases[alias_count] = NULL;
-    assert(allocp - total_sz == *auxdata);
+    g_assert(allocp - total_sz == *auxdata);
 }
 
 #endif
@@ -155,7 +153,7 @@ static void *worker(void *dr_vp) {
     return NULL;
 }
 
-void dnsrequest(const char *name, DNSCallback callback, void *userdata) {
+void dns_lookup(const char *name, DNSCallback callback, void *userdata) {
     pthread_attr_t attr;
     if (pthread_attr_init(&attr)) {
         callback(NULL, errno, userdata);
@@ -195,7 +193,7 @@ void dnsrequest(const char *name, DNSCallback callback, void *userdata) {
         goto err_out;
     return;
 err_out:
-    assert(!dr->worker);
+    g_assert(!dr->worker);
     if (dr->read_chan) {
         GError *dummy = NULL;
         g_source_remove(dr->read_ev_id);
@@ -251,7 +249,7 @@ int main(int argc, char **argv) {
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
     for (int i = 1; i < argc; i++) {
         printf("Starting async lookup of %s...\n", argv[i]);
-        dnsrequest(argv[i], callback, loop);   
+        dns_lookup(argv[i], callback, loop);   
         dnsc++;
     }
     printf("Lookup running, starting glib mainloop.\n");

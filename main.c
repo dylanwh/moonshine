@@ -55,7 +55,7 @@ static int refresh(LuaState *L)/*{{{*/
 	term_refresh();
 	return 0;
 }/*}}}*/
-static int shutdown(LuaState *L)/*{{{*/
+static int quit(LuaState *L)/*{{{*/
 {
 	g_main_loop_quit(loop);
 	return 0;
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	g_option_context_parse (context, &argc, &argv, &error);
 	g_option_context_free(context);
 
-	lua_register(L, "shutdown", shutdown);
+	lua_register(L, "quit", quit);
 	lua_register(L, "refresh", refresh);
 	lua_register(L, "make_keyspec", make_keyspec);
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 
 	moon_call(L, "boot_hook", "");
 	g_main_loop_run(loop);
-	moon_call(L, "shutdown_hook", "");
+	moon_call(L, "quit_hook", "");
 
 	g_io_channel_unref(input);
 	g_main_loop_unref(loop);

@@ -3,7 +3,7 @@
 cmd = {}
 
 function cmd.QUIT(text)
-	shutdown()
+	quit()
 end
 
 function cmd.SPAM(text)
