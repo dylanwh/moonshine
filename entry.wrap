@@ -1,6 +1,6 @@
 -- vim: ft=wrap:
 require "wrap"
-include "moonshine.h"
+include "term.h"
 include "entry.h"
 class 'Entry' (boxed)
 

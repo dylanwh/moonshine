@@ -1,2 +1,5 @@
 #cmakedefine EMBED_LUA
-#cmakedefine HAVE_GETHOSTBYNAME_R
+#define UNUSED __attribute__((unused))
+#define PURE   __attribute__((pure)) 
+#define CONST   __attribute__((pure)) 
+

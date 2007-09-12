@@ -1,8 +1,9 @@
 -- vim: ft=wrap:
-require("wrap")
-include "moonshine.h"
+require "wrap"
+include "term.h"
 include "buffer.h"
-class "Buffer" (boxed)
+
+class 'Buffer' (boxed)
 
 method 'new' [[
 	guint size = luaL_optint(L, 1, 1024);
@@ -52,7 +53,7 @@ method 'scroll_to' [[
 ]]
 
 -- Formats {{{1
-method "format" [[
+method 'format' [[
 	const char *input = luaL_checkstring(L, 1);
 	GString *out = g_string_sized_new(strlen(input));
 	const gchar *p = input;

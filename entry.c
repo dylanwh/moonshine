@@ -1,6 +1,7 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#include "moonshine.h"
+#include "term.h"
 #include "entry.h"
+#include "util.h"
 #include <string.h>
 
 struct Entry {

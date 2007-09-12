@@ -1,5 +1,8 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#include "moonshine.h"
+#include "moon.h"
+#include "term.h"
+#include "config.h"
+#include <glib.h>
 
 /* Option definitions. {{{1 */
 static char *hostname = "chat.haverdev.org";

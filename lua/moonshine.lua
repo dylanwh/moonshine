@@ -15,12 +15,6 @@ end
 
 function boot_hook()
 	ui.render()
-	do
-		local c = Client.new("localhost", 7575, client_hook)
-		c:connect()
-		c:free()
-	end
-	collectgarbage();
 end
 
 function quit_hook()

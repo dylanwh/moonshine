@@ -1,12 +1,12 @@
 /* vim: set ft=c.doxygen noexpandtab ts=4 sw=4 tw=80: */
+#include "term.h"
+#include "buffer.h"
 
 #include <glib.h>
 #include <slang.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "moonshine.h"
-#include "buffer.h"
 
 struct Buffer {
 	/* These are three pointers into a doubly-linked list of lines (as strings,

@@ -1,10 +1,21 @@
-#include "moonshine.h"
-
-#ifdef EMBED_LUA
-#	include "packages.h"
-#endif
+#include "moon.h"
+#include "config.h"
+#include <glib.h>
 
 #define moon_ccall(L, f) (lua_pushcfunction(L, f), lua_call(L, 0, 0))
+
+#ifdef EMBED_LUA
+#	include <stdlib.h>
+
+#	include "packages.h"
+void moon_loader_init(LuaState *L);
+#endif
+
+int luaopen_Entry(LuaState *L);
+int luaopen_Buffer(LuaState *L);
+int luaopen_Topic(LuaState *L);
+int luaopen_app(LuaState *L);
+//int luaopen_Client(LuaState *L);
 
 LuaState *moon_new(void)
 {
@@ -13,7 +24,7 @@ LuaState *moon_new(void)
 	moon_ccall(L, luaopen_Buffer);
 	moon_ccall(L, luaopen_Entry);
 	moon_ccall(L, luaopen_Topic);
-	moon_ccall(L, luaopen_Client);
+//	moon_ccall(L, luaopen_Client);
 
 #	ifdef EMBED_LUA
 	moon_loader_init(L);

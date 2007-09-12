@@ -137,3 +137,6 @@ function finish (code)
 	print ('\treturn 1;')
 	print ("}")
 end
+
+
+print [[#include "moon.h"]]
