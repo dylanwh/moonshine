@@ -42,7 +42,7 @@ CONFIGURE_FILE(${SRC}/config.h.in
 
 
 MACRO(LUAWRAP file)
-ADD_CUSTOM_COMMAND(
+	ADD_CUSTOM_COMMAND(
 	OUTPUT "${BIN}/${file}.c"
 	COMMAND lua ${file} > ${BIN}/${file}.c 
 	DEPENDS "${file}" wrap.lua
@@ -52,10 +52,6 @@ ENDMACRO()
 LUAWRAP("entry.wrap")
 LUAWRAP("buffer.wrap")
 LUAWRAP("topic.wrap")
-
-#CONFIGURE_FILE(${SRC}/docs/Doxyfile.in
-#	${BIN}/docs/Doxyfile
-#	@ONLY IMMEDIATE)
 
 IF (EMBED_LUA)
 	FILE(GLOB PACKAGES ${SRC}/lua/*.lua)

@@ -3,7 +3,11 @@
 #include "config.h"
 #include <errno.h>
 #include <unistd.h>
-
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 /* {{{ Globals */
 static GThreadPool *net_pool; /// Receives NetRequests (from net_connect()), sends NetResponses.
