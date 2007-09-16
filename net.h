@@ -93,3 +93,6 @@ void net_connect(const char *hostname, const char *service, NetFunc func,
 		gpointer data);
 
 void net_stop(void);
+
+
+#endif
