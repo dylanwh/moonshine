@@ -2,14 +2,28 @@ local Topic   = Topic
 local Buffer  = Buffer
 local Entry   = Entry
 local refresh = refresh
-
+local tostring = tostring
 module "ui"
-topic   = Topic("Test")
-buffer  = Buffer()
-entry   = Entry()
+
+windows = {
+	{ topic   = Topic("Test"), buffer  = Buffer() },
+	{ topic   = Topic("Test2"), buffer  = Buffer() },
+}
+
+topic = windows[1].topic
+buffer = windows[1].buffer
+entry = Entry()
+
+function view(i)
+	if windows[i] then
+		topic = windows[i].topic
+		buffer = windows[i].buffer
+		render()
+	end
+end
 
 function print(fmt, ...)
-	local s = buffer.format(fmt, arg)
+	local s = Buffer.format(tostring(fmt), arg)
 	buffer:print(s)
 end
 
@@ -22,6 +36,16 @@ end
 
 function keypress(key)
 	entry:keypress(key)
+	render()
+end
+
+function scroll_up()
+	buffer:scroll(5)
+	render()
+end
+
+function scroll_down()
+	buffer:scroll(-5)
 	render()
 end
 

@@ -7,7 +7,7 @@ function cmd.QUIT(text)
 end
 
 function cmd.SPAM(text)
-	for i = 1, 200 do
+	for i = 1, 10 do
 		ui.print(text)
 	end
 end
@@ -20,6 +20,10 @@ end
 
 function cmd.unknown(word, arg)
 	ui.print("word: %1, arg = %2", word, arg)
+end
+
+function cmd.default(line)
+	ui:print(line)
 end
 
 function cmd.TOPIC(text)
