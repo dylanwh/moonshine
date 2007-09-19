@@ -1,5 +1,4 @@
 
-default: configure
 
 all: configure compile
 
