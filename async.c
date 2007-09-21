@@ -59,7 +59,6 @@ void async_watch(int fd,
 void async_write(int fd, const char *str)
 {
 	AsyncContext *ctx = async_context(fd);
-	g_print("Queue: %s\n", str);
 	g_queue_push_tail(ctx->queue, g_string_new(str));
 }
 
@@ -98,6 +97,9 @@ static AsyncContext *async_context(int fd)/*{{{*/
 	g_assert(context_table);
 	g_return_val_if_fail(fd >= 0, NULL);
 	AsyncContext *ctx = g_hash_table_lookup(context_table, GINT_TO_POINTER(fd));
+	if (ctx == NULL) {
+		g_warning("No context for fd=%d\n", fd);
+	}
 	g_return_val_if_fail(ctx != NULL, NULL);
 	return ctx;
 }/*}}}*/
@@ -173,7 +175,6 @@ inline static void on_output(AsyncContext *ctx)/*{{{*/
 	g_assert(err == NULL);
 	g_assert(status == G_IO_STATUS_NORMAL);
 
-	g_print("Wrote %d of %d\n", len, msg->len);
 	if (len < msg->len) {
 		g_string_erase(msg, 0, len);
 		g_queue_push_head(queue, msg);
