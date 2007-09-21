@@ -16,17 +16,29 @@ static GSource     *net_source; /// Connects net_queue to the GMainLoop.
 /* }}} */
 
 /* {{{ Structures and typedefs */
+
+typedef enum {
+	NET_CONNECT,
+	NET_ERROR,
+	NET_SYS_ERROR
+} NetEventType;
+
 typedef struct addrinfo AddrInfo;
 typedef struct {
-	char *hostname; /// copy of the hostname passed to net_connect()
-	char *service; /// copy of service passed to net_connect()
-	NetFunc func; /// the function to call upon either error or sucessful function.
-	gpointer data; /// environemnt of above function.
+	char *hostname;
+	char *service;
+	NetConnectFunc on_connect;
+	NetErrorFunc on_error;
+	gpointer data;
 } NetRequest;
 
 typedef struct {
-	NetEvent event;
-	NetFunc func;
+	NetEventType type;
+	int fd;
+	int error;
+	int sys_error;
+	NetConnectFunc on_connect;
+	NetErrorFunc on_error;
 	gpointer data;
 } NetResponse;
 /* }}} */
@@ -42,7 +54,8 @@ static void net_pool_worker(NetRequest *req, gpointer data)
 		.ai_protocol = IPPROTO_TCP,
 	};
 	NetResponse *resp = g_new(NetResponse, 1); // freed in net_source_worker().
-	resp->func = req->func;
+	resp->on_error = req->on_error;
+	resp->on_connect = req->on_connect;
 	resp->data = req->data;
 
 	AddrInfo *result;
@@ -63,17 +76,17 @@ static void net_pool_worker(NetRequest *req, gpointer data)
         }
 
 		if (rp && fd != -1) {
-			resp->event.type = NET_CONNECT;
-			resp->event.fd   = fd;
+			resp->type = NET_CONNECT;
+			resp->fd   = fd;
 		} else {
-			resp->event.type  = NET_SYS_ERROR;
-			resp->event.error = 0; // no addrinfo error
-			resp->event.sys_error = errno;
+			resp->type  = NET_SYS_ERROR;
+			resp->error = 0; // no addrinfo error
+			resp->sys_error = errno;
 		}
 	} else {
-		resp->event.type  = NET_ERROR;
-		resp->event.error = error;
-		resp->event.sys_error = errno;
+		resp->type  = NET_ERROR;
+		resp->error = error;
+		resp->sys_error = errno;
 	}
 
 	g_free(req->hostname);
@@ -88,8 +101,24 @@ static void net_pool_worker(NetRequest *req, gpointer data)
 static gboolean net_source_worker(NetResponse *resp)
 {
 	g_assert(resp);
-	g_assert(resp->func);
-	resp->func(resp->event, resp->data);
+	GError *err;
+
+	switch (resp->type) {
+		case NET_CONNECT:
+			resp->on_connect(resp->fd, resp->data);
+			break;
+		case NET_ERROR:
+			/* FIXME: gai_strerror is not thread safe. */
+			err = g_error_new_literal(NET_ERROR_DNS, resp->error, gai_strerror(resp->error));
+			resp->on_error(err, resp->data);
+			g_error_free(err);
+			break;
+		case NET_SYS_ERROR:
+			err = g_error_new_literal(NET_ERROR_SYS, resp->sys_error, g_strerror(resp->sys_error));
+			resp->on_error(err, resp->data);
+			g_error_free(err);
+			break;
+	}
 	g_free(resp);
  	return TRUE;
 }
@@ -137,7 +166,11 @@ void net_start(void)
 	g_source_attach(net_source, NULL);
 }
 
-void net_connect(const char *hostname, const char *service, NetFunc func, gpointer data)
+
+void net_connect(const char *hostname, const char *service,
+		NetConnectFunc on_connect,
+		NetErrorFunc on_error,
+		gpointer data)
 {
 	g_assert(net_pool && net_queue && net_source);
 	g_return_if_fail(hostname);
@@ -147,13 +180,15 @@ void net_connect(const char *hostname, const char *service, NetFunc func, gpoint
 	req->hostname = g_strdup(hostname);    // freed in net_pool_worker.
 	req->service  = g_strdup(service);     // freed in net_pool_worker.
 	req->data     = data;
-	req->func     = func;
+	req->on_error = on_error;
+	req->on_connect = on_connect;
+
 	g_thread_pool_push(net_pool, req, NULL);
 }
 
 void net_stop(void)
 {
-	// FIXME
+	/* FIXME */
 }
 
 /* }}} */
