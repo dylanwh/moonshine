@@ -9,7 +9,7 @@ SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 ADD_EXECUTABLE(moonshine term.c moon.c 
 	buffer.c entry.c
 	buffer.wrap.c  entry.wrap.c topic.wrap.c
-	util.c main.c net.c)
+	util.c main.c async.c net.c)
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
 
@@ -22,23 +22,21 @@ ENDIF()
 FIND_PACKAGE(LUA REQUIRED)
 FIND_PACKAGE(SLANG REQUIRED)
 FIND_PACKAGE(GLIB REQUIRED)
+FIND_PACKAGE(GTHREAD REQUIRED)
 
 INCLUDE_DIRECTORIES(BEFORE ${SLANG_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${BIN}
-	${GLIB_INCLUDE_DIRS} ${SRC})	
+	${GLIB_INCLUDE_DIRS} ${GTHREAD_INCLUDE_DIRS} ${SRC})	
 
 TARGET_LINK_LIBRARIES(moonshine ${GLIB_LIBRARY} ${SLANG_LIBRARY}
-	${LUA_LIBRARY})
+	${LUA_LIBRARY} ${GTHREAD_LIBRARY})
 
 ## Now we add these the the flags passed to the C compiler.
 ADD_DEFINITIONS("-std=gnu99 -Wall -Winline -I${BIN}")
-ADD_DEFINITIONS("${GLIB_DEFINITIONS}")
-
-CHECK_FUNCTION_EXISTS(gethostbyname_r HAVE_GETHOSTBYNAME_R)
+ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GTHREAD_DEFINITIONS}")
 
 CONFIGURE_FILE(${SRC}/config.h.in
 	${BIN}/config.h
 	@ONLY IMMEDIATE)
-
 
 MACRO(LUAWRAP file)
 	ADD_CUSTOM_COMMAND(
