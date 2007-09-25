@@ -23,4 +23,12 @@ void line_reader_on_read(gchar *str, gsize len, gpointer data);
 void line_reader_on_error(GError *err, gpointer data);
 void line_reader_on_close(gpointer data);
 
+#define line_reader_watch(fd, on_line, on_error, on_close, data) \
+	async_watch(fd, \
+			line_reader_on_read, \
+			line_reader_on_error, \
+			line_reader_on_close, \
+			line_reader_new(on_line, on_error, on_close, data))
+
+
 #endif
