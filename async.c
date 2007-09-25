@@ -146,7 +146,6 @@ void async_watch(int fd,
 	ctx->on_close = on_close;
 	ctx->data     = data;
 	ctx->alive    = TRUE;
-	g_print("bunnies");
 	g_io_channel_set_encoding(ctx->channel, NULL, NULL);
 	g_io_channel_set_buffered(ctx->channel, FALSE);
 	g_io_channel_set_flags(ctx->channel, G_IO_FLAG_NONBLOCK, NULL);
@@ -189,7 +188,6 @@ void async_close(int fd)
 /* {{{ Magic */
 __attribute__((constructor)) static void async_init(void)
 {
-	fooo()
 	context_table = g_hash_table_new(NULL, NULL);
 }
 
