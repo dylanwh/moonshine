@@ -12,8 +12,13 @@ typedef enum {
 
 typedef void (*AsyncReadFunc)(char *str, gsize len, gpointer data);
 typedef void (*AsyncErrorFunc)(GError *err, gpointer data);
+typedef void (*AsyncCloseFunc)(gpointer data);
 
-void async_watch(int fd, AsyncReadFunc on_read, AsyncErrorFunc on_error, gpointer data);
+void async_watch(int fd,
+		AsyncReadFunc on_read,
+		AsyncErrorFunc on_error,
+		AsyncCloseFunc on_close,
+		gpointer data);
 void async_write(int fd, const char *str, gsize bytes);
 void async_close(int fd);
 
