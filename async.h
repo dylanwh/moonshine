@@ -19,6 +19,7 @@ void async_watch(int fd,
 		AsyncErrorFunc on_error,
 		AsyncCloseFunc on_close,
 		gpointer data);
+
 void async_write(int fd, const char *str, gsize bytes);
 void async_close(int fd);
 

@@ -9,7 +9,10 @@ SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 ADD_EXECUTABLE(moonshine term.c moon.c 
 	buffer.c entry.c
 	buffer.wrap.c  entry.wrap.c topic.wrap.c
-	util.c main.c async.c net.c)
+	util.c main.c async.c line-reader.c net.c)
+
+ADD_EXECUTABLE(mooncat net.c async.c line-reader.c mooncat.c)
+TARGET_LINK_LIBRARIES(mooncat ${GLIB_LIBRARY} ${GTHREAD_LIBRARY})
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
 
