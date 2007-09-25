@@ -92,7 +92,8 @@ static void net_pool_worker(NetRequest *req, gpointer data)
 	g_free(req->hostname);
 	g_free(req->service);
 	g_free(req);
-	freeaddrinfo(result);
+	if (result && error == 0)
+		freeaddrinfo(result);
 
 	g_async_queue_push(net_queue, resp);
 	g_main_context_wakeup(NULL);
