@@ -46,30 +46,6 @@ ELSE (LUA_LIBRARY AND LUA_INCLUDE_DIR)
 
 	IF(LUA51_INCLUDE_DIR AND LUA51_LIBRARY)
 		SET(LUA_FOUND TRUE)
-	ELSE(LUA51_INCLUDE_DIR AND LUA51_LIBRARY)
-  		FIND_PATH(
-        	LUA50_INCLUDE_DIR lua.h
-        	PATHS /usr/include /usr/local/include /usr/pkg/include
-        	PATH_SUFFIXES lua50 lua5.0 lua-5.0 lua
-  			)
-
-  		FIND_LIBRARY(
-        	LUA50_LIBRARY NAMES lua50 lua5.0 lua-5.0 lua
-        	PATHS /lib /usr/lib /usr/local/lib /usr/pkg/lib
-  			)
-
-  		FIND_LIBRARY(
-  			LUALIB50_LIBRARY NAMES lualib50 lualib5.0 lualib-5.0 lualib
-			PATHS /lib /usr/lib /usr/local/lib /usr/pkg/lib
-  			)
-
-  		IF(LUA50_INCLUDE_DIR AND LUA50_LIBRARY AND LUALIB50_LIBRARY)
-    		SET(LUA_INCLUDE_DIR "${LUA50_INCLUDE_DIR}")
-    		SET(LUA_LIBRARY "${LUA50_LIBRARY}")
-    		SET(LUALIB_LIBRARY "${LUALIB50_LIBRARY}")
-    		SET(LUA_VERSION "5.0")
-    		SET(LUA_FOUND TRUE)
-  		ENDIF(LUA50_INCLUDE_DIR AND LUA50_LIBRARY AND LUALIB50_LIBRARY)
 	ENDIF(LUA51_INCLUDE_DIR AND LUA51_LIBRARY)
 
 	IF (LUA_FOUND)
