@@ -1,9 +1,4 @@
-local Topic   = Topic
-local Buffer  = Buffer
-local Entry   = Entry
-local refresh = refresh
-local tostring = tostring
-module "ui"
+module ("ui", package.seeall)
 
 windows = {
 	{ topic   = Topic("Test"), buffer  = Buffer() },

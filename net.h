@@ -10,7 +10,6 @@
  * (Note, this requires the glib mainloop to be running).
  */
 
-
 /** This GError domain represents errors from getaddrinfo() */
 #define NET_ERROR_DNS g_quark_from_string("NetErrorDNS")
 
@@ -18,7 +17,7 @@
  * errno value. */
 #define NET_ERROR_SYS g_quark_from_string("NetErrorSys")
 
-void net_start(void);
+void net_init(void);
 
 typedef void (*NetConnectFunc)(int fd, gpointer data);
 typedef void (*NetErrorFunc)(GError *err, gpointer data);
@@ -27,7 +26,8 @@ void net_connect(const char *hostname, const char *service,
 		NetErrorFunc on_error,
 		gpointer data);
 
-void net_stop(void);
+void net_reset(void);
 
+const char *net_hostname(int fd);
 
 #endif

@@ -21,11 +21,11 @@ typedef struct {
 
 static AsyncContext *async_context(int fd)
 {
-	g_assert(context_table);
+	g_assert(context_table != NULL);
 	g_return_val_if_fail(fd >= 0, NULL);
 	AsyncContext *ctx = g_hash_table_lookup(context_table, GINT_TO_POINTER(fd));
 	if (ctx == NULL) {
-		g_warning("No context for fd=%d\n", fd);
+		g_warning("No context for fd %d\n", fd);
 	}
 	g_return_val_if_fail(ctx != NULL, NULL);
 	return ctx;
@@ -154,7 +154,6 @@ void async_watch(int fd,
 	g_hash_table_insert(context_table, GINT_TO_POINTER(fd), ctx);
 }/*}}}*/
 
-
 /* {{{ async_write */
 void async_write(int fd, const char *str, gsize len)
 {
@@ -185,13 +184,14 @@ void async_close(int fd)
 	g_free(ctx);
 }/*}}}*/
 
-/* {{{ Magic */
-__attribute__((constructor)) static void async_init(void)
+/* {{{ async_init */
+void async_init(void)
 {
 	context_table = g_hash_table_new(NULL, NULL);
-}
+}/* }}} */
 
-__attribute__((destructor)) static void async_reset(void)
+/* {{{ async_reset */
+void async_reset(void)
 {
 	g_hash_table_destroy(context_table);
 }/* }}} */

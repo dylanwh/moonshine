@@ -23,4 +23,7 @@ void async_watch(int fd,
 void async_write(int fd, const char *str, gsize bytes);
 void async_close(int fd);
 
+void async_init(void);
+void async_reset(void);
+
 #endif

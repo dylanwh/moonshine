@@ -1,6 +1,8 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include "moon.h"
 #include "term.h"
+#include "net.h"
+#include "async.h"
 #include "config.h"
 #include <glib.h>
 
@@ -64,25 +66,37 @@ static int quit(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
+typedef struct {
+	LuaState *L;
+	int on_connect;
+	int on_error;
+	char *hostname, *service;
+} Context;
 
 int main(int argc, char *argv[])
 {
-	GError *error = NULL;
+	GError *error     = NULL;
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 	LuaState *L       = moon_new();
-	loop = g_main_loop_new(NULL, FALSE);
 
 	GOptionContext *context = g_option_context_new ("- a console haver client");
 	g_option_context_add_main_entries (context, entries, NULL);
 	g_option_context_parse (context, &argc, &argv, &error);
 	g_option_context_free(context);
 
+	g_thread_init(NULL);
+	
+	loop = g_main_loop_new(NULL, FALSE);
+
 	lua_register(L, "quit", quit);
 	lua_register(L, "refresh", refresh);
 	lua_register(L, "make_keyspec", make_keyspec);
-
 	moon_require(L, "moonshine");
+
 	term_init();
+	net_init();
+	async_init();
+
 	g_io_add_watch(input, G_IO_IN, on_input, L);
 
 	moon_call(L, "boot_hook", "");
@@ -92,6 +106,10 @@ int main(int argc, char *argv[])
 	g_io_channel_unref(input);
 	g_main_loop_unref(loop);
 	lua_close(L);
-	return 0;
+
+	async_reset();
+	net_reset();
+
+	exit(0);
 }
 

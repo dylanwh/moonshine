@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:     Wrap (Lua)
 " Maintainer:   Dylan William Hardison <dylan@hardison.net>
-" Last Change:  11-Sep-2007.
+" Last Change:  28-Sep-2007.
 " Remark:       DSL for wrapping C code.
 
 if exists("b:current_syntax")
