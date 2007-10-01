@@ -28,6 +28,5 @@ void net_connect(const char *hostname, const char *service,
 
 void net_reset(void);
 
-const char *net_hostname(int fd);
 
 #endif
