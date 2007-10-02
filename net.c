@@ -156,7 +156,7 @@ static GSourceFuncs net_source_functions = {//{{{
 
 /* {{{ Public functions */
 
-void net_start(void)
+void net_init(void)
 {
 	net_queue  = g_async_queue_new();
 	net_source = g_source_new(&net_source_functions, sizeof(GSource));
@@ -187,7 +187,7 @@ void net_connect(const char *hostname, const char *service,
 	g_thread_pool_push(net_pool, req, NULL);
 }
 
-void net_stop(void)
+void net_reset(void)
 {
 	/* FIXME */
 }
