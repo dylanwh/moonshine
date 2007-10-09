@@ -1,8 +1,6 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include "moon.h"
 #include "term.h"
-#include "net.h"
-#include "async.h"
 #include "config.h"
 #include <glib.h>
 
@@ -66,15 +64,10 @@ static int quit(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-typedef struct {
-	LuaState *L;
-	int on_connect;
-	int on_error;
-	char *hostname, *service;
-} Context;
-
 int main(int argc, char *argv[])
 {
+	g_thread_init(NULL);
+
 	GError *error     = NULL;
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 	LuaState *L       = moon_new();
@@ -84,7 +77,6 @@ int main(int argc, char *argv[])
 	g_option_context_parse (context, &argc, &argv, &error);
 	g_option_context_free(context);
 
-	g_thread_init(NULL);
 	
 	loop = g_main_loop_new(NULL, FALSE);
 
@@ -94,8 +86,6 @@ int main(int argc, char *argv[])
 	moon_require(L, "moonshine");
 
 	term_init();
-	net_init();
-	async_init();
 
 	g_io_add_watch(input, G_IO_IN, on_input, L);
 
@@ -107,8 +97,6 @@ int main(int argc, char *argv[])
 	g_main_loop_unref(loop);
 	lua_close(L);
 
-	async_reset();
-	net_reset();
 
 	exit(0);
 }

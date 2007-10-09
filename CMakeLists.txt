@@ -8,7 +8,8 @@ SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
 ADD_EXECUTABLE(moonshine term.c moon.c 
 	buffer.c entry.c
-	buffer.wrap.c  entry.wrap.c topic.wrap.c
+	buffer_wrap.c  entry_wrap.c topic_wrap.c
+	net_wrap.c
 	util.c main.c async.c line-reader.c net.c)
 
 ADD_EXECUTABLE(mooncat net.c async.c line-reader.c mooncat.c)
@@ -43,15 +44,15 @@ CONFIGURE_FILE(${SRC}/config.h.in
 
 MACRO(LUAWRAP file)
 	ADD_CUSTOM_COMMAND(
-	OUTPUT "${BIN}/${file}.c"
-	COMMAND lua ${file} > ${BIN}/${file}.c 
-	DEPENDS "${file}" wrap.lua
+	OUTPUT "${BIN}/${file}_wrap.c"
+	COMMAND lua ${file}.wrap > ${BIN}/${file}_wrap.c 
+	DEPENDS "${file}.wrap" wrap.lua
 	WORKING_DIRECTORY ${SRC})
 ENDMACRO()
 
-LUAWRAP("entry.wrap")
-LUAWRAP("buffer.wrap")
-LUAWRAP("topic.wrap")
+LUAWRAP("entry")
+LUAWRAP("buffer")
+LUAWRAP("topic")
 
 IF (EMBED_LUA)
 	FILE(GLOB PACKAGES ${SRC}/lua/*.lua)

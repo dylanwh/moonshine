@@ -15,7 +15,7 @@ int luaopen_Entry(LuaState *L);
 int luaopen_Buffer(LuaState *L);
 int luaopen_Topic(LuaState *L);
 int luaopen_app(LuaState *L);
-//int luaopen_Client(LuaState *L);
+int luaopen_net(LuaState *L);
 
 LuaState *moon_new(void)
 {
@@ -24,6 +24,7 @@ LuaState *moon_new(void)
 	moon_ccall(L, luaopen_Buffer);
 	moon_ccall(L, luaopen_Entry);
 	moon_ccall(L, luaopen_Topic);
+	moon_ccall(L, luaopen_net);
 //	moon_ccall(L, luaopen_Client);
 
 #	ifdef EMBED_LUA
@@ -71,6 +72,15 @@ void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], 
   	lua_rawset(L, -3);                /* hide metatable: metatable.__metatable =
   										 methods */
   	lua_pop(L, 2);                    /* drop metatable and methods */
+}
+
+void moon_weaktable(LuaState *L)
+{
+	lua_newtable(L);               /* push: table */
+	lua_newtable(L);               /* push: metatable */
+	lua_pushstring(L, "v");        /* push: "v" */
+	lua_setfield(L, -2, "__mode"); /* pop: "v" */
+	lua_setmetatable(L, -2);       /* pop: metatable */
 }
 
 #ifdef EMBED_LUA

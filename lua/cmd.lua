@@ -6,6 +6,16 @@ function cmd.QUIT(text)
 	quit()
 end
 
+function cmd.TEST(text)
+	net.connect("google.com", "htts",
+	function (fd)
+		ui.print("connected with %1", fd)
+	end,
+	function (domain, code, message)
+		ui.print("error: %1, %2 (%3)", domain, code, message)
+	end)
+end
+
 function cmd.SPAM(text)
 	for i = 1, 10 do
 		ui.print(text)
