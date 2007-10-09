@@ -23,12 +23,7 @@ static AsyncContext *async_context(int fd)
 {
 	g_assert(context_table != NULL);
 	g_return_val_if_fail(fd >= 0, NULL);
-	AsyncContext *ctx = g_hash_table_lookup(context_table, GINT_TO_POINTER(fd));
-	if (ctx == NULL) {
-		g_warning("No context for fd %d\n", fd);
-	}
-	g_return_val_if_fail(ctx != NULL, NULL);
-	return ctx;
+	return g_hash_table_lookup(context_table, GINT_TO_POINTER(fd));
 }
 /* }}} */
 
@@ -46,6 +41,7 @@ inline static void on_input(AsyncContext *ctx)
 	ctx->on_read(str, len, ctx->data);
 
 	if (err) {
+		ctx->alive = FALSE;
 		ctx->on_error(err, ctx->data);
 		g_error_free(err);
 	}
@@ -59,17 +55,17 @@ inline static void on_input(AsyncContext *ctx)
 		case G_IO_STATUS_EOF:
 			{
 				GError *err = g_error_new(ASYNC_ERROR, ASYNC_ERROR_EOF, "Got EOF");
+				ctx->alive = FALSE;
 				ctx->on_error(err, ctx->data);
 				g_error_free(err);
-				ctx->alive = FALSE;
 			}
 			break;
 		case G_IO_STATUS_ERROR:
 			{
 				GError *err = g_error_new(ASYNC_ERROR, ASYNC_ERROR_WTF, "WTF?");
+				ctx->alive = FALSE;
 				ctx->on_error(err, ctx->data);
 				g_error_free(err);
-				ctx->alive = FALSE;
 
 			}
 			break;
@@ -108,9 +104,9 @@ static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)
 
 	if (cond & G_IO_HUP) {
 		GError *err = g_error_new(ASYNC_ERROR, ASYNC_ERROR_HUP, "Received HUP");
+		ctx->alive = FALSE;
 		ctx->on_error(err, ctx->data);
 		g_error_free(err);
-		ctx->alive = FALSE;
 	}
 	
 	if (cond & G_IO_IN)
@@ -158,11 +154,13 @@ void async_watch(int fd,
 void async_write(int fd, const char *str, gsize len)
 {
 	AsyncContext *ctx = async_context(fd);
+	g_return_if_fail(ctx != NULL);
+
 	g_queue_push_tail(ctx->queue, g_string_new(str));
 }/* }}} */
 
 /* {{{ async_close */
-void each_g_string(GString *msg, UNUSED gpointer data)
+static void each_g_string(GString *msg, UNUSED gpointer data)
 {
 	g_string_free(msg, TRUE);
 }
@@ -170,6 +168,7 @@ void each_g_string(GString *msg, UNUSED gpointer data)
 void async_close(int fd)
 {
 	AsyncContext *ctx = async_context(fd);
+	if (ctx == NULL) return;
 
 	if (ctx->on_close)
 		ctx->on_close(ctx->data);
@@ -184,6 +183,19 @@ void async_close(int fd)
 	g_free(ctx);
 }/*}}}*/
 
+gboolean async_is_alive(int fd)
+{
+	AsyncContext *ctx = g_hash_table_lookup(context_table, GINT_TO_POINTER(fd));
+	g_return_val_if_fail(ctx != NULL, FALSE);
+	return ctx->alive;
+}
+
+gboolean async_is_open(int fd)
+{
+	AsyncContext *ctx = g_hash_table_lookup(context_table, GINT_TO_POINTER(fd));
+	return (ctx != NULL);
+}
+
 /* {{{ async_init */
 void async_init(void)
 {
@@ -191,7 +203,15 @@ void async_init(void)
 }/* }}} */
 
 /* {{{ async_reset */
+static void each_context(UNUSED gpointer key, UNUSED gpointer v, UNUSED gpointer d)
+{
+	int fd = GPOINTER_TO_INT(key);
+	async_close(fd);
+}
+
 void async_reset(void)
 {
+	g_hash_table_foreach(context_table, (GHFunc)each_context, NULL);
+
 	g_hash_table_destroy(context_table);
 }/* }}} */
