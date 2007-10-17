@@ -1,0 +1,25 @@
+This document is sort of a history of design decisions, more than a formal
+design document.
+
+
+Why I am not using C++ and Swig
+-------------------------------
+
+I considered using C++ and Swig, especially for the UI widgets that bd_ wrote.
+Rewriting the code to be valid C++ is not hard, so I did that.
+However, while swig is really good at wrapping code, wrapping code that uses
+function pointers is difficult. It requires complicated type maps and I did not
+feel like doing that. So I am not going to use C++ or swig.
+
+
+Why I am not using coroutines
+-----------------------------
+
+Coroutines would greatly simplify things. I could pretend that net.connect() and
+friends block. However, it seems non-trivial to use coroutines as I want to.
+
+However, I will continue using coroutines in the future, especially if someone
+else does it.
+A good article on the matter: http://lua-users.org/wiki/CoroutinesAsEventHandlers
+
+

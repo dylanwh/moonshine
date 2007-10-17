@@ -1,5 +1,6 @@
 #cmakedefine EMBED_LUA
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 
-#define CONST   __attribute__((pure)) 
+#define CONST   __attribute__((const)) 
+
 
