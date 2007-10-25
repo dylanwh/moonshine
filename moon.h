@@ -11,7 +11,7 @@ typedef luaL_reg     LuaLReg;
 
 LuaState *moon_new(void);
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...);
-void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[]);
+void moon_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[]);
 void moon_weaktable(LuaState *L);
 #define moon_require(L, package) moon_call(L, "require", "s", package)
 #define moon_deref(L, ref) lua_rawgeti(L, LUA_REGISTRYINDEX, ref)
@@ -22,5 +22,10 @@ static inline int moon_ref(LuaState *L, int idx)
 	lua_pushvalue(L, idx);
 	return luaL_ref(L, LUA_REGISTRYINDEX);
 }
+
+gpointer moon_toclass(LuaState *L, const char *class, int index);
+gpointer moon_checkclass(LuaState *L, const char *class, int index);
+gpointer moon_newclass(LuaState *L, const char *class, gsize size);
+
 
 #endif

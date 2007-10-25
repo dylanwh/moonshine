@@ -2,12 +2,16 @@
 #ifndef __MOONSHINE_BUFFER_H__
 #define __MOONSHINE_BUFFER_H__
 #include <glib.h>
+#include "moon.h"
 
-/** \file buffer.h
- * \brief buffer class. */
+#define BUFFER_INDENT_MARK_UCS 0xF0000
+#define BUFFER_INDENT_MARK_UTF "\xF3\xB0\x80\x80"
+#define BUFFER_COLOR_MIN_UCS   0xFC000
+#define BUFFER_COLOR_MAX_UCS   0xFCFFF
 
-typedef struct Buffer Buffer;
+int luaopen_Buffer(LuaState *L);
 
+#if 0
 /** \brief Create a new buffer.
  *
  * \param history_len The maximum size of the scrollback buffer
@@ -86,11 +90,7 @@ void buffer_scroll_to(Buffer *buffer, guint abs_offset);
  * \param buffer The buffer to destroy
  */
 void buffer_free(Buffer *buffer);
-
-#define BUFFER_INDENT_MARK_UCS 0xF0000
-#define BUFFER_INDENT_MARK_UTF "\xF3\xB0\x80\x80"
-#define BUFFER_COLOR_MIN_UCS   0xFC000
-#define BUFFER_COLOR_MAX_UCS   0xFCFFF
+#endif
 
 #endif
 

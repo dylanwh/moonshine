@@ -2,42 +2,40 @@
 #include "term.h"
 #include "entry.h"
 #include "util.h"
+#include "moon.h"
+
 #include <string.h>
 
-struct Entry {
+typedef struct {
 	gunichar *buffer;
 	gsize bufsize; /* The total size of the buffer in gunichars. Is zero iff buffer is NULL. */
 	gsize bufused; /* The length of the actual string in the buffer. */
 	gsize view_off; /* The index of the first visible character. May be out of range; entry_render will correct such issues. */
 	gsize curs_off; /* The index of the character the cursor is on. Must not be out of range (> bufused). */
-};
+} Entry;
 
-Entry *entry_new(void)
+static int Entry_new(LuaState *L)
 {
-	Entry *e = g_new(Entry, 1);
+	Entry *e = moon_newclass(L, "Entry", sizeof(Entry));
 	e->buffer = NULL;
 	e->bufsize = e->bufused = 0;
 	e->view_off = e->curs_off = 0;
-	return e;
+	return 1;
 }
 
-void entry_free(Entry *e)
+static int Entry_keypress(LuaState *L)
 {
-	if (!e) return;
+	Entry *e        = moon_checkclass(L, "Entry", 1);
+	const char *key = luaL_checkstring(L, 2);
+	gunichar uc = g_utf8_get_char(key);
 
-	g_free(e->buffer); /* XXX: is glib's free safe with NULL? */
-	g_free(e);
-}
-
-void entry_keypress(Entry *e, gunichar uc) {
-	g_assert(e);
 	if (!uc || !g_unichar_isdefined(uc))
-		return; /* Filter invalid characters, hopefully. XXX: is this enough to deny the PUA? */
+		return 0; /* Filter invalid characters, hopefully. XXX: is this enough to deny the PUA? */
 	if (e->bufused + 1 > e->bufsize) {
 		/* If e->bufused * sizeof(e->buffer[0]) > 2**32, then there's a theoretical heap overflow on Really Big Systems.
 		 * Let's just clamp it to something nice and sane like 16kilochars
 		 */
-		if (e->bufsize >= 16384) return;
+		if (e->bufsize >= 16384) return 0;
 		/* We assume most lines will be relatively small, so just increase by 128 each time */
 		e->bufsize += 128;
 		e->buffer = g_renew(gunichar, e->buffer, e->bufsize);
@@ -47,11 +45,15 @@ void entry_keypress(Entry *e, gunichar uc) {
 	e->buffer[e->curs_off] = uc;
 	e->bufused++;
 	e->curs_off++;
+	return 0;
 }
 
-void entry_move(Entry *e, int offset) {
-	g_assert(e);
-	if (offset == 0) return;
+static int Entry_move(LuaState *L)
+{
+	Entry *e   = moon_checkclass(L, "Entry", 1);
+	int offset = luaL_checkinteger(L, 2);  
+
+	if (offset == 0) return 0;
 	
 	gsize new_off = e->curs_off + offset;
 	if ((new_off < e->curs_off) != (offset < 0)) {
@@ -64,11 +66,15 @@ void entry_move(Entry *e, int offset) {
 	if (new_off > e->bufused)
 		new_off = e->bufused;
 	e->curs_off = new_off;
+	return 0;
 }
 
-void entry_move_to(Entry *e, int absolute) {
-	g_assert(e);
-	if (!e->bufused) return;
+static int Entry_move_to(LuaState *L)
+{
+	Entry *e     = moon_checkclass(L, "Entry", 1);
+	int absolute = luaL_checkinteger(L, 2);  
+
+	if (!e->bufused) return 0;
 
 	if (absolute >= 0) {
 		e->curs_off = MIN(e->bufused, absolute);
@@ -78,21 +84,26 @@ void entry_move_to(Entry *e, int absolute) {
 		if (e->curs_off > e->bufused)
 			e->curs_off = 0;
 	}
+	return 0;
 }
 
-gchar *entry_get(Entry *e) {
-	g_assert(e);
+static int Entry_get(LuaState *L)
+{
+	Entry *e  = moon_checkclass(L, "Entry", 1);
 	if (e->bufused == 0) {
-		/* buffer may be NULL, so create the result manually */
-		gchar *p = g_malloc(1);
-		*p = '\0';
-		return p;
+		lua_pushstring(L, "");
+		return 1;
+	} else {
+		char *str = g_ucs4_to_utf8(e->buffer, e->bufused, NULL, NULL, NULL);
+		lua_pushstring(L, str);
+		g_free(str);
+		return 1;
 	}
-	return g_ucs4_to_utf8(e->buffer, e->bufused, NULL, NULL, NULL);
 }
 
-void entry_clear(Entry *e) {
-	g_assert(e);
+static int Entry_clear(LuaState *L)
+{
+	Entry *e  = moon_checkclass(L, "Entry", 1);
 	e->bufused = 0;
 	e->curs_off = e->view_off = 0;
 	/* If we have more than a page of buffer, free it, to prevent a single
@@ -102,6 +113,7 @@ void entry_clear(Entry *e) {
 		g_free(e->buffer);
 		e->bufused = 0;
 	}
+	return 0;
 }
 
 static guint center_view(Entry *e, guint width) {
@@ -183,8 +195,10 @@ static int try_render(Entry *e, guint lmargin) {
 	return curs_pos;
 }
 
-void entry_render(Entry *e, guint lmargin) {
-	g_assert(e);
+static int Entry_render(LuaState *L)
+{
+	Entry *e      = moon_checkclass(L, "Entry", 1);
+	guint lmargin = luaL_checkinteger(L, 2);
 	g_assert(e->curs_off <= e->bufused);
 
 	if (try_render(e, lmargin) == -1) {
@@ -199,32 +213,12 @@ void entry_render(Entry *e, guint lmargin) {
 			try_render(e, lmargin);
 		}
 	}
+	return 0;
 }
 
-void entry_erase(Entry *e, int count) {
-	g_assert(e);
-	if (!count)
-		return;
 
-	if (count > 0) {
-		/* Delete chars after the current cursor location. */
-		int start = e->curs_off;
-		int end   = MIN(e->bufused, e->curs_off + count);
-		entry_erase_region(e, start, end);
-	} else {
-		/* Delete chars before the current cursor location */
-		int start = e->curs_off + count;
-		int end   = e->curs_off;
-
-		/* Note: if count > e->curs_off, start will overflow and be > e->bufused */
-		if (start > e->bufused)
-			start = 0;
-		entry_erase_region(e, start, end);
-	}
-}
-
-void entry_erase_region(Entry *e, int start, int end) {
-	g_assert(e);
+static void erase_region(Entry *e, int start, int end)
+{
 	g_assert(start <= end);
 	g_assert(start <= e->bufused);
 	g_assert(end   <= e->bufused);
@@ -241,4 +235,68 @@ void entry_erase_region(Entry *e, int start, int end) {
 		e->curs_off -= (end - start);
 	else if (e->curs_off > start) /* in-between */
 		e->curs_off = start;
+	return;
+}
+
+static int Entry_erase(LuaState *L)
+{
+	Entry *e  = moon_checkclass(L, "Entry", 1);
+	int count = luaL_checkinteger(L, 2);
+	if (!count)
+		return 0;
+
+	if (count > 0) {
+		/* Delete chars after the current cursor location. */
+		int start = e->curs_off;
+		int end   = MIN(e->bufused, e->curs_off + count);
+		erase_region(e, start, end);
+	} else {
+		/* Delete chars before the current cursor location */
+		int start = e->curs_off + count;
+		int end   = e->curs_off;
+
+		/* Note: if count > e->curs_off, start will overflow and be > e->bufused */
+		if (start > e->bufused)
+			start = 0;
+		erase_region(e, start, end);
+	}
+	return 0;
+}
+
+static int Entry_gc(LuaState *L)
+{
+	Entry *e = moon_toclass(L, "Entry", 1);
+	g_free(e->buffer); /* XXX: is glib's free safe with NULL? */
+	return 0;
+}
+
+static int Entry_tostring(LuaState *L)
+{
+	char buff[32];
+  	sprintf(buff, "%p", moon_toclass(L, "Entry", 1));
+  	lua_pushfstring(L, "Entry (%s)", buff);
+  	return 1;
+}
+
+static const LuaLReg Entry_methods[] = {
+	{"new", Entry_new},
+	{"keypress", Entry_keypress},
+	{"move", Entry_move},
+	{"move_to", Entry_move_to},
+	{"get", Entry_get},
+	{"clear", Entry_clear},
+	{"erase", Entry_erase},
+	{"render", Entry_render},
+	{0, 0}
+};
+static const LuaLReg Entry_meta[] = {
+	{"__gc", Entry_gc},
+	{"__tostring", Entry_tostring},
+	{0, 0}
+};
+
+int luaopen_Entry(LuaState *L)
+{
+	moon_class_register(L, "Entry", Entry_methods, Entry_meta);
+	return 1;
 }

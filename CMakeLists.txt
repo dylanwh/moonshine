@@ -7,8 +7,7 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
 ADD_EXECUTABLE(moonshine term.c moon.c 
-	buffer.c entry.c
-	buffer_wrap.c  entry_wrap.c topic_wrap.c
+	buffer.c entry.c topic.c
 	net_wrap.c
 	util.c main.c async.c line-reader.c net.c)
 
@@ -41,18 +40,6 @@ ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GTHREAD_DEFINITIONS}")
 CONFIGURE_FILE(${SRC}/config.h.in
 	${BIN}/config.h
 	@ONLY IMMEDIATE)
-
-MACRO(LUAWRAP file)
-	ADD_CUSTOM_COMMAND(
-	OUTPUT "${BIN}/${file}_wrap.c"
-	COMMAND lua ${file}.wrap > ${BIN}/${file}_wrap.c 
-	DEPENDS "${file}.wrap" wrap.lua
-	WORKING_DIRECTORY ${SRC})
-ENDMACRO()
-
-LUAWRAP("entry")
-LUAWRAP("buffer")
-LUAWRAP("topic")
 
 IF (EMBED_LUA)
 	FILE(GLOB PACKAGES ${SRC}/lua/*.lua)

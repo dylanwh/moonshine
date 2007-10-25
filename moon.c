@@ -1,4 +1,4 @@
-#include "moon.h"
+#include "moon.h"i
 #include "config.h"
 #include <glib.h>
 
@@ -48,16 +48,41 @@ gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
           	case 'd': lua_pushnumber(L, va_arg(vl, double)); break;
           	case 'i': lua_pushnumber(L, va_arg(vl, int)); break;
           	case 's': lua_pushstring(L, va_arg(vl, char *)); break;
+          	case 'n': lua_pushnil(L); break;
           	default:  g_error("invalid option (%c)", *(sig - 1)); break;
         }
     if (lua_pcall(L, argc, 0, 0) != 0)
-    	g_error("error running function `%s': %s",
+    	g_warning("error running function `%s': %s",
     			name, lua_tostring(L, -1));
     va_end(vl);
     return TRUE;
 }
 
-void moon_class_create(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[])
+gpointer moon_toclass(LuaState *L, const char *class, int index)
+{
+  	gpointer p = lua_touserdata(L, index);
+  	if (p == NULL) luaL_typerror(L, index, class);
+  	return p;
+}
+
+gpointer moon_checkclass(LuaState *L, const char *class, int index)
+{
+  	luaL_checktype(L, index, LUA_TUSERDATA);
+  	gpointer p = luaL_checkudata(L, index, class);
+  	if (p == NULL) luaL_typerror(L, index, class);
+  	return p;
+}
+
+gpointer moon_newclass(LuaState *L, const char *class, gsize size)
+{
+  	gpointer p = lua_newuserdata(L, size);
+  	luaL_getmetatable(L, class);
+  	lua_setmetatable(L, -2);
+  	return p;
+}
+
+
+void moon_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[])
 {
   	luaL_register(L, class, methods); /* create methods table, add it to the
   										 globals */

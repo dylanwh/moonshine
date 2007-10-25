@@ -1,3 +1,6 @@
+Moonshine Design Choices
+========================
+
 This document is sort of a history of design decisions, more than a formal
 design document.
 
@@ -23,3 +26,22 @@ else does it.
 A good article on the matter: http://lua-users.org/wiki/CoroutinesAsEventHandlers
 
 
+
+Wrapping around object oriented C code is evil
+----------------------------------------------
+
+Code that is only going to be used from lua should be defined as a lua-style
+library. Wrappers for code in my source tree is not sane.
+
+
+Code generation should not be used
+----------------------------------
+
+Because Syrra said so.
+
+
+
+I will use an irssi-like signal system
+--------------------------------------
+
+Because aftran said so.
