@@ -188,7 +188,7 @@ static int try_render(Entry *e, guint lmargin) {
 	}
 
 	if (e->curs_off == e->bufused && width < max_width)
-		curs_pos = width;
+		curs_pos = width + lmargin;
 
 	if (curs_pos != -1)
 		term_goto(TERM_LINES - 1, curs_pos);
@@ -198,7 +198,7 @@ static int try_render(Entry *e, guint lmargin) {
 static int Entry_render(LuaState *L)
 {
 	Entry *e      = moon_checkclass(L, "Entry", 1);
-	guint lmargin = luaL_checkinteger(L, 2);
+	guint lmargin = luaL_optint(L, 2, 0);
 	g_assert(e->curs_off <= e->bufused);
 
 	if (try_render(e, lmargin) == -1) {
@@ -289,6 +289,7 @@ static const LuaLReg Entry_methods[] = {
 	{"render", Entry_render},
 	{0, 0}
 };
+
 static const LuaLReg Entry_meta[] = {
 	{"__gc", Entry_gc},
 	{"__tostring", Entry_tostring},

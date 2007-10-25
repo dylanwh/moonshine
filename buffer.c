@@ -55,7 +55,7 @@ static void purge(Buffer *b) {
 
 static int Buffer_new(LuaState *L)
 {
-	guint histsize = luaL_checkinteger(L, 1);
+	guint histsize = luaL_optint(L, 1, 1024);
 	g_return_val_if_fail(histsize > 0, 0);
 	Buffer *b = moon_newclass(L, "Buffer", sizeof(Buffer));
 	b->head = b->view = b->tail = NULL;
@@ -296,7 +296,6 @@ static int Buffer_gc(LuaState *L)
 	for(GList *ptr = b->head; ptr; ptr = ptr->next)
 		g_free(ptr->data);
 	g_list_free(b->head);
-	g_free(b);
 	return 0;
 }
 
