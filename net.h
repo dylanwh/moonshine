@@ -17,16 +17,5 @@
  * errno value. */
 #define NET_ERROR_SYS g_quark_from_string("NetErrorSys")
 
-void net_init(void);
-
-typedef void (*NetConnectFunc)(int fd, gpointer data);
-typedef void (*NetErrorFunc)(GError *err, gpointer data);
-void net_connect(const char *hostname, const char *service,
-		NetConnectFunc on_connect,
-		NetErrorFunc on_error,
-		gpointer data);
-
-void net_reset(void);
-
 
 #endif
