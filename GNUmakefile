@@ -27,6 +27,6 @@ api-docs:
 	make --no-print-directory -C build api-docs
 
 posthook:
-	#-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl
+	-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl
 
 .PHONY: all posthook purge install test
