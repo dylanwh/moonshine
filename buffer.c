@@ -1,4 +1,4 @@
-/* vim: set ft=c.doxygen noexpandtab ts=4 sw=4 tw=80: */
+/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
 #include "term.h"
 #include "buffer.h"
 #include "moon.h"
@@ -9,6 +9,7 @@
 #include <string.h>
 #include <assert.h>
 
+/* {{{ Buffer structure */
 typedef struct {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
 	 * for now).  head and tail, of course, point to the head and tail of the
@@ -27,8 +28,10 @@ typedef struct {
 	 */
 	guint histsize, scrollback, scrollfwd;
 } Buffer;
+/* }}} */
 
-static void purge(Buffer *b) {
+/* {{{ Utility functions */
+static void purge(Buffer *b) {/*{{{*/
 	if (b->scrollback > b->histsize) {
 		GList *head = b->head;
 		guint reap  = b->scrollback - b->histsize;
@@ -50,36 +53,8 @@ static void purge(Buffer *b) {
 		b->head = ptr;
 		b->scrollback -= reap;
 	}
-}
-
-
-static int Buffer_new(LuaState *L)
-{
-	guint histsize = luaL_optint(L, 1, 1024);
-	g_return_val_if_fail(histsize > 0, 0);
-	Buffer *b = moon_newclass(L, "Buffer", sizeof(Buffer));
-	b->head = b->view = b->tail = NULL;
-	b->histsize = histsize;
-	b->scrollback = b->scrollfwd = 0;
-	return 1;
-}
-
-static int Buffer_set_histsize(LuaState *L)
-{
-	Buffer *b = moon_checkclass(L, "Buffer", 1);
-	guint newsize = luaL_checkinteger(L, 2);
-	b->histsize = newsize;
-	purge(b);
-	return 0;
-}
-
-static int Buffer_get_histsize(LuaState *L)
-{
-	Buffer *b = moon_checkclass(L, "Buffer", 1);
-	lua_pushinteger(L, b->histsize);
-	return 1;
-}
-
+}/*}}}*/
+/* {{{ Utility functions for rendering */
 static const char *skip_space(const char *in) {
 	while (*in && g_unichar_isspace(g_utf8_get_char(in)))
 		in = g_utf8_next_char(in);
@@ -190,8 +165,59 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 
 	return bottom_row - 1;
 }
+/* }}} */
+/* {{{ Utility functions for scrolling */
+static void scroll_up(Buffer *b, guint offset) {
+	while (offset-- && b->scrollback > 1) {
+		b->scrollback--;
+		b->scrollfwd++;
+		g_assert(b->view);
+		b->view = b->view->prev;
+		g_assert(b->view);
+	}
+}
 
-static int Buffer_render(LuaState *L)
+static void scroll_down(Buffer *b, guint offset) {
+	while (offset-- && b->scrollfwd) {
+		b->scrollback++;
+		b->scrollfwd--;
+		g_assert(b->view);
+		b->view = b->view->next;
+		g_assert(b->view);
+	}
+}
+/* }}} */
+/* }}} */
+
+/* {{{ Methods */
+static int Buffer_new(LuaState *L)/*{{{*/
+{
+	guint histsize = luaL_optint(L, 1, 1024);
+	g_return_val_if_fail(histsize > 0, 0);
+	Buffer *b = moon_newclass(L, "Buffer", sizeof(Buffer));
+	b->head = b->view = b->tail = NULL;
+	b->histsize = histsize;
+	b->scrollback = b->scrollfwd = 0;
+	return 1;
+}/*}}}*/
+
+static int Buffer_set_histsize(LuaState *L)/*{{{*/
+{
+	Buffer *b = moon_checkclass(L, "Buffer", 1);
+	guint newsize = luaL_checkinteger(L, 2);
+	b->histsize = newsize;
+	purge(b);
+	return 0;
+}/*}}}*/
+
+static int Buffer_get_histsize(LuaState *L)/*{{{*/
+{
+	Buffer *b = moon_checkclass(L, "Buffer", 1);
+	lua_pushinteger(L, b->histsize);
+	return 1;
+}/*}}}*/
+
+static int Buffer_render(LuaState *L)/*{{{*/
 {
 	Buffer *b = moon_checkclass(L, "Buffer", 1);
 
@@ -209,9 +235,9 @@ static int Buffer_render(LuaState *L)
 		ptr = ptr->prev;
 	}
 	return 0;
-}
+}/*}}}*/
 
-static int Buffer_print(LuaState *L)
+static int Buffer_print(LuaState *L)/*{{{*/
 {
 	Buffer *b        = moon_checkclass(L, "Buffer", 1);
 	const char *text = luaL_checkstring(L, 2);
@@ -235,29 +261,9 @@ static int Buffer_print(LuaState *L)
 	b->tail = elem;
 	purge(b);
 	return 0;
-}
+}/*}}}*/
 
-static void scroll_up(Buffer *b, guint offset) {
-	while (offset-- && b->scrollback > 1) {
-		b->scrollback--;
-		b->scrollfwd++;
-		g_assert(b->view);
-		b->view = b->view->prev;
-		g_assert(b->view);
-	}
-}
-
-static void scroll_down(Buffer *b, guint offset) {
-	while (offset-- && b->scrollfwd) {
-		b->scrollback++;
-		b->scrollfwd--;
-		g_assert(b->view);
-		b->view = b->view->next;
-		g_assert(b->view);
-	}
-}
-
-static int Buffer_scroll(LuaState *L)
+static int Buffer_scroll(LuaState *L)/*{{{*/
 {
 	Buffer *b  = moon_checkclass(L, "Buffer", 1);
 	int offset = luaL_checkinteger(L, 2);
@@ -269,9 +275,9 @@ static int Buffer_scroll(LuaState *L)
 		purge(b);
 	}
 	return 0;
-}
+}/*}}}*/
 
-static int Buffer_scroll_to(LuaState *L)
+static int Buffer_scroll_to(LuaState *L)/*{{{*/
 {
 	Buffer *b        = moon_checkclass(L, "Buffer", 1);
 	guint abs_offset = luaL_checkinteger(L, 2);
@@ -285,29 +291,111 @@ static int Buffer_scroll_to(LuaState *L)
 	scroll_up(b, abs_offset);
 	purge(b);
 	return 0;
-}
+}/*}}}*/
 
+static int Buffer_format(LuaState *L)/*{{{*/
+{
+	const char *input = luaL_checkstring(L, 1);
+	GString *out = g_string_sized_new(strlen(input));
+	const gchar *p = input;
 
-/* Meta methods */
+	while (1) {
+		const gchar *oldp = p;
+		gchar *nextesc = strchr(p, '%');
+		if (!nextesc) {
+			g_string_append(out, p);
+			// XXX: Maybe use lua_pushlstring?
+			lua_pushstring(L, out->str);
+			g_string_free(out, TRUE);
+			return 1;
+		}
+		g_string_append_len(out, p, nextesc - p);
+		switch (*(nextesc + 1)) {
+			case '%':
+				g_string_append_c(out, '%');
+				p = nextesc + 2;
+				break;
+			case '|':
+				g_string_append(out, BUFFER_INDENT_MARK_UTF);
+				p = nextesc + 2;
+				break;
+			case '1' ... '9':
+				{
+					lua_rawgeti(L, 2, *(nextesc + 1) - '0');
+					const char *s = lua_tostring(L, -1);
+					if (s != NULL)
+						g_string_append(out, s);
+					p = nextesc + 2;
+					lua_pop(L, 1);
+					break;
+				}
+			case '{':
+				{
+					gchar *start = nextesc + 2;
+					gchar *end = strchr(start, '}');
+					if (end) {
+						gchar name[end - start + 1];
+						memcpy(name, start, sizeof name - 1);
+						name[sizeof name - 1] = '\0';
+						g_string_append(out, term_color_to_utf8(name));
+						p = end + 1;
+						break;
+					} else { goto unknown_esc; }
+				}
+			default:
+unknown_esc:
+				g_string_append_c(out, *nextesc);
+				p = nextesc + 1;
+				break;
+		}
+		g_assert(p > oldp);
+	}
+	g_assert_not_reached();
 
-static int Buffer_gc(LuaState *L)
+}/*}}}*/
+
+static int Buffer_format_escape(LuaState *L)/*{{{*/
+{
+	const char *input = luaL_checkstring(L, 1);
+	GString *out = g_string_sized_new(strlen(input));
+
+	const gchar *p = input;
+	while (1) {
+		gchar *nextesc = strchr(p, '%');
+		if (!nextesc) {
+			g_string_append(out, p);
+			lua_pushstring(L, out->str);
+			g_string_free(out, TRUE);
+			return 1;
+		}
+		g_string_append_len(out, p, nextesc - p);
+		g_string_append(out, "%%");
+		p = nextesc + 1;
+	}
+	g_assert_not_reached();
+}/*}}}*/
+/* }}} */
+
+/* {{{ Meta methods */
+static int Buffer_gc(LuaState *L)/*{{{*/
 {
 	Buffer *b = moon_toclass(L, "Buffer", 1);
 	for(GList *ptr = b->head; ptr; ptr = ptr->next)
 		g_free(ptr->data);
 	g_list_free(b->head);
 	return 0;
-}
+}/*}}}*/
 
-static int Buffer_tostring(LuaState *L)
+static int Buffer_tostring(LuaState *L)/*{{{*/
 {
 	char buff[32];
   	sprintf(buff, "%p", moon_toclass(L, "Buffer", 1));
   	lua_pushfstring(L, "Buffer (%s)", buff);
   	return 1;
-}
+}/*}}}*/
+/* }}} */
 
-static const LuaLReg Buffer_methods[] = {
+static const LuaLReg Buffer_methods[] = {/*{{{*/
 	{"new", Buffer_new},
 	{"set_histsize", Buffer_set_histsize},
 	{"get_histsize", Buffer_get_histsize},
@@ -315,17 +403,19 @@ static const LuaLReg Buffer_methods[] = {
 	{"print", Buffer_print},
 	{"scroll", Buffer_scroll},
 	{"scroll_to", Buffer_scroll_to},
+	{"format", Buffer_format},
+	{"format_escape", Buffer_format_escape},
 	{0, 0}
-};
-
-static const LuaLReg Buffer_meta[] = {
+};/*}}}*/
+static const LuaLReg Buffer_meta[] = {/*{{{*/
 	{"__gc", Buffer_gc},
 	{"__tostring", Buffer_tostring},
 	{0, 0}
 };
+/*}}}*/
 
-int luaopen_Buffer(LuaState *L)
+int luaopen_Buffer(LuaState *L)/*{{{*/
 {
 	moon_class_register(L, "Buffer", Buffer_methods, Buffer_meta);
 	return 1;
-}
+}/*}}}*/
