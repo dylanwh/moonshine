@@ -1,5 +1,6 @@
 /* vim: set ts=4 sw=4 noexpandtab cindent: */
 #include "net.h"
+#include "moon.h"
 #include "config.h"
 #include <errno.h>
 #include <unistd.h>
@@ -41,16 +42,16 @@ typedef struct {
 /* }}} */
 
 /* {{{ Worker functions */
+static AddrInfo dns_hints = {
+	.ai_family   = AF_UNSPEC,
+	.ai_socktype = SOCK_STREAM,
+	.ai_protocol = IPPROTO_TCP,
+};
+
 static void net_pool_worker(NetRequest *req, gpointer data)
 {
 	g_assert(req);
 	g_assert(data == NULL);
-
-	static AddrInfo dns_hints = {
-		.ai_family   = AF_UNSPEC,
-		.ai_socktypeOA = SOCK_STREAM,
-		.ai_protocol = IPPROTO_TCP,
-	};
 
 	NetResponse *resp = g_new(NetResponse, 1);
 	resp->req = req;
@@ -96,14 +97,16 @@ static void net_pool_worker(NetRequest *req, gpointer data)
 static gboolean net_source_worker(NetResponse *resp)
 {
 	g_assert(resp);
+	LuaState *L = resp->req->L;
+	int callback = resp->req->callback;
+	int nargs = 0;
 
 	switch (resp->type) {
 		case NET_CONNECT:
 		{
-
 			int fd = resp->data.fd;
 			nargs = 1;
-			lua_pushinteger(resp->req->L, fd);
+			lua_pushinteger(L, fd);
 			break;
 		}
 		case NET_ERROR:
@@ -115,6 +118,7 @@ static gboolean net_source_worker(NetResponse *resp)
 			g_error_free(err);
 			break;
 		}
+		default: g_assert_not_reached();
 	}
     if (lua_pcall(L, nargs, 0, 0) != 0)
     	g_warning("error running net.connect function: %s",
@@ -122,7 +126,7 @@ static gboolean net_source_worker(NetResponse *resp)
 
 	g_free(resp->req->hostname);
 	g_free(resp->req->service);
-	lua_unref(resp->req->L, resp->req->callback);
+	moon_unref(L, callback);
 	g_free(resp->req);
 	g_free(resp);
  	return TRUE;

@@ -1,4 +1,5 @@
-#include "async.h"
+#include "handle.h"
+#include "moon.h"
 #include "config.h"
 #include <string.h>
 #include <fcntl.h>
@@ -22,6 +23,7 @@ typedef struct {
 /* {{{ Event Handlers */
 inline static gboolean on_input(Handle *h)/*{{{*/
 {
+	LuaState *L = h->L;
 	GError *err = NULL;
 	gchar str[256];
 	gsize len = 0;
@@ -121,25 +123,26 @@ static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*
 
 	Handle *h = data;
 	if (cond & G_IO_HUP) {
+		LuaState *L = h->L;
 		moon_pushref(L, h->callback);
 		lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
 		lua_pushlightuserdata(L, h);
 		lua_gettable(L, -2);
 		lua_remove(L, -2); // remove "HandleTable"
 		lua_pushstring(L, "error");
-		moon_pusherror(L, err);
-		g_error_free(err);
-    	if (lua_pcall(L, 3, 0, 0) != 0)
-    		g_warning("error running Handle callback on G_IO_STATUS_ERROR during write: %s",
+    	if (lua_pcall(L, 2, 0, 0) != 0)
+    		g_warning("error running Handle callback for hup event: %s",
     				lua_tostring(L, -1));
     	return FALSE;
 	}
 	
 	if (cond & G_IO_IN)
-		on_input(h) || return FALSE;
+		if (!on_input(h))
+			return FALSE;
 
 	if (cond & G_IO_OUT && !g_queue_is_empty(h->queue))
-		on_output(h) || return FALSE;
+		if (!on_output(h))
+			return FALSE;
 
 	return TRUE;
 }/*}}}*/
@@ -175,6 +178,7 @@ static int Handle_write(LuaState *L)
 	Handle *h       = moon_checkclass(L, "Handle", 1);
 	const char *str = luaL_checkstring(L, 2);
 	g_queue_push_tail(h->queue, g_string_new(str));
+	return 0;
 }
 
 static void each_g_string(GString *msg, UNUSED gpointer data)
@@ -187,7 +191,7 @@ static int Handle_close(LuaState *L)
 	Handle *h = moon_checkclass(L, "Handle", 1);
 
 	if (h->closed)
-		return;
+		return 0;
 
 	moon_unref(L, h->callback);
 	g_queue_foreach(h->queue, (GFunc)each_g_string, NULL);
@@ -196,6 +200,7 @@ static int Handle_close(LuaState *L)
 	g_io_channel_shutdown(h->channel, TRUE, NULL);
 	g_io_channel_unref(h->channel);
 	h->closed = TRUE;
+	return 0;
 }
 
 static int Handle_tostring(LuaState *L)
@@ -209,7 +214,7 @@ static int Handle_tostring(LuaState *L)
 
 static const LuaLReg Handle_methods[] = {
 	{"new", Handle_new},
-	{"write", Handle_new},
+	{"write", Handle_write},
 	{"close", Handle_close},
 	{0, 0}
 };
