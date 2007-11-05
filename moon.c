@@ -11,21 +11,21 @@
 void moon_loader_init(LuaState *L);
 #endif
 
-int luaopen_Entry(LuaState *L);
-int luaopen_Buffer(LuaState *L);
-int luaopen_Topic(LuaState *L);
-int luaopen_app(LuaState *L);
+int luaopen_entry(LuaState *L);
+int luaopen_buffer(LuaState *L);
+int luaopen_topic(LuaState *L);
 int luaopen_net(LuaState *L);
+int luaopen_handle(LuaState *L);
 
 LuaState *moon_new(void)
 {
 	LuaState *L = lua_open();
 	luaL_openlibs(L);
-	moon_ccall(L, luaopen_Buffer);
-	moon_ccall(L, luaopen_Entry);
-	moon_ccall(L, luaopen_Topic);
+	moon_ccall(L, luaopen_buffer);
+	moon_ccall(L, luaopen_entry);
+	moon_ccall(L, luaopen_topic);
 	moon_ccall(L, luaopen_net);
-//	moon_ccall(L, luaopen_Client);
+	moon_ccall(L, luaopen_handle);
 
 #	ifdef EMBED_LUA
 	moon_loader_init(L);

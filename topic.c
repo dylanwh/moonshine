@@ -61,7 +61,7 @@ static const LuaLReg Topic_meta[] = {
 	{0, 0}
 };
 
-int luaopen_Topic(LuaState *L)
+int luaopen_topic(LuaState *L)
 {
 	moon_class_register(L, "Topic", Topic_methods, Topic_meta);
 	return 1;

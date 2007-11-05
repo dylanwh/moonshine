@@ -1,4 +1,3 @@
-#include "handle.h"
 #include "moon.h"
 #include "config.h"
 #include <string.h>
@@ -225,7 +224,7 @@ static const LuaLReg Handle_meta[] = {
 	{0, 0}
 };
 
-int luaopen_Handle(LuaState *L)
+int luaopen_handle(LuaState *L)
 {
 	moon_weaktable(L);
 	lua_setfield(L, LUA_REGISTRYINDEX, "HandleTable");

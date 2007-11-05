@@ -3,13 +3,8 @@
 #define __MOONSHINE_BUFFER_H__
 #include <glib.h>
 #include "moon.h"
-
-#define BUFFER_INDENT_MARK_UCS 0xF0000
-#define BUFFER_INDENT_MARK_UTF "\xF3\xB0\x80\x80"
-#define BUFFER_COLOR_MIN_UCS   0xFC000
-#define BUFFER_COLOR_MAX_UCS   0xFCFFF
-
-int luaopen_Buffer(LuaState *L);
+/* XXX THIS FILE IS LEGACY: IT IS BEING KEPT FOR THE DOCUMENTATION UNTIL XXX
+ * XXX ANOTHER FORMAT IS FOUND                                           XXX */
 
 #if 0
 /** \brief Create a new buffer.

@@ -1,6 +1,5 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include "term.h"
-#include "entry.h"
 #include "util.h"
 #include "moon.h"
 
@@ -296,7 +295,7 @@ static const LuaLReg Entry_meta[] = {
 	{0, 0}
 };
 
-int luaopen_Entry(LuaState *L)
+int luaopen_entry(LuaState *L)
 {
 	moon_class_register(L, "Entry", Entry_methods, Entry_meta);
 	return 1;

@@ -1,5 +1,4 @@
 /* vim: set ts=4 sw=4 noexpandtab cindent: */
-#include "net.h"
 #include "moon.h"
 #include "config.h"
 #include <errno.h>
@@ -9,6 +8,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
+/** This GError domain represents errors from getaddrinfo() */
+#define NET_ERROR_DNS g_quark_from_string("NetErrorDNS")
+
+/** This GError domain represents errors from socket or connect. The code field is
+ * errno value. */
+#define NET_ERROR_SYS g_quark_from_string("NetErrorSys")
 
 /* {{{ Globals */
 static GThreadPool *net_pool; /// Receives NetRequests (from net_connect()), sends NetResponses.

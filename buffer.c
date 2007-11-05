@@ -1,6 +1,6 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
 #include "term.h"
-#include "buffer.h"
+#include "config.h"
 #include "moon.h"
 
 #include <glib.h>
@@ -414,7 +414,7 @@ static const LuaLReg Buffer_meta[] = {/*{{{*/
 };
 /*}}}*/
 
-int luaopen_Buffer(LuaState *L)/*{{{*/
+int luaopen_buffer(LuaState *L)/*{{{*/
 {
 	moon_class_register(L, "Buffer", Buffer_methods, Buffer_meta);
 	return 1;

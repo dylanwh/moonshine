@@ -1,6 +1,6 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 : */
 #include "term.h"
-#include "buffer.h" // for BUFFER_COLOR_(MIN|MAX)_UCS
+#include "config.h" // for BUFFER_COLOR_(MIN|MAX)_UCS
 #include <string.h>
 #include <stdlib.h>
 
