@@ -107,6 +107,7 @@ static gboolean net_source_worker(NetResponse *resp)
 	int callback = resp->req->callback;
 	int nargs = 0;
 
+	moon_pushref(L, callback);
 	switch (resp->type) {
 		case NET_CONNECT:
 		{
@@ -127,7 +128,8 @@ static gboolean net_source_worker(NetResponse *resp)
 		default: g_assert_not_reached();
 	}
     if (lua_pcall(L, nargs, 0, 0) != 0)
-    	g_warning("error running net.connect function: %s",
+    	g_warning("error running net.connect function with %d args: %s",
+    			nargs,
     			lua_tostring(L, -1));
 
 	g_free(resp->req->hostname);

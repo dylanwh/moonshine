@@ -155,6 +155,7 @@ static int Handle_new(LuaState *L)
 
 	Handle *h = moon_newclass(L, "Handle", sizeof(Handle));
 
+	h->L        = L;
 	h->queue    = g_queue_new();
 	h->channel  = g_io_channel_unix_new(fd);
 	h->callback = callback;
@@ -167,6 +168,7 @@ static int Handle_new(LuaState *L)
 	lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
 	lua_pushlightuserdata(L, h);
 	lua_pushvalue(L, -3);
+	lua_settable(L, -3);
 	lua_pop(L, 1);
 
 	return 1;
