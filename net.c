@@ -102,20 +102,27 @@ static gboolean net_source_worker(NetResponse *resp)
 		{
 
 			int fd = resp->data.fd;
-			moon_pushref(L, resp->req->callback);
-			lua_newtable(L);
-			lua_pushinteger(L, fd);
+			nargs = 1;
+			lua_pushinteger(resp->req->L, fd);
 			break;
 		}
 		case NET_ERROR:
 		{
-
+			GError *err = resp->data.error;
+			nargs = 2;
+			lua_pushnil(L);
+			moon_pusherror(L, err);
+			g_error_free(err);
 			break;
 		}
 	}
+    if (lua_pcall(L, nargs, 0, 0) != 0)
+    	g_warning("error running net.connect function: %s",
+    			lua_tostring(L, -1));
+
 	g_free(resp->req->hostname);
 	g_free(resp->req->service);
-	lua_unref(resp->req->callback);
+	lua_unref(resp->req->L, resp->req->callback);
 	g_free(resp->req);
 	g_free(resp);
  	return TRUE;
@@ -152,8 +159,27 @@ static GSourceFuncs net_source_functions = {//{{{
 /* }}} */
 
 /* {{{ Lua stuff */
+
+static int net_connect(LuaState *L)
+{
+	g_assert(net_pool && net_queue && net_source);
+	const char *hostname = luaL_checkstring(L, 1);
+	const char *service  = lua_tostring(L, 2);
+	int callback         = moon_ref(L, 3);
+
+	NetRequest *req = g_new(NetRequest, 1);// freed in net_source_worker.
+	req->hostname   = g_strdup(hostname);  // freed in net_source_worker.
+	req->service    = g_strdup(service);   // freed in net_source_worker.
+	req->L          = L;
+	req->callback   = callback;
+
+	g_thread_pool_push(net_pool, req, NULL);
+	return 0;
+}
+
 static LuaLReg functions[] = {
-	{ "connect", net_connect }
+	{ "connect", net_connect },
+	{0, 0},
 };
 
 int luaopen_net(LuaState *L)
@@ -170,20 +196,5 @@ int luaopen_net(LuaState *L)
 	return 1;
 }
 
-static int net_connect(LuaState *L)
-{
-	g_assert(net_pool && net_queue && net_source);
-	const char *hostname = luaL_checkstring(L, 1);
-	const char *service  = lua_tostring(L, 2);
-	int callback         = moon_ref(L, 3);
 
-	NetRequest *req = g_new(NetRequest, 1);// freed in net_source_worker.
-	req->hostname   = g_strdup(hostname);  // freed in net_source_worker.
-	req->service    = g_strdup(service);   // freed in net_source_worker.
-	req->L          = L;
-	req->callback   = callback;
-
-	g_thread_pool_push(net_pool, req, NULL);
-}
-/* }}} */
-
+/* }}} */ 

@@ -108,6 +108,17 @@ void moon_weaktable(LuaState *L)
 	lua_setmetatable(L, -2);       /* pop: metatable */
 }
 
+void moon_pusherror(LuaState *L, GError *err)
+{
+	lua_createtable(L, 0, 3);
+	lua_pushstring(L, g_quark_to_string(err->domain));
+	lua_setfield(L, -2, "domain");
+	lua_pushinteger(L, err->code);
+	lua_setfield(L, -2, "code");
+	lua_pushstring(L, err->message);
+	lua_setfield(L, -2, "message");
+}
+
 #ifdef EMBED_LUA
 static int package_loader(LuaState *L)
 {
