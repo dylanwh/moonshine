@@ -20,7 +20,9 @@ void moon_weaktable(LuaState *L);
 static inline int moon_ref(LuaState *L, int idx)
 {
 	lua_pushvalue(L, idx);
-	return luaL_ref(L, LUA_REGISTRYINDEX);
+	int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+	g_assert(ref != LUA_REFNIL);
+	return ref;
 }
 
 gpointer moon_toclass(LuaState *L, const char *class, int index);

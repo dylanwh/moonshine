@@ -1,30 +1,33 @@
 module ("ui", package.seeall)
+require "window"
 
 windows = {
-	{ topic   = Topic("Test"), buffer  = Buffer() },
-	{ topic   = Topic("Test2"), buffer  = Buffer() },
+	Window:new(),
+	Window:new(),
 }
 
-topic = windows[1].topic
-buffer = windows[1].buffer
-entry = Entry()
+windows[1]:set_topic("Window 1")
+windows[2]:set_topic("Window 2")
+
+window = windows[1] 
+entry  = Entry.new()
 
 function view(i)
 	if windows[i] then
-		topic = windows[i].topic
-		buffer = windows[i].buffer
+		window = windows[i]
 		render()
+	else
+		ui.print("Unknown window: %1", i)
 	end
 end
 
 function print(fmt, ...)
-	local s = Buffer.format(tostring(fmt), arg)
-	buffer:print(s)
+	window:print(fmt, unpack(arg))
+	render()
 end
 
 function render()
-	topic:render()
-	buffer:render()
+	window:render()
 	entry:render()
 	refresh()
 end
@@ -35,12 +38,12 @@ function keypress(key)
 end
 
 function scroll_up()
-	buffer:scroll(5)
+	window:scroll(5)
 	render()
 end
 
 function scroll_down()
-	buffer:scroll(-5)
+	window:scroll(-5)
 	render()
 end
 

@@ -2,54 +2,52 @@
 
 cmd = {}
 
-function cmd.QUIT(text)
+function cmd.quit(text)
 	quit()
 end
 
-function cmd.TEST(text)
-	net.connect("google.com", "htts",
-	function (fd)
-		ui.print("connected with %1", fd)
-	end,
-	function (domain, code, message)
-		ui.print("error: %1, %2 (%3)", domain, code, message)
+function cmd.test(text)
+	net.connect("lofn.sinedev.org", 7575, function (fd, error)
+		if fd then
+			ui.print("connected with %1", fd)
+			handle = Handle.new(fd, function (handle, event, arg)
+				ui.print("event = %1, arg = %2", event, arg)
+			end)
+			assert(getmetatable(handle))
+			handle:write("HAVER\tfoobar\n")
+			handle=nil
+		end
 	end)
 end
 
-function cmd.SPAM(text)
+function cmd.spam(text)
 	for i = 1, 10 do
 		ui.print(text)
 	end
 end
 
-function cmd.FOO(text)
+function cmd.foo(text)
 	for k,v in pairs(ClientRef) do
 		ui.print("%1 %|%2", k, v)
 	end
 end
 
-function cmd.unknown(word, arg)
-	ui.print("word: %1, arg = %2", word, arg)
+function cmd.say(line)
+	ui.print(line)
 end
 
-function cmd.default(line)
-	ui:print(line)
-end
-
-function cmd.TOPIC(text)
+function cmd.topic(text)
 	ui.topic:set(text)
 end
 
 function eval(line)
 	local word, arg = line:match("^/(%w+) ?(.*)")
 	if word then
-		local WORD = string.upper(word)
-		if cmd[WORD] then
-			return cmd[WORD](arg)
-		elseif cmd.unknown then
-			return cmd.unknown(word, arg)
+		word = string.lower(word)
+		if cmd[word] then
+			return cmd[word](arg)
 		end
-	elseif cmd.default then
-		return cmd.default(line)
+	elseif cmd.say then
+		return cmd.say(line)
 	end
 end
