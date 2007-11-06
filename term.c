@@ -41,7 +41,7 @@ void term_init(void)
 	g_hash_table_insert(term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
 	g_hash_table_insert(term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
 	term_color_set("bob", "red", "black");
-	term_color_set("topic", "white", "blue");
+	term_color_set("topic", "lightgray", "blue");
 	
 	atexit(term_reset);
 }
