@@ -26,6 +26,11 @@ function print(fmt, ...)
 	render()
 end
 
+function debug(fmt, ...)
+	window:print("[debug] %| "..fmt, unpack(arg))
+	render()
+end
+
 function render()
 	window:render()
 	entry:render()

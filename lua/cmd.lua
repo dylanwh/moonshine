@@ -6,34 +6,27 @@ function cmd.quit(text)
 	quit()
 end
 
-function cmd.test(text)
-	net.connect("lofn.sinedev.org", 7575, function (fd, error)
-		if fd then
-			ui.print("connected with %1", fd)
-			handle = Handle.new(fd, function (handle, event, arg)
-				ui.print("event = %1, arg = %2", event, arg)
-			end)
-			assert(getmetatable(handle))
-			handle:write("HAVER\tfoobar\n")
-			handle=nil
-		end
-	end)
+function cmd.connect(text)
+	connect("lofn.sinedev.org", 7575)
 end
 
-function cmd.spam(text)
-	for i = 1, 10 do
-		ui.print(text)
-	end
-end
-
-function cmd.foo(text)
-	for k,v in pairs(ClientRef) do
-		ui.print("%1 %|%2", k, v)
+function cmd.join(text)
+	local h = ui.window.handle
+	if h then
+		ui.window.room = text
+		ui.window:set_topic("Room: "..text)
+		h:write("JOIN\t"..text.."\n")
 	end
 end
 
 function cmd.say(line)
-	ui.print(line)
+	local h = ui.window.handle
+	local room = ui.window.room
+	if h and room then
+		h:write("IN\t"..room.."\tsay\t"..line.."\n")
+	else
+		print(line)
+	end
 end
 
 function cmd.topic(text)

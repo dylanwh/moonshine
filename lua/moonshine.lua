@@ -2,6 +2,70 @@ require "bind"
 require "ui"
 require "cmd"
 require "config"
+require "util"
+
+server = {}
+
+function connect_hook(host, port, fd, err)
+	local function callback(h, event, ...)
+		local f = _G["handle_"..event.."_hook"]
+		if f then
+			f(h, unpack(arg))
+		else
+			ui.debug("Let's just ignore that %1 handle event that just happend", event)
+		end
+	end
+	if fd then
+		ui.debug("Connected to %1:%2", host, port)
+		local h = Handle.new(fd, callback)
+		h:write("HAVER\tmoonshine\n")
+		server[h] = {
+			host = host,
+			port = port,
+			reader = LineReader.new(),
+			window = ui.window,
+		}
+		ui.window.handle = h
+	else
+		ui.debug("Connection to %1:%2 failed: %3", host, port, err.message)
+	end
+end
+
+function handle_read_hook(h, str)
+	local reader = server[h].reader
+	for i, line in ipairs(reader:read(str)) do
+		line_hook(h, line)
+	end
+end
+
+function line_hook(h, line)
+	line = line:gsub("\r", "")
+	local msg = string.split("\t", line)
+	local f = _G[msg[1] .. "_hook"]
+	if f then 
+		f(h, msg)
+	else
+		ui.debug("Unknown haver thing: %1", msg[1])
+	end
+end
+
+function HAVER_hook(h, msg)
+	h:write("IDENT\t"..os.getenv('USER').."\n")
+	ui.debug("Identifying...")
+end
+
+function HELLO_hook(h, name)
+	ui.debug("Logged in.")
+end
+
+function IN_hook(h, msg)
+	local _, room, user, type, msg = unpack(msg)
+	ui.print("[%3] <%1> %|%2", user, msg, room)
+end
+
+function JOIN_hook(h, msg)
+	ui.print("[%1 joined %2]", msg[3], msg[2])
+end
 
 function boot_hook()
 	ui.render()
@@ -11,41 +75,10 @@ function quit_hook()
 	ui.print("Shutdown: %1", "bob")
 end
 
-function string.join(delimiter, list)
-  	local len = getn(list)
-  	if len == 0 then 
-    	return "" 
-  	end
-  	local string = list[1]
-  	for i = 2, len do 
-    	string = string .. delimiter .. list[i] 
-  	end
-  	return string
-end
-
--- Split text into a list consisting of the strings in text,
--- separated by strings matching delimiter (which may be a pattern). 
--- example: strsplit(",%s*", "Anna, Bob, Charlie,Dolores")
-function string.split(delimiter, text)
-  	local list = {}
-  	local pos = 1
-  	if strfind("", delimiter, 1) then -- this would result in endless loops
-    	error("delimiter matches empty string!")
-  	end
-  	while 1 do
-    	local first, last = strfind(text, delimiter, pos)
-    	if first then -- found?
-      		tinsert(list, strsub(text, pos, first-1))
-      		pos = last+1
-    	else
-      		tinsert(list, strsub(text, pos))
-      		break
-    	end
-  	end
-  	return list
-end
-
-function print(...)
-	ui.print("%1", string.join("", arg))
+function connect(host, port)
+	local function callback(fd, error)
+		connect_hook(host, port, fd, error)
+	end
+	net.connect(host, port, callback)
 end
 
