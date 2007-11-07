@@ -4,7 +4,6 @@
 #include "moon.h"
 
 #include <glib.h>
-#include <slang.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -89,7 +88,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 		const char *seg_end   = line;
 		const char *last_word = line;
 		const char *next_line = NULL;
-		const guint max_width = TERM_COLS; //SLtt_Screen_Cols;
+		const guint max_width = TERM_COLS; 
 		guint cur_width       = thisline->margin;
 		guint next_color      = color;
 
@@ -148,8 +147,8 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 
 	while (lines && bottom_row >= top_row) {
 		term_goto(bottom_row, lines->margin);
-		SLsmg_set_color(lines->color);
-		SLsmg_write_chars((unsigned char *)lines->start, (unsigned char *)lines->end);
+		term_color_use_id(lines->color);
+		term_write_chars_to((unsigned char *)lines->start, (unsigned char *)lines->end);
 
 		/* We want to make sure we advance at least once. So, the last line we
 		 * write, we don't change bottom_row; and then we subtract at the very
@@ -222,7 +221,7 @@ static int Buffer_render(LuaState *L)/*{{{*/
 	Buffer *b = moon_checkclass(L, "Buffer", 1);
 
 	int top_row = 1;
-	int bottom_row = SLtt_Screen_Rows - 2;
+	int bottom_row = TERM_LINES - 2;
 	GList *ptr = b->view;
 
 	for (int i = top_row; i <= bottom_row; i++) {
