@@ -40,7 +40,7 @@ void term_init(void)
 	term_colors = g_hash_table_new(g_str_hash, g_str_equal);
 	g_hash_table_insert(term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
 	g_hash_table_insert(term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
-	term_color_set("bob", "red", "black");
+	term_color_set("debug", "red", "black");
 	term_color_set("topic", "lightgray", "blue");
 	
 	atexit(term_reset);

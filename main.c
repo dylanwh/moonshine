@@ -38,10 +38,10 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer dat
 static int make_keyspec(LuaState *L)/* {{{ */
 {
 	const char *str = luaL_checkstring(L, 1);
-	int len = strlen(str);
-	GString *buf = g_string_sized_new(len);
+	gsize len       = lua_objlen(L, 1); 
+	GString *buf    = g_string_sized_new(len);
 
-	for (int i = 0; i < len; i++) {
+	for (gsize i = 0; i < len; i++) {
 		if (str[i] == '^') {
 			g_string_append_c(buf, str[i + 1] ^ 64);
 			i++;
