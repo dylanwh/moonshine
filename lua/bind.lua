@@ -48,3 +48,7 @@ function input_hook(key)
 		last_key = nil
 	end
 end
+
+function input_reset_hook()
+	last_key = nil
+end

@@ -1,84 +1,29 @@
 require "bind" 
-require "ui"
+require "screen"
 require "cmd"
-require "config"
-require "util"
-
-server = {}
-
-function connect_hook(host, port, fd, err)
-	local function callback(h, event, ...)
-		local f = _G["handle_"..event.."_hook"]
-		if f then
-			f(h, unpack(arg))
-		else
-			ui.debug("Let's just ignore that %1 handle event that just happend", event)
-		end
-	end
-	if fd then
-		ui.debug("Connected to %1:%2", host, port)
-		local h = Handle.new(fd, callback)
-		h:write("HAVER\tmoonshine\n")
-		server[h] = {
-			host = host,
-			port = port,
-			reader = LineReader.new(),
-			window = ui.window,
-		}
-		ui.window.handle = h
-	else
-		ui.debug("Connection to %1:%2 failed: %3", host, port, err.message)
-	end
-end
-
-function handle_read_hook(h, str)
-	local reader = server[h].reader
-	for i, line in ipairs(reader:read(str)) do
-		line_hook(h, line)
-	end
-end
-
-function line_hook(h, line)
-	line = line:gsub("\r", "")
-	local msg = string.split("\t", line)
-	local f = _G[msg[1] .. "_hook"]
-	if f then 
-		f(h, msg)
-	else
-		ui.debug("Unknown haver thing: %1", msg[1])
-	end
-end
-
-function HAVER_hook(h, msg)
-	h:write("IDENT\t"..os.getenv('USER').."\n")
-	ui.debug("Identifying...")
-end
-
-function HELLO_hook(h, name)
-	ui.debug("Logged in.")
-end
-
-function IN_hook(h, msg)
-	local _, room, user, type, msg = unpack(msg)
-	ui.print("[%3] <%1> %|%2", user, msg, room)
-end
-
-function JOIN_hook(h, msg)
-	ui.print("[%1 joined %2]", msg[3], msg[2])
-end
 
 function boot_hook()
-	ui.render()
+	screen = Screen:new()
+	screen:render()
+	
+	keypress_hook = screen:callback "keypress"
+	--bind("^[[A", ui.move_up)
+	--bind("^[[B", ui.move_down)
+	bind("^[[C", screen:callback "move_right")
+	bind("^[[D", screen:callback "move_left")
+	bind("^[[5~", screen:callback "scroll_up")
+	bind("^[[6~", screen:callback "scroll_down")
+	bind("^?",  screen:callback "backspace")
+	bind("^C", quit)
+	bind("^X", quit)
+	bind("^M", screen:callback ("send_line", eval))
+	for i = 1, 9 do
+		bind("^[" .. i, screen:callback("view", i))
+	end
 end
 
 function quit_hook()
-	ui.print("Shutdown: %1", "bob")
+	screen:debug("Shutdown: %1", "bob")
 end
 
-function connect(host, port)
-	local function callback(fd, error)
-		connect_hook(host, port, fd, error)
-	end
-	net.connect(host, port, callback)
-end
 
