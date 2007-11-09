@@ -47,23 +47,29 @@ function join_hook(server, room, user)
 			server = server,
 		}
 		window.target = target
-		server.windows.room[room] = window
+		server.rooms[room] = { window = window }
 		screen:view(#screen.windows)
 	else
-		local window = server.windows.room[room]
+		local window = server.rooms[room].window
 		window:print("[%1 joined %2]", user, room)
 		screen:render()
 	end
 end
 
 function part_hook(server, room, user)
-	local window = server.windows.room[room]
+	local window = server.rooms[room].window
 	window:print("[%1 parted %2]", user, room)
 	screen:render()
 end
 
+function userlist_hook(server, room, users)
+	local window = server.rooms[room].window
+	window:print("[Users of %1: %2]", room, join(", ", users));
+	screen:render()
+end
+
 function public_message_hook(server, room, user, type, msg)
-	local window = server.windows.room[room]
+	local window = server.rooms[room].window
 
 	if type == 'say' then
 		window:print("<%1> %|%2", user, msg)

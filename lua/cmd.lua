@@ -51,6 +51,13 @@ function cmd.me(line)
 	end
 end
 
+function cmd.names(room)
+	local target = screen.window.target
+	if target then
+		target.server:userlist(target)
+	end
+end
+
 function cmd.topic(text)
 	screen.window.topic:set(text)
 end

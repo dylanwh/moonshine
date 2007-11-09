@@ -15,7 +15,8 @@ function Haver:init()
 
 	screen:debug("Connecting to %1 (%2:%3)", self.name, self.hostname, self.port)
 
-	self.windows = { room = {}, user = {} }
+	self.rooms = { }
+	self.users = { }
 end
 
 function Haver:shutdown()
@@ -83,6 +84,12 @@ function Haver:msg(target, kind, msg)
 	self:send(cmd, target.name, kind, msg)
 end
 
+function Haver:userlist(target)
+	if target.type == 'room' then
+		self:send('USERSOF', target.name)
+	end
+end
+
 function Haver:HAVER(host, version, extensions)
 	self.server_version = version
 	self.extensions = split(",", extensions)
@@ -114,3 +121,10 @@ end
 function Haver:PING(token)
 	self:send('PONG', token)
 end
+
+function Haver:USERSOF(room, ...)
+	local users = {...}
+	self.rooms[room].users = users
+	userlist_hook(self, room, users)
+end
+
