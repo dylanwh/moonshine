@@ -4,6 +4,8 @@
 #include "mysignal.h"
 #include "config.h"
 #include <glib.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 /* Option definitions. {{{1 */
 static char *hostname = "chat.haverdev.org";
