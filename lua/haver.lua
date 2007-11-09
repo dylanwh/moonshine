@@ -71,12 +71,16 @@ end
 function Haver:join(room) self:send('JOIN', room) end
 function Haver:part(room) self:send('PART', room) end
 
-function Haver:msg(target, msg)
+function Haver:msg(target, kind, msg)
+	local cmd
 	if target.type == 'room' then
-		self:send('IN', target.name, 'say', msg)
+		cmd = 'IN'
 	elseif target.type == 'user' then
-		self:send('TO', target.name, 'say', msg)
+		cmd = 'TO'
+	else
+		screen:debug("Unknown target type: %1", target.type)
 	end
+	self:send(cmd, target.name, kind, msg)
 end
 
 function Haver:HAVER(host, version, extensions)

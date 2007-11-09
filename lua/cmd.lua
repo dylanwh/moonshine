@@ -40,7 +40,14 @@ end
 function cmd.say(line)
 	local target = screen.window.target
 	if target then
-		target.server:msg(target, line)
+		target.server:msg(target, 'say', line)
+	end
+end
+
+function cmd.me(line)
+	local target = screen.window.target
+	if target then
+		target.server:msg(target, 'do', line)
 	end
 end
 
