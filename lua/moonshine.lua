@@ -32,21 +32,42 @@ function quit_hook()
 end
 
 function join_hook(server, room, user)
-	screen:print("[%1 joined %2]", user, room)
+	if user == server.username then
+		local window = Window:new()
+		window:print("[You have joined %1]", room)
+		table.insert(screen.windows, window)
+		target = {
+			type = 'room',
+			name = room,
+			server = server,
+		}
+		window.target = target
+		server.windows.room[room] = window
+		screen:view(#screen.windows)
+	else
+		local window = server.windows.room[room]
+		window:print("[%1 joined %2]", user, room)
+		screen:render()
+	end
 end
 
 function part_hook(server, room, user)
-	screen:print("[%1 parted %2]", user, room)
+	local window = server.windows.room[room]
+	window:print("[%1 parted %2]", user, room)
+	screen:render()
 end
 
 function public_message_hook(server, room, user, type, msg)
+	local window = server.windows.room[room]
+
 	if type == 'say' then
-		screen:print("[%1] <%2> %3", room, user, msg)
+		window:print("<%1> %2", user, msg)
 	elseif type == 'do' then
-		screen:print("[%1] *%2 %3", room, user, msg)
+		window:print("*%1 %2", user, msg)
 	else
-		screen:print("[%1] (%4)<%2> %3", room, user, msg, type)
+		window:print("(%3)<%1> %2", user, msg, type)
 	end
+	screen:render()
 end
 
 function private_message_hook(server, user, type, msg)

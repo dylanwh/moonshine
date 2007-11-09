@@ -5,8 +5,9 @@ Screen = Object:new()
 
 function Screen:init()
 	self.focus   = 1
-	self.windows = { Window:new(), Window:new(), Window:new() }
+	self.windows = { Window:new() }
 	self.window  = self.windows[self.focus]
+	self.window.topic:set("status window")
 
 	self.entry   = Entry.new();
 end

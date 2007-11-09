@@ -20,17 +20,3 @@ function Object:callback(name, ...)
 		end
 	end
 end
-
-Dog = Object:new()
-
-function Dog:bark(a, b)
-	print ("self = ", self)
-	print ("a = ", a)
-	print ("b = ", b)
-end
-
-dog = Dog:new()
-
-f = dog:callback ("bark")
-f(1,2)
-

@@ -1,19 +1,21 @@
 require "object"
+require "server"
 
-servers = {}
-
-Haver = Object:new()
+Haver   = Object:new()
 
 function Haver:init()
-	self.hostname = self.hostname or 'lofn.sinedev.org'
+	self.hostname = self.hostname or 'chat.haverdev.org'
 	self.port     = self.port or 7575
-	self.name     = self.hostname .. ":" .. self.port
 	self.username = self.username or os.getenv('USER')
 
 	net.connect(self.hostname, self.port, self:callback "on_connect")
 
+	self.name = server_name(self.hostname)
 	servers[self.name] = self
-	screen:debug("Connecting to %1", self.name)
+
+	screen:debug("Connecting to %1 (%2:%3)", self.name, self.hostname, self.port)
+
+	self.windows = { room = {}, user = {} }
 end
 
 function Haver:shutdown()
@@ -67,6 +69,8 @@ function Haver:send(...)
 end
 
 function Haver:join(room) self:send('JOIN', room) end
+function Haver:part(room) self:send('PART', room) end
+
 function Haver:msg(target, msg)
 	if target.type == 'room' then
 		self:send('IN', target.name, 'say', msg)
@@ -74,7 +78,6 @@ function Haver:msg(target, msg)
 		self:send('TO', target.name, 'say', msg)
 	end
 end
-
 
 function Haver:HAVER(host, version, extensions)
 	self.server_version = version
@@ -104,4 +107,6 @@ function Haver:PART(room, user, ...)
 	part_hook(self, room, user)
 end
 
-
+function Haver:PING(token)
+	self:send('PONG', token)
+end
