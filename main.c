@@ -1,6 +1,7 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #include "moon.h"
 #include "term.h"
+#include "mysignal.h"
 #include "config.h"
 #include <glib.h>
 
@@ -32,8 +33,13 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer dat
 		return TRUE;
 	}
 	return FALSE;
-}
-/* }}} */
+}/* }}} */
+static void on_resize(int sig, gpointer data)/*{{{*/
+{
+	LuaState *L = data;
+	term_resize();
+	moon_call(L, "resize_hook", "");
+}/*}}}*/
 /* make_keyspec turns strings like "^A" into "\001", and so on. */
 static int make_keyspec(LuaState *L)/* {{{ */
 {
@@ -67,6 +73,7 @@ static int quit(LuaState *L)/*{{{*/
 int main(int argc, char *argv[])
 {
 	g_thread_init(NULL);
+	signal_init();
 
 	GError *error     = NULL;
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
@@ -77,8 +84,8 @@ int main(int argc, char *argv[])
 	g_option_context_parse (context, &argc, &argv, &error);
 	g_option_context_free(context);
 
-	
 	loop = g_main_loop_new(NULL, FALSE);
+	signal_catch(SIGWINCH, on_resize, L);
 
 	lua_register(L, "quit", quit);
 	lua_register(L, "refresh", refresh);

@@ -27,6 +27,11 @@ function boot_hook()
 	screen:print("/join main")
 end
 
+function resize_hook()
+	screen:render()
+	screen:debug("Resized!")
+end
+
 function quit_hook()
 	screen:debug("Shutdown: %1", "bob")
 end
@@ -61,15 +66,15 @@ function public_message_hook(server, room, user, type, msg)
 	local window = server.windows.room[room]
 
 	if type == 'say' then
-		window:print("<%1> %2", user, msg)
+		window:print("<%1> %|%2", user, msg)
 	elseif type == 'do' then
-		window:print("*%1 %2", user, msg)
+		window:print("*%1 %|%2", user, msg)
 	else
-		window:print("(%3)<%1> %2", user, msg, type)
+		window:print("(%3)<%1> %|%2", user, msg, type)
 	end
 	screen:render()
 end
 
 function private_message_hook(server, user, type, msg)
-	screen:print("[From %1] %2", user, msg)
+	screen:print("[From %1] %|%2", user, msg)
 end
