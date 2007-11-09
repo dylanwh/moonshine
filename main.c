@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
 {
 	g_thread_init(NULL);
 	signal_init();
+	term_init_colors();
 
 	GError *error     = NULL;
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));

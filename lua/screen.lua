@@ -3,6 +3,9 @@ require "window"
 
 Screen = Object:new()
 
+define_color("blue", "brightblue", "black")
+define_color("white", "white", "black")
+
 function Screen:init()
 	self.focus   = 1
 	self.windows = { Window:new() }
@@ -18,7 +21,7 @@ function Screen:print(fmt, ...)
 end
 
 function Screen:debug(fmt, ...)
-	self.window:print("%{debug}[debug]%{default} %|"..fmt, ...)
+	self.window:print("%{blue}-%{white}!%{blue}- %{default}%|"..fmt, ...)
 	self:render()
 end
 

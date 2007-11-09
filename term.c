@@ -37,14 +37,17 @@ void term_init(void)
 	SLsmg_refresh();
 	/* SLsmg_embedded_escape_mode(1); */
 
+	atexit(term_reset);
+}
+
+void term_init_colors(void)
+{
 	term_colors = g_hash_table_new(g_str_hash, g_str_equal);
 	g_hash_table_insert(term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
 	g_hash_table_insert(term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
 	term_color_set("debug", "red", "black");
 	term_color_set("topic", "lightgray", "blue");
-	term_color_set("notice", "yellow", "black");
-	
-	atexit(term_reset);
+	term_color_set("notice", "yellow", "black");	
 }
 
 gunichar term_getkey(void)

@@ -8,6 +8,7 @@ function Window:init()
 end
 
 function Window:print(fmt, ...)
+	fmt = os.date("%H:%M ")..fmt
 	local s = Buffer.format(tostring(fmt), arg)
 	self.buffer:print(s)
 end

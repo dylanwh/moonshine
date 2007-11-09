@@ -4,6 +4,7 @@
 #include <glib.h>
 #include <slang.h>
 
+void term_init_colors(void);
 void term_init(void);
 void term_resize(void);
 
