@@ -112,6 +112,7 @@ void moon_weaktable(LuaState *L)
 
 void moon_pusherror(LuaState *L, GError *err)
 {
+	lua_checkstack(L, 4);
 	lua_createtable(L, 0, 3);
 	lua_pushstring(L, g_quark_to_string(err->domain));
 	lua_setfield(L, -2, "domain");

@@ -11,6 +11,7 @@ typedef struct {
 	GQueue *queue;
 	guint tag;
 	gboolean closed;
+	gboolean alive;
 } Handle;
 
 /* Events that we need to call the callback on:
@@ -41,16 +42,15 @@ inline static gboolean on_input(Handle *h)/*{{{*/
 		case G_IO_STATUS_NORMAL:
 			lua_pushstring(L, "read");
 			lua_pushstring(L, str);
-			nargs += 2;
+			nargs = 2;
 			break;
 		case G_IO_STATUS_AGAIN:
 			lua_pop(L, 2);
 			nargs = -1;
-			rv = FALSE;
 			break;
 		case G_IO_STATUS_EOF:
 			lua_pushstring(L, "eof");
-			nargs += 1;
+			nargs = 1;
 			rv = FALSE;
 			break;
 		case G_IO_STATUS_ERROR:
@@ -58,7 +58,7 @@ inline static gboolean on_input(Handle *h)/*{{{*/
 			lua_pushstring(L, "error");
 			moon_pusherror(L, err);
 			g_error_free(err);
-			nargs += 2;
+			nargs = 2;
 			rv = FALSE;
 			break;
 	}
@@ -115,7 +115,7 @@ inline static gboolean on_output(Handle *h)/*{{{*/
 	}
 	return TRUE;
 }/*}}}*/
-static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
+static inline gboolean on_event_real(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
 {
 	g_return_val_if_fail((cond & G_IO_NVAL) == 0, FALSE);
 	g_return_val_if_fail((cond & G_IO_ERR) == 0, FALSE);
@@ -145,6 +145,15 @@ static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*
 
 	return TRUE;
 }/*}}}*/
+
+
+static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
+{
+	Handle *h = data;
+	h->alive = on_event_real(ch, cond, data);
+	return h->alive;
+}/*}}}*/
+
 /* }}} */
 
 /* Methods {{{ */
@@ -164,6 +173,7 @@ static int Handle_new(LuaState *L)
 	g_io_channel_set_flags(h->channel, G_IO_FLAG_NONBLOCK, NULL);
 	h->tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_OUT | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
 	h->closed = FALSE;
+	h->alive  = TRUE;
 
 	/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
 	lua_pushlightuserdata(L, h);
@@ -177,8 +187,10 @@ static int Handle_new(LuaState *L)
 static int Handle_write(LuaState *L)
 {
 	Handle *h       = moon_checkclass(L, "Handle", 1);
-	const char *str = luaL_checkstring(L, 2);
-	g_queue_push_tail(h->queue, g_string_new(str));
+	if (h->alive && !h->closed) {
+		const char *str = luaL_checkstring(L, 2);
+		g_queue_push_tail(h->queue, g_string_new(str));
+	}
 	return 0;
 }
 
