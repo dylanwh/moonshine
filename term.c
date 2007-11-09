@@ -42,6 +42,7 @@ void term_init(void)
 	g_hash_table_insert(term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
 	term_color_set("debug", "red", "black");
 	term_color_set("topic", "lightgray", "blue");
+	term_color_set("notice", "yellow", "black");
 	
 	atexit(term_reset);
 }

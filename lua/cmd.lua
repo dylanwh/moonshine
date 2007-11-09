@@ -1,13 +1,24 @@
 -- GLOBALS: cmd, eval().
 
+require "haver"
+
 cmd = {}
+
+function cmd.connect(text)
+	server = Haver:new()
+end
+
+function cmd.join(text)
+	room = text
+	server:join(text)
+end
 
 function cmd.quit(text)
 	quit()
 end
 
 function cmd.say(line)
-	screen:print("<you> %|%1", line)
+	server:send('IN', room, 'say', line)
 end
 
 function cmd.topic(text)
@@ -17,7 +28,7 @@ end
 function eval(line)
 	local word, arg = line:match("^/(%w+) ?(.*)")
 	if word then
-		word = string.lower(word)
+		word = word:lower()
 		if cmd[word] then
 			return cmd[word](arg)
 		end

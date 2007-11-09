@@ -6,3 +6,5 @@
 #define BUFFER_INDENT_MARK_UTF "\xF3\xB0\x80\x80"
 #define BUFFER_COLOR_MIN_UCS   0xFC000
 #define BUFFER_COLOR_MAX_UCS   0xFCFFF
+
+#define VERSION "p2"

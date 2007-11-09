@@ -29,14 +29,14 @@ inline static gboolean on_input(Handle *h)/*{{{*/
 	memset(str, '\0', sizeof(str));
 	GIOStatus status = g_io_channel_read_chars(h->channel, str, sizeof(str) - 1, &len, &err);
 
-	int nargs = 1;
+	int nargs = 0;
 	gboolean rv = TRUE;
 
 	moon_pushref(L, h->callback);
-	lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
+	/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
 	lua_pushlightuserdata(L, h);
 	lua_gettable(L, -2);
-	lua_remove(L, -2); // remove "HandleTable"
+	lua_remove(L, -2); // remove "HandleTable"*/
 	switch (status) {
 		case G_IO_STATUS_NORMAL:
 			lua_pushstring(L, "read");
@@ -100,14 +100,14 @@ inline static gboolean on_output(Handle *h)/*{{{*/
 		case G_IO_STATUS_ERROR:
 			g_assert(err != NULL);
 			moon_pushref(L, h->callback);
-			lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
+			/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
 			lua_pushlightuserdata(L, h);
 			lua_gettable(L, -2);
-			lua_remove(L, -2); // remove "HandleTable"
+			lua_remove(L, -2); // remove "HandleTable"*/
 			lua_pushstring(L, "error");
 			moon_pusherror(L, err);
 			g_error_free(err);
-    		if (lua_pcall(L, 3, 0, 0) != 0)
+    		if (lua_pcall(L, 2, 0, 0) != 0)
     			g_warning("error running Handle callback on G_IO_STATUS_ERROR during write: %s",
     					lua_tostring(L, -1));
 			return FALSE;
@@ -124,12 +124,12 @@ static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*
 	if (cond & G_IO_HUP) {
 		LuaState *L = h->L;
 		moon_pushref(L, h->callback);
-		lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
+		/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
 		lua_pushlightuserdata(L, h);
 		lua_gettable(L, -2);
-		lua_remove(L, -2); // remove "HandleTable"
-		lua_pushstring(L, "error");
-    	if (lua_pcall(L, 2, 0, 0) != 0)
+		lua_remove(L, -2); // remove "HandleTable"*/
+		lua_pushstring(L, "hup");
+    	if (lua_pcall(L, 1, 0, 0) != 0)
     		g_warning("error running Handle callback for hup event: %s",
     				lua_tostring(L, -1));
     	return FALSE;
@@ -165,12 +165,12 @@ static int Handle_new(LuaState *L)
 	h->tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_OUT | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
 	h->closed = FALSE;
 
-	lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
+	/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
 	lua_pushlightuserdata(L, h);
 	lua_pushvalue(L, -3);
 	lua_settable(L, -3);
 	lua_pop(L, 1);
-
+*/
 	return 1;
 }
 

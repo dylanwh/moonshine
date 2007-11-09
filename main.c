@@ -83,6 +83,8 @@ int main(int argc, char *argv[])
 	lua_register(L, "quit", quit);
 	lua_register(L, "refresh", refresh);
 	lua_register(L, "make_keyspec", make_keyspec);
+	lua_pushstring(L, VERSION);
+	lua_setglobal(L, "VERSION");
 	moon_require(L, "moonshine");
 
 	term_init();
