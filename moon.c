@@ -37,6 +37,7 @@ LuaState *moon_new(void)
 
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
 {
+	gboolean rv = TRUE;
 	int argc = strlen(sig);
     va_list vl;
     lua_checkstack(L, argc + 1);
@@ -53,11 +54,13 @@ gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
           	case 'n': lua_pushnil(L); break;
           	default:  g_error("invalid option (%c)", *(sig - 1)); break;
         }
-    if (lua_pcall(L, argc, 0, 0) != 0)
+    if (lua_pcall(L, argc, 0, 0) != 0) {
+    	rv = FALSE;
     	g_warning("error running function `%s': %s",
     			name, lua_tostring(L, -1));
+    }
     va_end(vl);
-    return TRUE;
+    return rv;
 }
 
 gpointer moon_toclass(LuaState *L, const char *class, int index)

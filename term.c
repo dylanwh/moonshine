@@ -78,9 +78,15 @@ void term_resize(void)
 void term_color_set(const char *name, const char *fg, const char *bg)
 {
 	g_assert(term_colors);
-	last_id += 1;
-	g_hash_table_insert(term_colors, g_strdup(name), GINT_TO_POINTER(last_id));
-	SLtt_set_color( last_id, (char *)name, (char *) fg, (char *)bg);
+	int *color_idp = g_hash_table_lookup(term_colors, name);
+	if (color_idp) {
+		int color_id = GPOINTER_TO_INT(color_idp);
+		SLtt_set_color( color_id, (char *)name, (char *) fg, (char *)bg);
+	} else {
+		last_id += 1;
+		g_hash_table_insert(term_colors, g_strdup(name), GINT_TO_POINTER(last_id));
+		SLtt_set_color( last_id, (char *)name, (char *) fg, (char *)bg);
+	}
 }
 
 void term_color_use(const char *name)

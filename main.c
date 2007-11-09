@@ -71,6 +71,14 @@ static int quit(LuaState *L)/*{{{*/
 	g_main_loop_quit(loop);
 	return 0;
 }/*}}}*/
+static int define_color(LuaState *L)
+{
+	const char *name = luaL_checkstring(L, 1);
+	const char *fg = luaL_checkstring(L, 2);
+	const char *bg = luaL_checkstring(L, 3);
+	term_color_set(name, fg, bg);
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -92,23 +100,25 @@ int main(int argc, char *argv[])
 	lua_register(L, "quit", quit);
 	lua_register(L, "refresh", refresh);
 	lua_register(L, "make_keyspec", make_keyspec);
+	lua_register(L, "define_color", define_color);
 	lua_pushstring(L, VERSION);
 	lua_setglobal(L, "VERSION");
-	moon_require(L, "moonshine");
+	if (moon_require(L, "moonshine")) {
+		term_init();
 
-	term_init();
+		g_io_add_watch(input, G_IO_IN, on_input, L);
 
-	g_io_add_watch(input, G_IO_IN, on_input, L);
+		moon_call(L, "boot_hook", "");
+		g_main_loop_run(loop);
+		moon_call(L, "quit_hook", "");
 
-	moon_call(L, "boot_hook", "");
-	g_main_loop_run(loop);
-	moon_call(L, "quit_hook", "");
+		g_io_channel_unref(input);
+		g_main_loop_unref(loop);
+		lua_close(L);
 
-	g_io_channel_unref(input);
-	g_main_loop_unref(loop);
-	lua_close(L);
-
-
-	exit(0);
+		exit(0);
+	} else {
+		exit(1);
+	}
 }
 
