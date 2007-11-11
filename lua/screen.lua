@@ -3,8 +3,8 @@ require "window"
 
 Screen = Object:new()
 
-define_color("blue", "brightblue", "black")
-define_color("white", "white", "black")
+define_color("blue", "brightblue", "default")
+define_color("white", "white", "default")
 
 function Screen:init()
 	self.focus   = 1
