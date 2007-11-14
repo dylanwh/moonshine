@@ -75,11 +75,11 @@ function cmd.me(line)
 	end
 end
 
-function cmd.me(line)
+function cmd.say(line)
 	local window = screen.window
 	local server = window.server
 	if server then
-		server:msg(window, 'do', line)
+		server:msg(window, 'say', line)
 	end
 end
 
