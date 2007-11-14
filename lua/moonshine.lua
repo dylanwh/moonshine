@@ -19,6 +19,8 @@ function boot_hook()
 	bind("^X", quit)
 	bind("^L", screen:callback "render")
 	bind("^M", screen:callback ("send_line", eval))
+	bind("\t", function () end)
+
 	for i = 1, 9 do
 		bind("^[" .. i, screen:callback("view", i))
 	end
