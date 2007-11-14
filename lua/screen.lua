@@ -2,17 +2,17 @@ require "object"
 require "window"
 
 Screen = Object:new()
+Screen.__type = 'Screen'
 
 define_color("blue", "brightblue", "default")
 define_color("white", "white", "default")
 
 function Screen:init()
-	self.focus   = 1
-	self.windows = { Window:new() }
-	self.window  = self.windows[self.focus]
-	self.window.topic:set("status window")
-
-	self.entry   = Entry.new();
+	local window = Window:new { name = "status" }
+	self.windows = { }
+	self.window  = nil
+	self.entry   = Entry:new()
+	self:add(window)
 end
 
 function Screen:print(fmt, ...)
@@ -25,14 +25,22 @@ function Screen:debug(fmt, ...)
 	self:render()
 end
 
-function Screen:view(id)
-	if self.windows[id] then
-		self.focus  = id
-		self.window = self.windows[self.focus]
+function Screen:add(win)
+	table.insert(self.windows, win)
+	if self.window == nil then
+		self.window = win
+	end
+	win.pos = #self.windows
+	return win.pos
+end
+
+function Screen:view(x)
+	if self.windows[x] then
+		self.window = self.windows[x]
 		self:render()
 		return true
 	else
-		return false, "invalid window number"
+		return false, "invalid window index: " .. tostring(x)
 	end
 end
 

@@ -1,7 +1,7 @@
 require "object"
 require "server"
 
-Haver   = Object:new()
+Haver = Object:new()
 
 function Haver:init()
 	self.hostname = self.hostname or 'chat.haverdev.org'
@@ -10,13 +10,12 @@ function Haver:init()
 
 	net.connect(self.hostname, self.port, self:callback "on_connect")
 
-	self.name = server_name(self.hostname)
-	servers[self.name] = self
+	self.tag = server_tag(self.hostname)
+	servers[self.tag] = self
 
-	screen:debug("Connecting to %1 (%2:%3)", self.name, self.hostname, self.port)
-
-	self.rooms = { }
-	self.users = { }
+	self.rooms = {}
+	self.users = {}
+	screen:debug("Connecting to %1 (%2:%3)", self.tag, self.hostname, self.port)
 end
 
 function Haver:shutdown()
@@ -24,14 +23,14 @@ function Haver:shutdown()
 		self.handle:close()
 	end
 
-	servers[self.name] = nil
+	servers[self.tag] = nil
 end
 
 function Haver:on_connect(fd, err)
 	if fd then
-		screen:debug("Connected to %1", self.name)
-		self.reader = LineReader.new()
-		self.handle = Handle.new(fd, self:callback "on_event")
+		screen:debug("Connected to %1", self.tag)
+		self.reader = LineReader:new()
+		self.handle = Handle:new(fd, self:callback "on_event")
 		self:send("HAVER", "Moonshine/"..VERSION)
 	else
 		self:shutdown()
@@ -78,6 +77,7 @@ function Haver:msg(target, kind, msg)
 		cmd = 'IN'
 	elseif target.type == 'user' then
 		cmd = 'TO'
+		private_message_sent_hook(self, target.name, kind, msg)
 	else
 		screen:debug("Unknown target type: %1", target.type)
 	end
@@ -106,7 +106,7 @@ function Haver:IN(room, user, type, msg)
 	public_message_hook(self, room, user, type, msg)
 end
 
-function Haver:TO(user, type, msg)
+function Haver:FROM(user, type, msg)
 	private_message_hook(self, user, type, msg)
 end
 
@@ -124,7 +124,5 @@ end
 
 function Haver:USERSOF(room, ...)
 	local users = {...}
-	self.rooms[room].users = users
 	userlist_hook(self, room, users)
 end
-

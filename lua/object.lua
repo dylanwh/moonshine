@@ -1,4 +1,4 @@
-Object = {}
+Object = { __type = 'Object' }
 
 function Object:new (obj)
 	obj = obj or {}

@@ -7,7 +7,7 @@ typedef struct {
 
 static int Topic_new(LuaState *L)
 {
-	const char *text = luaL_optstring(L, 1, ""); 
+	const char *text = luaL_optstring(L, 2, ""); 
 	Topic *t         = moon_newclass(L, "Topic", sizeof(Topic));
 	t->text          = g_strdup(text);
 	return 1;

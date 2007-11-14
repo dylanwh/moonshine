@@ -3,6 +3,16 @@ require "haver"
 
 cmd = {}
 
+local function frob(s)
+	local name, tag, pos = s:match("^([^ ])+@(%w+)()")
+	if name and tag and pos then
+		return name, tag, string.sub(s, pos + 1)
+	elseif screen.window.server then
+		local name, pos = s:match("^([^ ]+)()")
+		return name, screen.window.server.tag, string.sub(s, pos)
+	end
+end
+
 function eval(text)
 	local word, arg = text:match("^/(%w+) ?(.*)")
 	if word then
@@ -16,20 +26,40 @@ function eval(text)
 end
 
 function cmd.connect(text)
-	Haver:new()
+	local server = Haver:new { hostname = "chat.haverdev.org" }
+	if not screen.window.server then
+		screen.window.server = server
+	end
 end
 
 function cmd.join(text)
-	local rname, sname = text:match("(%w+)@(%w+)")
-	if rname and sname then
-		local server = servers[sname]
+	local room, tag = frob(text)
+	if room and tag then
+		local server = servers[tag]
 		if server then
-			server:join(rname)
+			server:join(room)
 		else
-			screen:debug("Unknown server: %1", sname)
+			screen:debug("Unknown server tag: %1", tag)
 		end
 	else
-		screen:debug("Sorry, only /join room@server is supported right now.")
+		screen:debug("Usage: /join room[@tag]")
+	end
+end
+
+function cmd.query(text)
+	local user, tag, msg = frob(text)
+	if user and tag then
+		local server = servers[tag]
+		if server then
+			query_hook(server, user)
+			if msg then
+				server:msg({ type = 'user', name = user }, 'say', msg)
+			end
+		else
+			screen:debug("Unknown server tag: %1", tag)
+		end
+	else
+		screen:debug("Usage: /query user[@host] [message]")
 	end
 end
 
@@ -38,16 +68,18 @@ function cmd.quit(text)
 end
 
 function cmd.say(line)
+	local server = screen.window.server
 	local target = screen.window.target
-	if target then
-		target.server:msg(target, 'say', line)
+	if server and target then
+		server:msg(target, 'say', line)
 	end
 end
 
 function cmd.me(line)
+	local server = screen.window.server
 	local target = screen.window.target
-	if target then
-		target.server:msg(target, 'do', line)
+	if server and target then
+		server:msg(target, 'do', line)
 	end
 end
 

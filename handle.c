@@ -159,8 +159,8 @@ static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*
 /* Methods {{{ */
 static int Handle_new(LuaState *L)
 {
-	int fd       = luaL_checkinteger(L, 1);
-	int callback = moon_ref(L, 2);
+	int fd       = luaL_checkinteger(L, 2);
+	int callback = moon_ref(L, 3);
 
 	Handle *h = moon_newclass(L, "Handle", sizeof(Handle));
 

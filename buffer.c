@@ -191,7 +191,7 @@ static void scroll_down(Buffer *b, guint offset) {
 /* {{{ Methods */
 static int Buffer_new(LuaState *L)/*{{{*/
 {
-	guint histsize = luaL_optint(L, 1, 1024);
+	guint histsize = luaL_optint(L, 2, 1024);
 	g_return_val_if_fail(histsize > 0, 0);
 	Buffer *b = moon_newclass(L, "Buffer", sizeof(Buffer));
 	b->head = b->view = b->tail = NULL;

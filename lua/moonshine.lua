@@ -17,10 +17,7 @@ function boot_hook()
 	bind("^?",  screen:callback "backspace")
 	bind("^C", quit)
 	bind("^X", quit)
-	bind("^L", function ()
-		define_color("topic", "black", "green")
-		refresh()
-	end)
+	bind("^L", screen:callback "render")
 	bind("^M", screen:callback ("send_line", eval))
 	for i = 1, 9 do
 		bind("^[" .. i, screen:callback("view", i))
@@ -44,15 +41,15 @@ function join_hook(server, room, user)
 	if user == server.username then
 		local window = Window:new()
 		window:print("[You have joined %1]", room)
-		table.insert(screen.windows, window)
 		target = {
 			type = 'room',
 			name = room,
-			server = server,
 		}
 		window.target = target
+		window.server = server
 		server.rooms[room] = { window = window }
-		screen:view(#screen.windows)
+		screen:add(window)
+		screen:view(window.pos)
 	else
 		local window = server.rooms[room].window
 		window:print("[%1 joined %2]", user, room)
@@ -85,6 +82,22 @@ function public_message_hook(server, room, user, type, msg)
 	screen:render()
 end
 
+function query_hook(server, user)
+	local window = Window:new { name = user }
+	local target = { name = user, type = "user" }
+	window.target = target
+	window.server = server
+	server.users[user] = { window = window }
+	screen:view(screen:add(window))
+end
+
+function private_message_sent_hook(server, user, type, msg)
+	local window = server.users[user].window
+	window:print("[To %1] %|%2", user, msg)
+end
+
 function private_message_hook(server, user, type, msg)
-	screen:print("[From %1] %|%2", user, msg)
+	local window = server.users[user].window
+	window:print("[From %1] %|%2", user, msg)
+	screen:render()
 end

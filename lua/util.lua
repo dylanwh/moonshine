@@ -17,4 +17,13 @@ function split(div,str)
 	return arr
 end
 
+local basetype = type
+function type(x)
+	local t = basetype(x)
+	if t == 'userdata' or t == 'table' then
+		return t.__type or t
+	else
+		return t
+	end
+end
 

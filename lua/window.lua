@@ -1,10 +1,11 @@
 require "object"
 
 Window = Object:new()
+Window.__type = 'Window'
 
 function Window:init()
-	self.topic  = Topic.new("Moonshine - A Haver Client")
-	self.buffer = Buffer.new()
+	self.topic  = Topic:new("Moonshine - A Haver Client")
+	self.buffer = Buffer:new()
 end
 
 function Window:print(fmt, ...)
