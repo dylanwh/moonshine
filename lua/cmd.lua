@@ -67,26 +67,27 @@ function cmd.quit(text)
 	quit()
 end
 
-function cmd.say(line)
-	local server = screen.window.server
-	local target = screen.window.target
-	if server and target then
-		server:msg(target, 'say', line)
+function cmd.me(line)
+	local window = screen.window
+	local server = window.server
+	if server then
+		server:msg(window, 'do', line)
 	end
 end
 
 function cmd.me(line)
-	local server = screen.window.server
-	local target = screen.window.target
-	if server and target then
-		server:msg(target, 'do', line)
+	local window = screen.window
+	local server = window.server
+	if server then
+		server:msg(window, 'do', line)
 	end
 end
 
 function cmd.names(room)
-	local target, server = screen.window.target, screen.window.server
-	if server and target then
-		server:userlist(target)
+	local window = screen.window
+	local server = window.server
+	if server then
+		server:userlist(window)
 	end
 end
 

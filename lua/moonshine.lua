@@ -39,14 +39,12 @@ end
 
 function join_hook(server, room, user)
 	if user == server.username then
-		local window = Window:new()
-		window:print("[You have joined %1]", room)
-		target = {
+		local window = Window:new {
 			type = 'room',
 			name = room,
+			server = server
 		}
-		window.target = target
-		window.server = server
+		window:print("[You have joined %1]", room)
 		server.rooms[room] = { window = window }
 		screen:add(window)
 		screen:view(window.pos)
@@ -83,10 +81,11 @@ function public_message_hook(server, room, user, type, msg)
 end
 
 function query_hook(server, user)
-	local window = Window:new { name = user }
-	local target = { name = user, type = "user" }
-	window.target = target
-	window.server = server
+	local window = Window:new {
+		type = "user", 
+		name = user,
+		server = server
+	}
 	server.users[user] = { window = window }
 	screen:view(screen:add(window))
 end

@@ -6,6 +6,7 @@
 #include <string.h>
 
 typedef struct {
+	gchar *prompt;
 	gunichar *buffer;
 	gsize bufsize; /* The total size of the buffer in gunichars. Is zero iff buffer is NULL. */
 	gsize bufused; /* The length of the actual string in the buffer. */
@@ -15,11 +16,22 @@ typedef struct {
 
 static int Entry_new(LuaState *L)
 {
+	const char *prompt = luaL_optstring(L, 2, "% ");
 	Entry *e = moon_newclass(L, "Entry", sizeof(Entry));
 	e->buffer = NULL;
 	e->bufsize = e->bufused = 0;
 	e->view_off = e->curs_off = 0;
+	e->prompt   = g_strdup(prompt);
 	return 1;
+}
+
+static int Entry_set_prompt(LuaState *L)
+{
+	Entry *e           = moon_checkclass(L, "Entry", 1);
+	const char *prompt = luaL_checkstring(L, 2);
+	g_free(e->prompt);
+	e->prompt = g_strdup(prompt);
+	return 0;
 }
 
 static int Entry_keypress(LuaState *L)
@@ -197,8 +209,12 @@ static int try_render(Entry *e, guint lmargin) {
 static int Entry_render(LuaState *L)
 {
 	Entry *e      = moon_checkclass(L, "Entry", 1);
-	guint lmargin = luaL_optint(L, 2, 0);
 	g_assert(e->curs_off <= e->bufused);
+
+	/* FIXME: This assumes 1 byte == 1 char */
+	guint lmargin = strlen(e->prompt);
+	term_goto(TERM_LINES - 1, 0);
+	term_write_chars(e->prompt);
 
 	if (try_render(e, lmargin) == -1) {
 		e->view_off = center_view(e, TERM_COLS - lmargin);
@@ -280,6 +296,7 @@ static int Entry_tostring(LuaState *L)
 static const LuaLReg Entry_methods[] = {
 	{"new", Entry_new},
 	{"keypress", Entry_keypress},
+	{"set_prompt", Entry_set_prompt},
 	{"move", Entry_move},
 	{"move_to", Entry_move_to},
 	{"get", Entry_get},

@@ -46,7 +46,7 @@ function Haver:on_event(event, ...)
 			if self[cmd] then
 				self[cmd](self, unpack(msg))
 			else
-				screen:debug("Unknown command: %1", cmd)
+				screen:debug("Unknown command: %1i (%2)", cmd, join(", ", {...}))
 			end
 		end
 	elseif event == 'eof' then
@@ -87,6 +87,8 @@ end
 function Haver:userlist(target)
 	if target.type == 'room' then
 		self:send('USERSOF', target.name)
+	else
+		screen:debug("Unknown target type: %1", target.type)
 	end
 end
 

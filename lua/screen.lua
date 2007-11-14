@@ -37,6 +37,7 @@ end
 function Screen:view(x)
 	if self.windows[x] then
 		self.window = self.windows[x]
+		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
 		self:render()
 		return true
 	else
