@@ -11,7 +11,7 @@ ADD_EXECUTABLE(moonshine term.c moon.c
 	linereader.c
 	util.c main.c handle.c net.c signal.c)
 
-OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" ON)
+OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" OFF)
 
 IF (EMBED_LUA)
 	MESSAGE(STATUS "Will embed lua packages")

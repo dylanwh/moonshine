@@ -84,9 +84,9 @@ function cmd.me(line)
 end
 
 function cmd.names(room)
-	local target = screen.window.target
-	if target then
-		target.server:userlist(target)
+	local target, server = screen.window.target, screen.window.server
+	if server and target then
+		server:userlist(target)
 	end
 end
 
