@@ -34,12 +34,8 @@ static int Entry_set_prompt(LuaState *L)
 	return 0;
 }
 
-static int Entry_keypress(LuaState *L)
+inline static int keypress(Entry *e, gunichar uc)
 {
-	Entry *e        = moon_checkclass(L, "Entry", 1);
-	const char *key = luaL_checkstring(L, 2);
-	gunichar uc = g_utf8_get_char(key);
-
 	if (!uc || !g_unichar_isdefined(uc))
 		return 0; /* Filter invalid characters, hopefully. XXX: is this enough to deny the PUA? */
 	if (e->bufused + 1 > e->bufsize) {
@@ -57,6 +53,15 @@ static int Entry_keypress(LuaState *L)
 	e->bufused++;
 	e->curs_off++;
 	return 0;
+}
+
+static int Entry_keypress(LuaState *L)
+{
+	Entry *e        = moon_checkclass(L, "Entry", 1);
+	const char *key = luaL_checkstring(L, 2);
+	gunichar uc = g_utf8_get_char(key);
+
+	return keypress(e, uc);
 }
 
 static int Entry_move(LuaState *L)
@@ -112,9 +117,10 @@ static int Entry_get(LuaState *L)
 	}
 }
 
-static int Entry_clear(LuaState *L)
+
+
+inline static int clear(Entry *e)
 {
-	Entry *e  = moon_checkclass(L, "Entry", 1);
 	e->bufused = 0;
 	e->curs_off = e->view_off = 0;
 	/* If we have more than a page of buffer, free it, to prevent a single
@@ -123,6 +129,25 @@ static int Entry_clear(LuaState *L)
 	if (e->bufused > 1024) {
 		g_free(e->buffer);
 		e->bufused = 0;
+	}
+	return 0;
+}
+
+static int Entry_clear(LuaState *L)
+{
+	Entry *e  = moon_checkclass(L, "Entry", 1);
+	return clear(e);
+}
+
+static int Entry_set(LuaState *L)
+{
+	Entry *e         = moon_checkclass(L, "Entry", 1);
+	const char *line = luaL_checkstring(L, 2);
+	gunichar *buffer = g_utf8_to_ucs4(line, -1, NULL, NULL, NULL);
+	if  (buffer) {
+		clear(e);
+		for (gunichar *c = buffer; c[0] != '\0'; c++)
+			keypress(e, *c);
 	}
 	return 0;
 }
@@ -300,6 +325,7 @@ static const LuaLReg Entry_methods[] = {
 	{"move", Entry_move},
 	{"move_to", Entry_move_to},
 	{"get", Entry_get},
+	{"set", Entry_set},
 	{"clear", Entry_clear},
 	{"erase", Entry_erase},
 	{"render", Entry_render},
