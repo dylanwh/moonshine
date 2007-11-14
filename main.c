@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
 	g_thread_init(NULL);
 	signal_init();
 	term_init_colors();
+	if (!getenv("LUA_PATH"))
+		setenv("LUA_PATH", "lua/?.lua", 1);
 
 	GError *error     = NULL;
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
