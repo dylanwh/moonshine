@@ -143,13 +143,25 @@ static int Entry_set(LuaState *L)
 {
 	Entry *e         = moon_checkclass(L, "Entry", 1);
 	const char *line = luaL_checkstring(L, 2);
-	gunichar *buffer = g_utf8_to_ucs4(line, -1, NULL, NULL, NULL);
+
+	GError *error;
+	glong written;
+	gunichar *buffer = g_utf8_to_ucs4(line, -1, NULL, &written, &error);
 	if  (buffer) {
-		clear(e);
-		for (gunichar *c = buffer; c[0] != '\0'; c++)
-			keypress(e, *c);
+		g_free(e->buffer);
+
+		e->bufsize = e->bufused = written;
+		e->curs_off = e->bufused;
+		e->view_off = 0;
+		e->buffer = buffer;
+		lua_pushboolean(L, TRUE);
+		return 1;
+	} else {
+		lua_pushnil(L);
+		lua_pushfstring(L, "Entry:set() - UCS4 conversion failed: %s", error->message);
+		g_error_free(error);
+		return 2;
 	}
-	return 0;
 }
 
 static guint center_view(Entry *e, guint width) {
