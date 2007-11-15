@@ -79,13 +79,13 @@ function Screen:move_right()
 end
 
 function Screen:move_home()
-	self.entry:move_to(-1)
+	self.entry:move_to(0)
 	self:render()
 end
 
 function Screen:move_end()
-	entry:move_to(1)
-	render()
+	self.entry:move_to(-1)
+	self:render()
 end
 
 function Screen:backspace()

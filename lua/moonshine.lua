@@ -10,6 +10,8 @@ function boot_hook()
 	keypress_hook = screen:callback "keypress"
 	--bind("^[[A", ui.move_up)
 	--bind("^[[B", ui.move_down)
+	bind("^[[H", screen:callback "move_home")
+	bind("^[[F", screen:callback "move_end")
 	bind("^[[C", screen:callback "move_right")
 	bind("^[[D", screen:callback "move_left")
 	bind("^[[5~", screen:callback "scroll_up")
