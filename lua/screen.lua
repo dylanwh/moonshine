@@ -12,7 +12,9 @@ function Screen:init()
 	self.windows = { }
 	self.window  = nil
 	self.entry   = Entry:new()
-	self:add(window)
+	self:view(
+		self:add(window)
+	)
 end
 
 function Screen:print(fmt, ...)
