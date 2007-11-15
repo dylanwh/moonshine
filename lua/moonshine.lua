@@ -83,6 +83,19 @@ function public_message_hook(server, room, user, type, msg)
 	screen:render()
 end
 
+function public_message_sent_hook(server, room, user, type, msg)
+	local window = server.rooms[room].window
+
+	if type == 'say' then
+		window:print("<%1> %|%2", user, msg)
+	elseif type == 'do' then
+		window:print("*%1 %|%2", user, msg)
+	else
+		window:print("(%3)<%1> %|%2", user, msg, type)
+	end
+	screen:render()
+end
+
 function query_hook(server, user)
 	local window = Window:new {
 		type = "user", 
@@ -93,13 +106,13 @@ function query_hook(server, user)
 	screen:view(screen:add(window))
 end
 
-function private_message_sent_hook(server, user, type, msg)
-	local window = server.users[user].window
-	window:print("[To %1] %|%2", user, msg)
-end
-
 function private_message_hook(server, user, type, msg)
 	local window = server.users[user].window
 	window:print("[From %1] %|%2", user, msg)
 	screen:render()
+end
+
+function private_message_sent_hook(server, user, type, msg)
+	local window = server.users[user].window
+	window:print("[To %1] %|%2", user, msg)
 end

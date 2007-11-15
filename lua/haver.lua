@@ -75,6 +75,7 @@ function Haver:msg(target, kind, msg)
 	local cmd
 	if target.type == 'room' then
 		cmd = 'IN'
+		public_message_sent_hook(self, target.name, self.username, kind, msg)
 	elseif target.type == 'user' then
 		cmd = 'TO'
 		private_message_sent_hook(self, target.name, kind, msg)
@@ -105,7 +106,9 @@ function Haver:HELLO(username, address)
 end
 
 function Haver:IN(room, user, type, msg)
-	public_message_hook(self, room, user, type, msg)
+	if not (self.username == user) then
+		public_message_hook(self, room, user, type, msg)
+	end
 end
 
 function Haver:FROM(user, type, msg)
