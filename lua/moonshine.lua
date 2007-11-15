@@ -38,7 +38,6 @@ end
 
 function resize_hook()
 	screen:render()
-	screen:debug("Resized!")
 end
 
 function quit_hook()
