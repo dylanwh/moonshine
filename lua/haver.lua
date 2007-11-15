@@ -46,7 +46,7 @@ function Haver:on_event(event, ...)
 			if self[cmd] then
 				self[cmd](self, unpack(msg))
 			else
-				screen:debug("Unknown command: %1 (%2)", cmd, join(", ", {...}))
+				screen:debug("Unknown command: %1 (%2)", cmd, join(", ", msg))
 			end
 		end
 	elseif event == 'eof' then
