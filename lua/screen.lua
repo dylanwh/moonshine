@@ -95,8 +95,10 @@ end
 
 function Screen:send_line(f)
 	local line = screen.entry:get()
-	screen.entry:clear()
-	f(line)
-	self:render()
+	if #line > 0 then
+		screen.entry:clear()
+		f(line)
+		self:render()
+	end
 end
 
