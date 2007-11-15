@@ -23,7 +23,7 @@ function boot_hook()
 	bind("^H",  screen:callback "backspace")
 	bind("^C", quit)
 	bind("^X", quit)
-	bind("^L", screen:callback "render")
+	bind("^L", force_resize)
 	bind("^M", screen:callback ("send_line", eval))
 	bind("\t", function () end)
 

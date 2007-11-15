@@ -33,6 +33,7 @@ function Screen:add(win)
 		self.window = win
 	end
 	win.pos = #self.windows
+	win.topic:set("Moonshine - " .. (win.name or '???'));
 	return win.pos
 end
 
@@ -51,6 +52,7 @@ function Screen:render()
 	self.window:render()
 	self.entry:render()
 	refresh()
+	status("Moonshine - " .. (self.window.name or '???'));
 end
 
 function Screen:keypress(key)

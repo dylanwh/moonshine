@@ -80,6 +80,21 @@ static int define_color(LuaState *L)
 	return 0;
 }
 
+static int status(LuaState *L)
+{
+	const char *msg = luaL_checkstring(L, 1);
+	printf("\e]2;%s\a", msg);
+	fflush(stdout);
+	return 0;
+}
+
+static int force_resize(LuaState *L)
+{
+	term_resize();
+	moon_call(L, "resize_hook", "");
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	g_thread_init(NULL);
@@ -104,6 +119,8 @@ int main(int argc, char *argv[])
 	lua_register(L, "refresh", refresh);
 	lua_register(L, "make_keyspec", make_keyspec);
 	lua_register(L, "define_color", define_color);
+	lua_register(L, "status", status);
+	lua_register(L, "force_resize", force_resize);
 	lua_pushstring(L, VERSION);
 	lua_setglobal(L, "VERSION");
 	if (moon_require(L, "moonshine")) {
