@@ -52,7 +52,7 @@ function cmd.query(text)
 		local server = servers[tag]
 		if server then
 			query_hook(server, user)
-			if msg:len() > 0 then
+			if msg and msg:len() > 0 then
 				server:msg({ type = 'user', name = user }, 'say', msg)
 			end
 		else
