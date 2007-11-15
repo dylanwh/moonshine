@@ -4,6 +4,7 @@
 #include "moon.h"
 
 #include <string.h>
+#include <assert.h>
 
 typedef struct {
 	gchar *prompt;
@@ -330,6 +331,36 @@ static int Entry_tostring(LuaState *L)
   	return 1;
 }
 
+static inline int wordlen_dir(Entry *e, int direction) {
+	int count = 0;
+	int i = e->curs_off;
+	gboolean expect_space = 1;
+	assert(direction);
+	
+	if (direction == -1)
+		i--;
+
+	for (; i >= 0 && i < e->bufused; i += direction) {
+		if (expect_space) {
+			expect_space = g_unichar_isspace(e->buffer[i]);
+		} else {
+			if (g_unichar_isspace(e->buffer[i]))
+				break;
+		}
+		count++;
+	}
+	return count;
+}
+
+static int Entry_wordlen(LuaState *L)
+{
+	Entry *e  = moon_checkclass(L, "Entry", 1);
+
+	lua_pushinteger(L, wordlen_dir(e, -1));
+	lua_pushinteger(L, wordlen_dir(e, 1));
+	return 2;
+}
+
 static const LuaLReg Entry_methods[] = {
 	{"new", Entry_new},
 	{"keypress", Entry_keypress},
@@ -341,6 +372,7 @@ static const LuaLReg Entry_methods[] = {
 	{"clear", Entry_clear},
 	{"erase", Entry_erase},
 	{"render", Entry_render},
+	{"wordlen", Entry_wordlen},
 	{0, 0}
 };
 
