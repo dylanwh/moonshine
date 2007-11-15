@@ -235,7 +235,7 @@ static int try_render(Entry *e, guint lmargin) {
 		idx++;
 	}
 
-	if (e->curs_off == e->bufused && width < max_width)
+	if (idx == e->bufused && e->curs_off == e->bufused && width < max_width)
 		curs_pos = width + lmargin;
 
 	if (curs_pos != -1)
