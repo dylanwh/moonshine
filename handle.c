@@ -10,6 +10,7 @@ typedef struct {
 	GIOChannel *channel;
 	GQueue *queue;
 	guint tag;
+	guint out_tag;
 	gboolean closed;
 	gboolean alive;
 } Handle;
@@ -139,11 +140,17 @@ static inline gboolean on_event_real(GIOChannel *ch, GIOCondition cond, gpointer
 		if (!on_input(h))
 			return FALSE;
 
-	if (cond & G_IO_OUT && !g_queue_is_empty(h->queue))
-		if (!on_output(h))
-			return FALSE;
-
 	return TRUE;
+}/*}}}*/
+
+static gboolean on_out_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
+{
+	Handle *h = data;
+	g_assert(cond & G_IO_OUT);
+	if (g_queue_is_empty(h->queue))
+		return FALSE;
+	h->alive = on_output(h);
+	return h->alive;
 }/*}}}*/
 
 
@@ -171,7 +178,7 @@ static int Handle_new(LuaState *L)
 	g_io_channel_set_encoding(h->channel, NULL, NULL);
 	g_io_channel_set_buffered(h->channel, FALSE);
 	g_io_channel_set_flags(h->channel, G_IO_FLAG_NONBLOCK, NULL);
-	h->tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_OUT | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
+	h->tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
 	h->closed = FALSE;
 	h->alive  = TRUE;
 
@@ -189,6 +196,8 @@ static int Handle_write(LuaState *L)
 	Handle *h       = moon_checkclass(L, "Handle", 1);
 	if (h->alive && !h->closed) {
 		const char *str = luaL_checkstring(L, 2);
+		if (g_queue_is_empty(h->queue))
+			h->out_tag = g_io_add_watch(h->channel, G_IO_OUT, on_out_event, h);
 		g_queue_push_tail(h->queue, g_string_new(str));
 	}
 	return 0;
@@ -207,6 +216,8 @@ static int Handle_close(LuaState *L)
 		return 0;
 
 	moon_unref(L, h->callback);
+	if (!g_queue_is_empty(h->queue))
+		g_source_remove(h->out_tag);
 	g_queue_foreach(h->queue, (GFunc)each_g_string, NULL);
 	g_queue_free(h->queue);
 	g_source_remove(h->tag);
