@@ -95,21 +95,18 @@ end
 
 function Screen:word_delete()
 	local wlback, wlfwd = screen.entry:wordlen()
-	self:debug("back=%1 fwd=%2", wlback, wlfwd)
 	screen.entry:erase(-wlback)
 	self:render()
 end
 
 function Screen:word_left()
 	local wlback, wlfwd = screen.entry:wordlen()
-	self:debug("back=%1 fwd=%2", wlback, wlfwd)
 	screen.entry:move(-wlback)
 	self:render()
 end
 
 function Screen:word_right()
 	local wlback, wlfwd = screen.entry:wordlen()
-	self:debug("back=%1 fwd=%2", wlback, wlfwd)
 	screen.entry:move(wlfwd)
 	self:render()
 end
