@@ -2,6 +2,7 @@
 #include "term.h"
 #include "config.h"
 #include "moon.h"
+#include "util.h"
 
 #include <glib.h>
 #include <stdlib.h>
@@ -109,11 +110,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 				next_line = g_utf8_next_char(seg_end);
 				break;
 			}
-			guint ch_len;
-			if (g_unichar_iswide(ch))
-				ch_len = 2;
-			else
-				ch_len = 1;
+			guint ch_len = unicode_charwidth(ch);
 			if (cur_width + ch_len > max_width) {
 				/* This word extends beyond the current b.
 				 * Try to wrap in a way which doesn't break off this word. If
