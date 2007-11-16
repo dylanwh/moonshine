@@ -75,7 +75,13 @@ function userlist_hook(server, room, users)
 end
 
 function public_message_hook(server, room, user, type, msg)
+	if not server.rooms[room] then
+		screen:debug("No window for room: %1", room)
+	end
 	local window = server.rooms[room].window
+	if not window then
+		window = screen.window
+	end
 
 	if type == 'say' then
 		window:print("<%1> %|%2", user, msg)
@@ -89,6 +95,10 @@ end
 
 function public_message_sent_hook(server, room, user, type, msg)
 	local window = server.rooms[room].window
+
+	if not window then
+		window = screen.window
+	end
 
 	if type == 'say' then
 		window:print("<%1> %|%2", user, msg)
@@ -112,11 +122,18 @@ end
 
 function private_message_hook(server, user, type, msg)
 	local window = server.users[user].window
+	if not window then
+		window = screen.window
+	end
 	window:print("[From %1] %|%2", user, msg)
 	screen:render()
 end
 
 function private_message_sent_hook(server, user, type, msg)
 	local window = server.users[user].window
+	if not window then
+		window = screen.window
+	end
 	window:print("[To %1] %|%2", user, msg)
+	screen:render()
 end

@@ -1,5 +1,6 @@
 -- GLOBALS: cmd, eval().
 require "haver"
+require "irc"
 
 cmd = {}
 
@@ -14,7 +15,7 @@ local function frob(s)
 end
 
 function eval(text)
-	local word, arg = text:match("^/(%w+) ?(.*)")
+	local word, arg = text:match("^/([%w_-]+) ?(.*)")
 	if word then
 		word = word:lower()
 		if cmd[word] then
@@ -26,7 +27,8 @@ function eval(text)
 end
 
 function cmd.connect(text)
-	local server = Haver:new { hostname = "chat.haverdev.org" }
+	-- local server = Haver:new { hostname = "chat.haverdev.org" }
+	local server = IRC:new ()
 	if not screen.window.server then
 		screen.window.server = server
 	end
