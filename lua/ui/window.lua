@@ -1,7 +1,6 @@
 require "object"
 
-Window = Object:new()
-Window.__type = 'Window'
+Window = Object:clone { __type = 'Window' }
 
 function Window:init()
 	self.topic  = Topic:new("Moonshine - A Haver Client")

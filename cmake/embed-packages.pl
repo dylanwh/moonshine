@@ -6,20 +6,22 @@ use File::Basename;
 local $/ = undef;
 
 my @packages;
-while (my $file = <ARGV>) {
+while (my $content = <ARGV>) {
+	my $module = basename(dirname($ARGV)) . "." . basename($ARGV, '.lua');
+	$module =~ s/^lua.//;
 	push @packages, {
-		content => $file,
-		file => basename($ARGV, '.lua'),
+		module => $module,
+		content => $content,
 	};
 }
 
-@packages = sort { $a->{file} cmp $b->{file} } @packages;
+@packages = sort { $a->{module} cmp $b->{module} } @packages;
 
-my $n = @packages;
+my $n = @packages + 1;
 
 print <<HEADER;
 typedef struct {
-	char *filename;
+	char *module;
 	char *content;
 } Package;
 
@@ -27,7 +29,7 @@ static const Package packages[$n] = {
 HEADER
 
 foreach my $pkg (@packages) {
-	print qq|\t{"$pkg->{file}",\n|;
+	print qq|\t{"$pkg->{module}",\n|;
 	foreach my $line (split(/\n/, $pkg->{content})) {
 		$line =~ s/\\/\\\\/g;
 		$line =~ s/\"/\\"/g;
@@ -37,5 +39,6 @@ foreach my $pkg (@packages) {
 }
 
 print <<FOOTER;
+	{ 0, 0 }
 };
 FOOTER

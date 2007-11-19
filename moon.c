@@ -147,8 +147,9 @@ static int package_loader(LuaState *L)
 static int package_finder(LuaState *L)
 {
 	const char *pkg = luaL_checkstring(L, 1);
-	for (int i = 0; i < sizeof packages; i++) {
-		if (strcmp(packages[i].filename, pkg) == 0) {
+	for (int i = 0; packages[i].module; i++) {
+		g_print("module: (%d) %s == %s\n", i, packages[i].module, pkg);
+		if (strcmp(packages[i].module, pkg) == 0) {
 			lua_pushstring(L, pkg);
 			lua_pushstring(L, packages[i].content);
 			lua_pushcclosure(L, package_loader, 2);

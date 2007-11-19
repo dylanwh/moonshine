@@ -1,7 +1,6 @@
-require "object"
-require "server"
+require "protocol"
 
-IRC = Object:new()
+IRC = Protocol:clone { __type = "IRC" }
 
 local function ircsplit(cmd)
   local t = {}
@@ -18,37 +17,33 @@ local function ircsplit(cmd)
   return t
 end
 
-function IRC:init()
-	self.hostname = self.hostname or 'localhost'
-	self.port     = self.port or 6667
-	self.username = self.username or os.getenv('USER')
 
+function IRC:connect(hostname, port)
+	self.hostname = hostname or self.hostname
+	self.port     = port     or self.port
+
+	self.tag = self:make_tag()
 	net.connect(self.hostname, self.port, self:callback "on_connect")
 
-	self.tag = server_tag(self.hostname)
-	servers[self.tag] = self
-
-	self.rooms = {}
-	self.users = {}
-	screen:debug("Connecting to %1 (%2:%3)", self.tag, self.hostname, self.port)
+	connect_hook(self)
 end
 
-function IRC:shutdown()
+function IRC:disconnect()
 	if self.handle then
 		self.handle:close()
 	end
-	servers[self.tag] = nil
+	disconnect_hook(self)
 end
 
 function IRC:on_connect(fd, err)
 	if fd then
-		screen:debug("Connected to %1", self.tag)
+		connected_hook(self, fd)
 		self.reader = LineReader:new()
 		self.handle = Handle:new(fd, self:callback "on_event")
 		self:send("NICK %s", self.username)
 		self:send('USER %s hostname servername :%s', self.username, 'Moonshine User')
 	else
-		self:shutdown()
+		connection_error_hook(err)
 	end
 end
 
@@ -126,5 +121,3 @@ function IRC:msg(target, kind, msg)
 		screen:debug("IRC cannot handle message type: %1", kind)
 	end
 end
-
-

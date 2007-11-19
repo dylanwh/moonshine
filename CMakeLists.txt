@@ -39,7 +39,7 @@ CONFIGURE_FILE(${SRC}/config.h.in
 	@ONLY IMMEDIATE)
 
 IF (EMBED_LUA)
-	FILE(GLOB PACKAGES ${SRC}/lua/*.lua)
+	FILE(GLOB_RECURSE PACKAGES ${SRC}/lua/*.lua)
 	ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/packages.h
 		COMMAND perl ${SRC}/cmake/embed-packages.pl 
 		${PACKAGES} > ${BIN}/packages.h

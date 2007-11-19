@@ -1,39 +1,30 @@
-require "object"
-require "server"
+require "protocol"
 
-Haver = Object:new()
+Haver = Protocol:clone { __type   = 'Haver' }
 
-function Haver:init()
-	self.hostname = self.hostname or 'chat.haverdev.org'
-	self.port     = self.port or 7575
-	self.username = self.username or os.getenv('USER')
-
+function Haver:connect(hostname, port)
+	self.hostname = hostname      or self.hostname
+	self.port     = port          or self.port
 	net.connect(self.hostname, self.port, self:callback "on_connect")
-
-	self.tag = server_tag(self.hostname)
-	servers[self.tag] = self
-
-	self.rooms = {}
-	self.users = {}
-	screen:debug("Connecting to %1 (%2:%3)", self.tag, self.hostname, self.port)
+	connect_hook(self)
 end
 
-function Haver:shutdown()
+function Haver:disconnect()
 	if self.handle then
 		self.handle:close()
+		self.handle = nil
 	end
-
-	servers[self.tag] = nil
+	disconnect_hook(self)
 end
 
 function Haver:on_connect(fd, err)
 	if fd then
-		screen:debug("Connected to %1", self.tag)
+		connected_hook(self, fd)
 		self.reader = LineReader:new()
 		self.handle = Handle:new(fd, self:callback "on_event")
 		self:send("HAVER", "Moonshine/"..VERSION)
 	else
-		self:shutdown()
+		connection_error_hook(err)
 	end
 end
 
@@ -51,14 +42,14 @@ function Haver:on_event(event, ...)
 		end
 	elseif event == 'eof' then
 		screen:debug("eof")
-		self:shutdown()
+		self:disconnect()
 	elseif event == 'hup' then
 		screen:debug("hup")
-		self:shutdown()
+		self:disconnect()
 	elseif event == 'error' then
 		local err = ...
-		screen:debug("error: %1[%2]: %3", err,domain, err,code, err.message)
-		self:shutdown()
+		screen:debug("error: %1[%2]: %3", err.domain, err.code, err.message)
+		self:disconnect()
 	end
 end
 

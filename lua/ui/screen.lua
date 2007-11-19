@@ -1,14 +1,13 @@
 require "object"
-require "window"
+require "ui.window"
 
-Screen = Object:new()
-Screen.__type = 'Screen'
+Screen = Object:clone { __type = 'Screen' }
 
 define_color("blue", "brightblue", "default")
 define_color("white", "white", "default")
 
 function Screen:init()
-	local window = Window:new { name = "status" }
+	local window = Window:clone { name = "status" }
 	self.windows = { }
 	self.window  = nil
 	self.entry   = Entry:new()

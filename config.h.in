@@ -8,3 +8,4 @@
 #define BUFFER_COLOR_MAX_UCS   0xFCFFF
 
 #define VERSION "p2"
+
