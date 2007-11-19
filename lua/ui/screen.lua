@@ -7,9 +7,7 @@ define_color("blue", "brightblue", "default")
 define_color("white", "white", "default")
 
 function Screen:init()
-	local window = Window:new { name = "status" }
-	self.windows = { }
-	self.window  = nil
+	local window = Window:clone { name = "status" }
 	self.entry   = Entry:new()
 	self.status  = Statusbar.new()
 	self.scrollback = Buffer:new()

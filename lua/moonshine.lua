@@ -33,8 +33,7 @@ function make_tag(hostname)
 end
 
 function boot_hook()
-	screen = Screen:new()
-	screen:render()
+	screen = Screen:clone()
 	
 	keypress_hook = screen:callback "keypress"
 	bind("^[[A", screen:callback "entry_up")
