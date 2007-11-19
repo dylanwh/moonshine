@@ -14,6 +14,7 @@ local function ircsplit(cmd)
   if string.sub(t[1], 1, 1) == ":" then
   	  t.prefix = string.sub(table.remove(t, 1), 2)
   end
+  t.cmd = table.remove(t, 1)
   return t
 end
 
@@ -22,7 +23,6 @@ function IRC:connect(hostname, port)
 	self.hostname = hostname or self.hostname
 	self.port     = port     or self.port
 
-	self.tag = self:make_tag()
 	net.connect(self.hostname, self.port, self:callback "on_connect")
 
 	connect_hook(self)
@@ -69,25 +69,11 @@ function IRC:on_event(event, ...)
 end
 
 function IRC:irc_event(msg)
-	if msg[1] == "433" then
-		self.username = msg[3] .. "_"
-		self:send("NICK %s", self.username)
-		screen:debug("server: %|%1", msg[4])
-	elseif msg[1] == 'PRIVMSG' then
-		local user = msg.prefix:match("(.+)!")
-		if string.sub(msg[2], 1, 1) == '#' then
-			public_message_hook(self, string.sub(msg[2], 2), user, 'say', msg[3])
-		else
-			private_message_hook(self, user, 'say', msg[3])
-		end
-	elseif msg[1] == 'JOIN' then
-		local user = msg.prefix:match("(.+)!")
-		join_hook(self, string.sub(msg[2], 2), user)
-	elseif msg[1] == 'PART' then
-		local user = msg.prefix:match("(.+)!")
-		part_hook(self, string.sub(msg[2], 2), user)
+	local cmd = string.upper(msg.cmd)
+	if self[cmd] and type(self[cmd]) == 'function' then
+		self[cmd](self, msg)
 	else
-		screen:debug("prefix = %1, cmd = [%2]", msg.prefix, join("|", msg))
+		screen:debug("prefix = %1, cmd = %2, args: %3", msg.prefix, msg.cmd, join(", ", msg))
 	end
 end
 
@@ -120,4 +106,40 @@ function IRC:msg(target, kind, msg)
 	else
 		screen:debug("IRC cannot handle message type: %1", kind)
 	end
+end
+
+
+
+
+IRC['433'] = function (self, msg)
+	self.username = msg[2] .. "_"
+	self:send("NICK %s", self.username)
+	screen:debug("server: %|%1", msg[3])
+end
+
+function IRC:PRIVMSG(msg)
+	local user = msg.prefix:match("(.+)!")
+	if string.sub(msg[1], 1, 1) == '#' then
+		public_message_hook(self, string.sub(msg[1], 2), user, 'say', msg[2])
+	else
+		private_message_hook(self, user, 'say', msg[2])
+	end
+end
+
+function IRC:JOIN(msg)
+	local user = msg.prefix:match("(.+)!")
+	join_hook(self, string.sub(msg[1], 2), user)
+end
+
+function IRC:PART(msg)
+	local user = msg.prefix:match("(.+)!")
+	part_hook(self, string.sub(msg[1], 2), user)
+end
+
+function IRC:PING(msg)
+	self:send("PING %s", msg[1])
+end
+
+function IRC:MODE(msg)
+	-- ignore
 end
