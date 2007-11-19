@@ -5,10 +5,16 @@ Window = Object:clone { __type = 'Window' }
 function Window:init()
 	self.topic  = Statusbar:new("")
 	self.buffer = Buffer:new()
+	self.activity = 0
 	self:set_topic("Moonshine - A Haver Client")
 end
 
 function Window:print(fmt, ...)
+	self:actprint(1, fmt, ...)
+end
+
+function Window:actprint(activity, fmt, ...)
+	self.activity = math.max(self.activity, activity)
 	fmt = os.date("%H:%M ")..fmt
 	local s = Buffer.format(tostring(fmt), arg)
 	self.buffer:print(s)

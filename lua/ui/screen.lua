@@ -40,8 +40,27 @@ function Screen:status_current_window()
 end
 
 function Screen:status_activity()
-	-- TODO
-	return Buffer.format("FakeAct: %{statusboring}1,%{statusnormal}2%{statusboring},%{statusimportant}3", {});
+	local actvals = { }
+	if self.window then
+		self.window.activity = 0
+	end
+	for i, window in pairs(self.windows) do
+		if (window.activity > 0) then
+			local code = "important"
+			if window.activity == 1 then
+				code = "boring"
+			elseif window.activity == 2 then
+				code = "normal"
+			end
+			table.insert(actvals, "%{status"..code.."}"..i)
+		end
+	end
+	if table.getn(actvals) == 0 then
+		return nil
+	end
+
+	local actString = "Act: "..join("%{statusboring},", actvals)
+	return Buffer.format(actString, {})
 end
 
 function Screen:updatestatus()

@@ -140,11 +140,11 @@ function public_message_hook(protocol, room, user, type, msg)
 	end
 
 	if type == 'say' then
-		window:print("<%1> %|%2", user, msg)
+		window:actprint(2, "<%1> %|%2", user, msg)
 	elseif type == 'do' then
-		window:print("*%1 %|%2", user, msg)
+		window:actprint(2, "*%1 %|%2", user, msg)
 	else
-		window:print("(%3)<%1> %|%2", user, msg, type)
+		window:actprint(2, "(%3)<%1> %|%2", user, msg, type)
 	end
 	screen:render()
 end
@@ -184,7 +184,7 @@ function private_message_hook(protocol, user, type, msg)
 	if not window then
 		window = screen.window
 	end
-	window:print("[From %1] %|%2", user, msg)
+	window:actprint(3, "[From %1] %|%2", user, msg)
 	screen:render()
 end
 
