@@ -191,7 +191,6 @@ function Screen:scrollback_save()
 	if not self.entry:is_dirty() then
 		return
 	end
-	self:debug("Saving scrollback")
 	self.scrollback:print(self.entry:get())
 end
 
