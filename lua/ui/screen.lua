@@ -186,7 +186,7 @@ function Screen:send_line(f)
 end
 
 function Screen:history_save()
-	if not self.entry:is_dirty() then
+	if not self.entry:is_dirty() or self.entry:get() == "" then
 		return
 	end
 	self.history:print(self.entry:get())
