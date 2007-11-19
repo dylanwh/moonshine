@@ -9,6 +9,11 @@
 #include <string.h>
 #include <assert.h>
 
+typedef struct bufferline {
+	struct bufferline *prev, *next;
+	char text[0];
+} bufferline_t;
+
 /* {{{ Buffer structure */
 typedef struct {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
@@ -18,9 +23,9 @@ typedef struct {
 	 *
 	 * Note that all three pointers are NULL for an empty b.
 	 */
-	GList *head; ///< head of the list.
-	GList *view; ///< tail of the list.
-	GList *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
+	bufferline_t *head; ///< head of the list.
+	bufferline_t *view; ///< tail of the list.
+	bufferline_t *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
 
 	/** Counters for list purging. histsize is the maximum amount of
 	 * scrollback to keep; scrollback the number of elements between head and
@@ -33,23 +38,22 @@ typedef struct {
 /* {{{ Utility functions */
 static void purge(Buffer *b) {/*{{{*/
 	if (b->scrollback > b->histsize) {
-		GList *head = b->head;
+		bufferline_t *head = b->head;
 		guint reap  = b->scrollback - b->histsize;
 		g_assert(head);
 		/* Walk from the tail down to tail + reap, freeing strings as we go.
 		 * Then just break the link between the two lists, and free the dead
 		 * list in one step.
 		 */
-		GList *ptr  = head;
+		bufferline_t *ptr  = head;
 		for (int i = 0; i < reap; i++) {
+			bufferline_t *cur = ptr;
 			g_assert(ptr);
-			g_free(ptr->data);
 			ptr = ptr->next;
+			g_free(cur);
 		}
 		/* ptr now points to the last element we want to /keep/ */   
-		ptr->prev->next = NULL;
 		ptr->prev       = NULL;
-		g_list_free(head);
 		b->head = ptr;
 		b->scrollback -= reap;
 	}
@@ -219,7 +223,7 @@ static int Buffer_render(LuaState *L)/*{{{*/
 	int top_row = luaL_checkinteger(L, 2);
 	int bottom_row = luaL_checkinteger(L, 3);
 
-	GList *ptr = b->view;
+	bufferline_t *ptr = b->view;
 
 	for (int i = top_row; i <= bottom_row; i++) {
 		term_goto(i, 0);
@@ -227,7 +231,7 @@ static int Buffer_render(LuaState *L)/*{{{*/
 	}
 
 	while (ptr && bottom_row >= top_row) {
-		bottom_row = line_render(ptr->data, bottom_row, top_row);
+		bottom_row = line_render(ptr->text, bottom_row, top_row);
 		ptr = ptr->prev;
 	}
 	return 0;
@@ -239,9 +243,9 @@ static int Buffer_print(LuaState *L)/*{{{*/
 	const char *text = luaL_checkstring(L, 2);
 	g_assert(g_utf8_validate(text, -1, NULL));
 
-	char *copy = g_strdup(text);
-	GList *elem = g_list_alloc();
-	elem->data = copy;
+	bufferline_t *elem = malloc(sizeof(bufferline_t) + strlen(text) + 1);
+	strcpy(elem->text, text);
+	elem->prev = elem->next = NULL;
 	
 	elem->prev = b->tail;
 	if (b->tail)
@@ -294,7 +298,7 @@ static int Buffer_get_current(LuaState *L)/*{{{*/
 	Buffer *b        = moon_checkclass(L, "Buffer", 1);
 
 	if (b->view) {
-		lua_pushstring(L, b->view->data);
+		lua_pushstring(L, b->view->text);
 		return 1;
 	} else {
 		lua_pushnil(L);
@@ -399,9 +403,11 @@ static int Buffer_format_escape(LuaState *L)/*{{{*/
 static int Buffer_gc(LuaState *L)/*{{{*/
 {
 	Buffer *b = moon_toclass(L, "Buffer", 1);
-	for(GList *ptr = b->head; ptr; ptr = ptr->next)
-		g_free(ptr->data);
-	g_list_free(b->head);
+	for(bufferline_t *ptr = b->head; ptr;) {
+		bufferline_t *next = ptr->next;
+		g_free(ptr);
+		ptr = next;
+	}
 	return 0;
 }/*}}}*/
 
