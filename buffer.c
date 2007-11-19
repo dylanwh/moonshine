@@ -294,6 +294,7 @@ static int Buffer_format(LuaState *L)/*{{{*/
 	const char *input = luaL_checkstring(L, 1);
 	GString *out = g_string_sized_new(strlen(input));
 	const gchar *p = input;
+	luaL_checktype(L, 2, LUA_TTABLE);
 
 	while (1) {
 		const gchar *oldp = p;
