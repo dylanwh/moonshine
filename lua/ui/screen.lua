@@ -204,7 +204,6 @@ function Screen:entry_up()
 	self.sb_at_end = false
 	local v = self.scrollback:get_current()
 	if v then
-		self:debug("Set entry to (%1)", v)
 		self.entry:set(v)
 	end
 	self:render()
@@ -219,7 +218,6 @@ function Screen:entry_down()
 		self.scrollback:scroll(-1)
 		local v = self.scrollback:get_current()
 		if v then
-			self:debug("Set entry to (%1)", v)
 			self.entry:set(v)
 		end
 	end
