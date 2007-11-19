@@ -33,6 +33,7 @@ foreach my $pkg (@packages) {
 	foreach my $line (split(/\n/, $pkg->{content})) {
 		$line =~ s/\\/\\\\/g;
 		$line =~ s/\"/\\"/g;
+		$line =~ s/\?\?/?""?""/g;
 		print qq|\t\t"$line\\n"\n|
 	}
 	print "\t},\n";
