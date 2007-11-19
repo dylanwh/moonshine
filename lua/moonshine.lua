@@ -36,8 +36,8 @@ function boot_hook()
 	screen = Screen:clone()
 	
 	keypress_hook = screen:callback "keypress"
-	bind("^[[A", screen:callback "entry_up")
-	bind("^[[B", screen:callback "entry_down")
+	bind("^[[A", screen:callback "history_backward")
+	bind("^[[B", screen:callback "history_forward")
 	bind("^[[H", screen:callback "move_home")
 	bind("^[[F", screen:callback "move_end")
 	bind("^[7~", screen:callback "move_home")
