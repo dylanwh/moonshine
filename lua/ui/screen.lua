@@ -9,7 +9,7 @@ define_color("white", "white", "default")
 function Screen:init()
 	local window = Window:clone { name = "status" }
 	self.entry   = Entry:new()
-	self.status  = Statusbar.new()
+	self.status  = Statusbar:new()
 	self.scrollback = Buffer:new()
 	self.sb_at_end = true
 
