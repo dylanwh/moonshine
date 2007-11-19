@@ -13,7 +13,7 @@ void moon_loader_init(LuaState *L);
 
 int luaopen_entry(LuaState *L);
 int luaopen_buffer(LuaState *L);
-int luaopen_topic(LuaState *L);
+int luaopen_statusbar(LuaState *L);
 int luaopen_net(LuaState *L);
 int luaopen_handle(LuaState *L);
 int luaopen_linereader(LuaState *L);
@@ -24,7 +24,7 @@ LuaState *moon_new(void)
 	luaL_openlibs(L);
 	moon_ccall(L, luaopen_buffer);
 	moon_ccall(L, luaopen_entry);
-	moon_ccall(L, luaopen_topic);
+	moon_ccall(L, luaopen_statusbar);
 	moon_ccall(L, luaopen_net);
 	moon_ccall(L, luaopen_handle);
 	moon_ccall(L, luaopen_linereader);

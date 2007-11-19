@@ -114,5 +114,5 @@ function cmd.protocols(text)
 end
 
 function cmd.topic(text)
-	screen.window.topic:set(text)
+	screen.window:set_topic(text)
 end

@@ -3,8 +3,9 @@ require "object"
 Window = Object:clone { __type = 'Window' }
 
 function Window:init()
-	self.topic  = Topic:new("Moonshine - A Haver Client")
+	self.topic  = Statusbar:new("")
 	self.buffer = Buffer:new()
+	self:set_topic("Moonshine - A Haver Client")
 end
 
 function Window:print(fmt, ...)
@@ -14,7 +15,7 @@ function Window:print(fmt, ...)
 end
 
 function Window:render(fmt, ...)
-	self.topic:render()
+	self.topic:render(0)
 	self.buffer:render()
 end
 
@@ -23,5 +24,5 @@ function Window:scroll(x)
 end
 
 function Window:set_topic(t)
-	self.topic:set(t)
+	self.topic:set(Buffer.format("%{topic}%1", { t }))
 end

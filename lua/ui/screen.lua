@@ -32,7 +32,7 @@ function Screen:add(win)
 		self.window = win
 	end
 	win.pos = #self.windows
-	win.topic:set("Moonshine - " .. (win.name or '???'));
+	win:set_topic("Moonshine - " .. (win.name or '???'));
 	return win.pos
 end
 
