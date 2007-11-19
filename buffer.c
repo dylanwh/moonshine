@@ -11,6 +11,8 @@
 
 typedef struct bufferline {
 	struct bufferline *prev, *next;
+	struct bufferline *gprev, *gnext;
+	unsigned int groupid;
 	char text[0];
 } bufferline_t;
 
@@ -27,16 +29,28 @@ typedef struct {
 	bufferline_t *view; ///< tail of the list.
 	bufferline_t *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
 
+	bufferline_t **groupheads;
+
 	/** Counters for list purging. histsize is the maximum amount of
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
 	 */
-	guint histsize, scrollback, scrollfwd;
+	guint histsize, scrollback, scrollfwd, groupcount, curgroup;
 } Buffer;
 /* }}} */
 
 /* {{{ Utility functions */
-static void purge(Buffer *b) {/*{{{*/
+static bufferline_t **groupheadp(Buffer *b, guint groupid)
+{
+	if (groupid >= b->groupcount) {
+		b->groupheads = g_renew(bufferline_t *, b->groupheads, groupid + 1);
+		for (; groupid >= b->groupcount; b->groupcount++)
+			b->groupheads[b->groupcount] = NULL;
+	}
+	return &b->groupheads[groupid];
+}
+
+static void purge(Buffer *b) {
 	if (b->scrollback > b->histsize) {
 		bufferline_t *head = b->head;
 		guint reap  = b->scrollback - b->histsize;
@@ -49,6 +63,10 @@ static void purge(Buffer *b) {/*{{{*/
 		for (int i = 0; i < reap; i++) {
 			bufferline_t *cur = ptr;
 			g_assert(ptr);
+			if (ptr->gnext)
+				ptr->gnext->gprev = NULL;
+			else
+				*groupheadp(b, ptr->groupid) = NULL;
 			ptr = ptr->next;
 			g_free(cur);
 		}
@@ -58,6 +76,7 @@ static void purge(Buffer *b) {/*{{{*/
 		b->scrollback -= reap;
 	}
 }/*}}}*/
+
 /* {{{ Utility functions for rendering */
 static const char *skip_space(const char *in) {
 	while (*in && g_unichar_isspace(g_utf8_get_char(in)))
@@ -198,6 +217,8 @@ static int Buffer_new(LuaState *L)/*{{{*/
 	b->head = b->view = b->tail = NULL;
 	b->histsize = histsize;
 	b->scrollback = b->scrollfwd = 0;
+	b->groupheads = NULL;
+	b->groupcount = 0;
 	return 1;
 }/*}}}*/
 
@@ -246,6 +267,7 @@ static int Buffer_print(LuaState *L)/*{{{*/
 	bufferline_t *elem = malloc(sizeof(bufferline_t) + strlen(text) + 1);
 	strcpy(elem->text, text);
 	elem->prev = elem->next = NULL;
+	elem->gprev = elem->gnext = NULL;
 	
 	elem->prev = b->tail;
 	if (b->tail)
@@ -260,6 +282,14 @@ static int Buffer_print(LuaState *L)/*{{{*/
 	}
 	b->tail = elem;
 	purge(b);
+
+	bufferline_t **grouphead = groupheadp(b, b->curgroup);
+	if (*grouphead)
+		(*grouphead)->gnext = elem;
+	elem->gprev = *grouphead;
+	*grouphead = elem;
+	elem->groupid = b->curgroup;
+
 	return 0;
 }/*}}}*/
 
@@ -397,6 +427,16 @@ static int Buffer_format_escape(LuaState *L)/*{{{*/
 	}
 	g_assert_not_reached();
 }/*}}}*/
+
+static int Buffer_set_group_id(LuaState *L)/*{{{*/
+{
+	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	int gid			 = luaL_checkinteger(L, 2);
+
+	b->curgroup = gid;
+	return 0;
+}/*}}}*/
+
 /* }}} */
 
 /* {{{ Meta methods */
@@ -432,6 +472,7 @@ static const LuaLReg Buffer_methods[] = {/*{{{*/
 	{"at_end", Buffer_at_end},
 	{"format", Buffer_format},
 	{"format_escape", Buffer_format_escape},
+	{"set_group_id", Buffer_set_group_id},
 	{0, 0}
 };/*}}}*/
 static const LuaLReg Buffer_meta[] = {/*{{{*/
