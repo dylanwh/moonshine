@@ -11,9 +11,12 @@ function Screen:init()
 	self.windows = { }
 	self.window  = nil
 	self.entry   = Entry:new()
+	self.status  = Statusbar.new()
 	self:view(
 		self:add(window)
 	)
+	local sbartext = Buffer.format("%{topic}Status bar goes here", {})
+	self.status:set(sbartext)
 end
 
 function Screen:print(fmt, ...)
@@ -48,7 +51,9 @@ function Screen:view(x)
 end
 
 function Screen:render()
-	self.window:render()
+	local rows, cols = term_dimensions()
+	self.window:render(0, rows - 3)
+	self.status:render(rows - 2)
 	self.entry:render()
 	refresh()
 	status("Moonshine - " .. (self.window.name or '???'));

@@ -14,10 +14,10 @@ function Window:print(fmt, ...)
 	self.buffer:print(s)
 end
 
-function Window:render(fmt, ...)
+function Window:render(toprow, bottomrow)
 	local rows, cols = term_dimensions()
-	self.topic:render(0)
-	self.buffer:render(1, rows - 2)
+	self.topic:render(toprow)
+	self.buffer:render(toprow + 1, bottomrow)
 end
 
 function Window:scroll(x)
