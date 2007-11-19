@@ -189,6 +189,10 @@ function Screen:history_save()
 	if not self.entry:is_dirty() or self.entry:get() == "" then
 		return
 	end
+	-- Suppress repeated lines from going into history
+	if self.history:at_end() and self.entry:get() == self.history:get_current() then
+		return
+	end
 	self.history:print(self.entry:get())
 end
 
