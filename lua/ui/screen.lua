@@ -7,16 +7,52 @@ define_color("blue", "brightblue", "default")
 define_color("white", "white", "default")
 
 function Screen:init()
-	local window = Window:clone { name = "status" }
+	local window = Window:new { name = "status" }
 	self.windows = { }
 	self.window  = nil
 	self.entry   = Entry:new()
 	self.status  = Statusbar.new()
+
+	self.statusbits = {
+		self.status_time,
+		self.status_current_window,
+		self.status_activity
+	}
+	self.windows = { }
+	self.window  = nil
 	self:view(
 		self:add(window)
 	)
 	local sbartext = Buffer.format("%{topic}Status bar goes here", {})
 	self.status:set(sbartext)
+end
+
+function Screen:status_time()
+	return os.date("%H:%M")
+end
+
+function Screen:status_current_window()
+	if self.window then
+		return (self.window.pos .. ":" .. (self.window.name or '???'))
+	else
+		return nil
+	end
+end
+
+function Screen:status_activity()
+	-- TODO
+	return Buffer.format("FakeAct: %{statusboring}1,%{statusnormal}2%{statusboring},%{statusimportant}3", {});
+end
+
+function Screen:updatestatus()
+	local statusbuf = ""
+	for i, bit in ipairs(self.statusbits) do
+		local result = bit(self)
+		if result then
+			statusbuf = statusbuf .. Buffer.format("%{statusbracket} [%{statustext}%1%{statusbracket}]", {result})
+		end
+	end
+	self.status:set(statusbuf)
 end
 
 function Screen:print(fmt, ...)
@@ -53,6 +89,7 @@ end
 function Screen:render()
 	local rows, cols = term_dimensions()
 	self.window:render(0, rows - 3)
+	self:updatestatus()
 	self.status:render(rows - 2)
 	self.entry:render()
 	refresh()

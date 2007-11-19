@@ -33,7 +33,7 @@ function make_tag(hostname)
 end
 
 function boot_hook()
-	screen = Screen:clone()
+	screen = Screen:new()
 	screen:render()
 	
 	keypress_hook = screen:callback "keypress"
@@ -65,6 +65,13 @@ function boot_hook()
 	screen:print("%{notice}You might consider typing:")
 	screen:print("/connect")
 	screen:print("/join main")
+
+	define_color("statusbracket", "cyan", "blue")
+	define_color("statustext", "lightgray", "blue")
+	define_color("statusboring", "cyan", "blue")
+	define_color("statusnormal", "white", "blue")
+	define_color("statusimportant", "brightmagenta", "blue")
+	screen:render()
 end
 
 function resize_hook()
