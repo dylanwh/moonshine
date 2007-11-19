@@ -71,6 +71,14 @@ static int quit(LuaState *L)/*{{{*/
 	g_main_loop_quit(loop);
 	return 0;
 }/*}}}*/
+static int term_dimensions(LuaState *L)/*{{{*/
+{
+	lua_pushinteger(L, TERM_LINES);
+	lua_pushinteger(L, TERM_COLS);
+	return 2;
+}/*}}}*/
+
+
 static int define_color(LuaState *L)
 {
 	const char *name = luaL_checkstring(L, 1);
@@ -115,6 +123,7 @@ int main(int argc, char *argv[])
 	loop = g_main_loop_new(NULL, FALSE);
 	signal_catch(SIGWINCH, on_resize, L);
 
+	lua_register(L, "term_dimensions", term_dimensions);
 	lua_register(L, "quit", quit);
 	lua_register(L, "refresh", refresh);
 	lua_register(L, "make_keyspec", make_keyspec);

@@ -216,9 +216,9 @@ static int Buffer_get_histsize(LuaState *L)/*{{{*/
 static int Buffer_render(LuaState *L)/*{{{*/
 {
 	Buffer *b = moon_checkclass(L, "Buffer", 1);
+	int top_row = luaL_checkinteger(L, 2);
+	int bottom_row = luaL_checkinteger(L, 3);
 
-	int top_row = 1;
-	int bottom_row = TERM_LINES - 2;
 	GList *ptr = b->view;
 
 	for (int i = top_row; i <= bottom_row; i++) {

@@ -15,8 +15,9 @@ function Window:print(fmt, ...)
 end
 
 function Window:render(fmt, ...)
+	local rows, cols = term_dimensions()
 	self.topic:render(0)
-	self.buffer:render()
+	self.buffer:render(1, rows - 2)
 end
 
 function Window:scroll(x)
