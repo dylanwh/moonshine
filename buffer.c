@@ -11,8 +11,7 @@
 
 typedef struct bufferline {
 	struct bufferline *prev, *next;
-	struct bufferline *gprev, *gnext;
-	unsigned int groupid;
+	unsigned int group;
 	char text[0];
 } bufferline_t;
 
@@ -29,8 +28,6 @@ typedef struct {
 	bufferline_t *view; ///< tail of the list.
 	bufferline_t *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
 
-	bufferline_t **groupheads;
-
 	/** Counters for list purging. histsize is the maximum amount of
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
@@ -40,17 +37,10 @@ typedef struct {
 /* }}} */
 
 /* {{{ Utility functions */
-static bufferline_t **groupheadp(Buffer *b, guint groupid)
-{
-	if (groupid >= b->groupcount) {
-		b->groupheads = g_renew(bufferline_t *, b->groupheads, groupid + 1);
-		for (; groupid >= b->groupcount; b->groupcount++)
-			b->groupheads[b->groupcount] = NULL;
-	}
-	return &b->groupheads[groupid];
-}
 
 static void purge(Buffer *b) {
+	if (b->histsize == 0)
+		return;
 	if (b->scrollback > b->histsize) {
 		bufferline_t *head = b->head;
 		guint reap  = b->scrollback - b->histsize;
@@ -63,10 +53,6 @@ static void purge(Buffer *b) {
 		for (int i = 0; i < reap; i++) {
 			bufferline_t *cur = ptr;
 			g_assert(ptr);
-			if (ptr->gnext)
-				ptr->gnext->gprev = NULL;
-			else
-				*groupheadp(b, ptr->groupid) = NULL;
 			ptr = ptr->next;
 			g_free(cur);
 		}
@@ -217,8 +203,7 @@ static int Buffer_new(LuaState *L)/*{{{*/
 	b->head = b->view = b->tail = NULL;
 	b->histsize = histsize;
 	b->scrollback = b->scrollfwd = 0;
-	b->groupheads = NULL;
-	b->groupcount = 0;
+	b->curgroup = 0;
 	return 1;
 }/*}}}*/
 
@@ -258,16 +243,14 @@ static int Buffer_render(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static int Buffer_print(LuaState *L)/*{{{*/
+static void do_print(Buffer *b, const char *text)/*{{{*/
 {
-	Buffer *b        = moon_checkclass(L, "Buffer", 1);
-	const char *text = luaL_checkstring(L, 2);
 	g_assert(g_utf8_validate(text, -1, NULL));
 
 	bufferline_t *elem = malloc(sizeof(bufferline_t) + strlen(text) + 1);
 	strcpy(elem->text, text);
 	elem->prev = elem->next = NULL;
-	elem->gprev = elem->gnext = NULL;
+	elem->group = b->curgroup;
 	
 	elem->prev = b->tail;
 	if (b->tail)
@@ -282,15 +265,21 @@ static int Buffer_print(LuaState *L)/*{{{*/
 	}
 	b->tail = elem;
 	purge(b);
+}/*}}}*/
 
-	bufferline_t **grouphead = groupheadp(b, b->curgroup);
-	if (*grouphead)
-		(*grouphead)->gnext = elem;
-	elem->gprev = *grouphead;
-	*grouphead = elem;
-	elem->groupid = b->curgroup;
+static int Buffer_print(LuaState *L)/*{{{*/
+{
+	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	const char *text = luaL_checkstring(L, 2);
 
-	return 0;
+	if (!g_utf8_validate(text, -1, NULL)) {
+		lua_pushnil(L);
+		lua_pushfstring(L, "Buffer:print - UTF8 validation failed.");
+		return 2;
+	}
+	do_print(b, text);
+	lua_pushboolean(L, 1);
+	return 1;
 }/*}}}*/
 
 static int Buffer_scroll(LuaState *L)/*{{{*/
@@ -437,6 +426,142 @@ static int Buffer_set_group_id(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
+static int Buffer_clear_group_id(LuaState *L)/*{{{*/
+{
+	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	int gid			 = luaL_checkinteger(L, 2);
+	
+	/* group clear operations are assumed to be uncommon, so we'll
+	 * just do this the inefficient way
+	 */
+
+	int cleared = 0;
+	int belowview = 1;
+	for(bufferline_t *l = b->tail; l; ) {
+		bufferline_t *prev = l->prev;
+		if (l == b->view) {
+			belowview = 0;
+		}
+		if (l->group == gid) {
+			if (b->tail == l)
+				b->tail = prev;
+			if (b->view == l)
+				b->view = prev;
+			else if (belowview)
+				b->scrollfwd--;
+			else
+				b->scrollback--;
+			g_free(l);
+			cleared++;
+		}
+		l = prev;
+	}
+	if (b->tail == NULL) {
+		b->head = NULL;
+		g_assert(b->view == NULL);
+	}
+
+	lua_pushinteger(L, cleared);
+	return 1;
+}/*}}}*/
+
+static int Buffer_reprint_matching(LuaState *L)/*{{{*/
+{
+	Buffer *b			= moon_checkclass(L, "Buffer", 1);
+	const char *regex	= luaL_checkstring(L, 2);
+	int group			= luaL_checkinteger(L, 3);
+	int max				= luaL_checkinteger(L, 4);
+
+	int count = 0;
+	GError *error;
+	GRegex *re = g_regex_new(regex, G_REGEX_CASELESS, 0, &error);
+	if (!re) {
+		lua_pushnil(L);
+		lua_pushfstring(L, "Buffer:reprint_matching - Bad regex: %s", error->message);
+		g_error_free(error);
+		return 2;
+	}
+
+	/* having entries purged as we go makes rolling back annoying
+	 * XXX: Should lastlog etc entries count to the history limit? how to handle
+	 * purging them?
+	 */
+	guint old_histsize = b->histsize;
+	b->histsize = 0;
+
+	/* remember the old end of the buffer so we can undo everything if
+	 * we go over quota
+	 */
+	bufferline_t *oldtail = b->tail;
+
+	int aborted = 0;
+	/* find the tail, then work our way up */
+	bufferline_t *l = b->tail;
+	for (; l && l->prev; l = l->prev);
+	/* now start matching */
+	for (; l; l = l->next) {
+		if (l->group != group) continue;
+
+		if (g_regex_match(re, l->text, 0, NULL)) {
+			count++;
+			if (!aborted) {
+				if (count && count > max) {
+					/* oops. rollback our new entries. */
+					aborted = 1;
+					if (b->view == b->tail)
+						b->view = NULL;
+					/* free the new list entries */
+					for (bufferline_t *delp = oldtail ? oldtail->next : NULL; delp;) {
+						bufferline_t *nextp = delp->next;
+						g_assert(delp->group == b->curgroup);
+						g_free(delp);
+						if (b->view)
+							b->scrollfwd--;
+						else
+							b->scrollback--;
+						delp = nextp;
+					}
+					if (!b->view)
+						b->view = b->tail;
+				} else {
+					do_print(b, l->text);
+				}
+			}
+		}
+	}
+	b->histsize = old_histsize;
+	purge(b);
+
+	lua_pushinteger(L, count);
+	return 1;
+}/*}}}*/
+
+static int Buffer_clear_lines(LuaState *L)/*{{{*/
+{
+	Buffer *b		= moon_checkclass(L, "Buffer", 1);
+	int count		= luaL_checkinteger(L, 2);
+	int realcount   = 0;
+
+	for (bufferline_t *l = b->tail; l && realcount < count; ) {
+		bufferline_t *prev = l->prev;
+		if (b->view == l) {
+			b->view = prev;
+			b->scrollback--;
+		} else {
+			b->scrollfwd--;
+		}
+		prev->next = NULL;
+		g_free(l);
+		l = prev;
+	}
+	if (!b->tail) {
+		g_assert(!b->view);
+		b->head = NULL;
+	}
+	lua_pushinteger(L, realcount);
+	return 1;
+}/*}}}*/
+
 /* }}} */
 
 /* {{{ Meta methods */
@@ -473,6 +598,9 @@ static const LuaLReg Buffer_methods[] = {/*{{{*/
 	{"format", Buffer_format},
 	{"format_escape", Buffer_format_escape},
 	{"set_group_id", Buffer_set_group_id},
+	{"clear_group_id", Buffer_clear_group_id},
+	{"reprint_matching", Buffer_reprint_matching},
+	{"clear_lines", Buffer_clear_lines},
 	{0, 0}
 };/*}}}*/
 static const LuaLReg Buffer_meta[] = {/*{{{*/

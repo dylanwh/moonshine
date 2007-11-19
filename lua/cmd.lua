@@ -116,3 +116,25 @@ end
 function cmd.topic(text)
 	screen.window:set_topic(text)
 end
+
+function cmd.lastlog(text)
+	local max = 100 -- TODO: user preference
+	if text == '-clear' then
+		screen.window.buffer:clear_group_id(1)
+	else
+		screen.window.buffer:set_group_id(1)
+		screen.window:print("%{notice}Lastlog for %1:", text)
+		local n, err = screen.window.buffer:reprint_matching(text, 0, max)
+		if not n then
+			screen.window.buffer:clear_lines(1)
+			screen.window:print("%{notice}Lastlog for %1 failed: %2", text, err )
+		elseif n > max then
+			screen.window.buffer:clear_lines(1)
+			screen.window:print("%{notice}Lastlog for %1 would print %2 lines.", text, n)
+		else
+			screen.window:print("%{notice}End of lastlog.")
+		end
+		screen.window.buffer:set_group_id(0)
+	end
+end
+
