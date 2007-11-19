@@ -10,7 +10,7 @@ function Screen:init()
 	local window = Window:clone { name = "status" }
 	self.entry   = Entry:new()
 	self.status  = Statusbar:new()
-	self.scrollback = Buffer:new()
+	self.history = Buffer:new()
 	self.sb_at_end = true
 
 	self.statusbits = {
@@ -176,8 +176,8 @@ end
 function Screen:send_line(f)
 	local line = screen.entry:get()
 	if #line > 0 then
-		self:scrollback_save()
-		self.scrollback:scroll_to(0)
+		self:history_save()
+		self.history:scroll_to(0)
 		self.sb_at_end = true
 		screen.entry:clear()
 		f(line)
@@ -185,35 +185,35 @@ function Screen:send_line(f)
 	end
 end
 
-function Screen:scrollback_save()
+function Screen:history_save()
 	if not self.entry:is_dirty() then
 		return
 	end
-	self.scrollback:print(self.entry:get())
+	self.history:print(self.entry:get())
 end
 
-function Screen:entry_up()
-	self:scrollback_save()
+function Screen:history_backward()
+	self:history_save()
 	-- Are we just starting to scroll back?
 	if not self.sb_at_end then
-		self.scrollback:scroll(1)
+		self.history:scroll(1)
 	end
 	self.sb_at_end = false
-	local v = self.scrollback:get_current()
+	local v = self.history:get_current()
 	if v then
 		self.entry:set(v)
 	end
 	self:render()
 end
 
-function Screen:entry_down()
-	self:scrollback_save()
-	if self.scrollback:at_end() then
+function Screen:history_forward()
+	self:history_save()
+	if self.history:at_end() then
 		self.entry:clear()
 		self.sb_at_end = true
 	else
-		self.scrollback:scroll(-1)
-		local v = self.scrollback:get_current()
+		self.history:scroll(-1)
+		local v = self.history:get_current()
 		if v then
 			self.entry:set(v)
 		end

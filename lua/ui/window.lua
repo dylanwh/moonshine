@@ -15,8 +15,7 @@ end
 
 function Window:actprint(activity, fmt, ...)
 	self.activity = math.max(self.activity, activity)
-	fmt = os.date("%H:%M ")..fmt
-	local s = Buffer.format(tostring(fmt), arg)
+	local s = Buffer.format(os.date("%H:%M ")..fmt, arg)
 	self.buffer:print(s)
 end
 
