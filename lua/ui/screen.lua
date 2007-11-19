@@ -12,6 +12,8 @@ function Screen:init()
 	self.window  = nil
 	self.entry   = Entry:new()
 	self.status  = Statusbar.new()
+	self.scrollback = Buffer:new()
+	self.sb_at_end = true
 
 	self.statusbits = {
 		self.status_time,
@@ -176,9 +178,50 @@ end
 function Screen:send_line(f)
 	local line = screen.entry:get()
 	if #line > 0 then
+		self:scrollback_save()
+		self.scrollback:scroll_to(0)
+		self.sb_at_end = true
 		screen.entry:clear()
 		f(line)
 		self:render()
 	end
 end
 
+function Screen:scrollback_save()
+	if not self.entry:is_dirty() then
+		return
+	end
+	self:debug("Saving scrollback")
+	self.scrollback:print(self.entry:get())
+end
+
+function Screen:entry_up()
+	self:scrollback_save()
+	-- Are we just starting to scroll back?
+	if not self.sb_at_end then
+		self.scrollback:scroll(1)
+	end
+	self.sb_at_end = false
+	local v = self.scrollback:get_current()
+	if v then
+		self:debug("Set entry to (%1)", v)
+		self.entry:set(v)
+	end
+	self:render()
+end
+
+function Screen:entry_down()
+	self:scrollback_save()
+	if self.scrollback:at_end() then
+		self.entry:clear()
+		self.sb_at_end = true
+	else
+		self.scrollback:scroll(-1)
+		local v = self.scrollback:get_current()
+		if v then
+			self:debug("Set entry to (%1)", v)
+			self.entry:set(v)
+		end
+	end
+	self:render()
+end

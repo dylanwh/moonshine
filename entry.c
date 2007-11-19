@@ -13,6 +13,7 @@ typedef struct {
 	gsize bufused; /* The length of the actual string in the buffer. */
 	gsize view_off; /* The index of the first visible character. May be out of range; entry_render will correct such issues. */
 	gsize curs_off; /* The index of the character the cursor is on. Must not be out of range (> bufused). */
+	int dirty; /* True if the entry has been modified since the last set(), clear(), or clear_dirty() */
 } Entry;
 
 static int Entry_new(LuaState *L)
@@ -23,6 +24,7 @@ static int Entry_new(LuaState *L)
 	e->bufsize = e->bufused = 0;
 	e->view_off = e->curs_off = 0;
 	e->prompt   = g_strdup(prompt);
+	e->dirty	= 0;
 	return 1;
 }
 
@@ -53,6 +55,7 @@ inline static int keypress(Entry *e, gunichar uc)
 	e->buffer[e->curs_off] = uc;
 	e->bufused++;
 	e->curs_off++;
+	e->dirty = 1;
 	return 0;
 }
 
@@ -131,6 +134,7 @@ inline static int clear(Entry *e)
 		g_free(e->buffer);
 		e->bufused = 0;
 	}
+	e->dirty = 0;
 	return 0;
 }
 
@@ -145,6 +149,7 @@ static int Entry_set(LuaState *L)
 	Entry *e         = moon_checkclass(L, "Entry", 1);
 	const char *line = luaL_checkstring(L, 2);
 
+	e->dirty = 0;
 	GError *error;
 	glong written;
 	gunichar *buffer = g_utf8_to_ucs4(line, -1, NULL, &written, &error);
@@ -280,6 +285,7 @@ static void erase_region(Entry *e, int start, int end)
 
 	if (start == end)
 		return;
+	e->dirty = 1;
 	memmove(e->buffer + start, e->buffer + end,
 			sizeof(e->buffer[0]) * (e->bufused - end));
 	e->bufused -= (end - start);
@@ -361,6 +367,22 @@ static int Entry_wordlen(LuaState *L)
 	return 2;
 }
 
+static int Entry_clear_dirty(LuaState *L)
+{
+	Entry *e  = moon_checkclass(L, "Entry", 1);
+
+	e->dirty = 0;
+	return 0;
+}
+
+static int Entry_is_dirty(LuaState *L)
+{
+	Entry *e  = moon_checkclass(L, "Entry", 1);
+	
+	lua_pushboolean(L, e->dirty);
+	return 1;
+}
+
 static const LuaLReg Entry_methods[] = {
 	{"new", Entry_new},
 	{"keypress", Entry_keypress},
@@ -373,6 +395,8 @@ static const LuaLReg Entry_methods[] = {
 	{"erase", Entry_erase},
 	{"render", Entry_render},
 	{"wordlen", Entry_wordlen},
+	{"clear_dirty", Entry_clear_dirty},
+	{"is_dirty", Entry_is_dirty},
 	{0, 0}
 };
 

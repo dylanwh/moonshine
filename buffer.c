@@ -289,6 +289,28 @@ static int Buffer_scroll_to(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
+static int Buffer_get_current(LuaState *L)/*{{{*/
+{
+	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+
+	if (b->view) {
+		lua_pushstring(L, b->view->data);
+		return 1;
+	} else {
+		lua_pushnil(L);
+		return 1;
+	}
+}/*}}}*/
+
+static int Buffer_at_end(LuaState *L)/*{{{*/
+{
+	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+
+	lua_pushboolean(L, b->tail == b->view);
+	return 1;
+}/*}}}*/
+
+
 static int Buffer_format(LuaState *L)/*{{{*/
 {
 	const char *input = luaL_checkstring(L, 1);
@@ -396,10 +418,12 @@ static const LuaLReg Buffer_methods[] = {/*{{{*/
 	{"new", Buffer_new},
 	{"set_histsize", Buffer_set_histsize},
 	{"get_histsize", Buffer_get_histsize},
+	{"get_current", Buffer_get_current},
 	{"render", Buffer_render},
 	{"print", Buffer_print},
 	{"scroll", Buffer_scroll},
 	{"scroll_to", Buffer_scroll_to},
+	{"at_end", Buffer_at_end},
 	{"format", Buffer_format},
 	{"format_escape", Buffer_format_escape},
 	{0, 0}
