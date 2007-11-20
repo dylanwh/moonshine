@@ -17,6 +17,7 @@ int luaopen_statusbar(LuaState *L);
 int luaopen_net(LuaState *L);
 int luaopen_handle(LuaState *L);
 int luaopen_linereader(LuaState *L);
+int luaopen_config(LuaState *L);
 
 LuaState *moon_new(void)
 {
@@ -28,6 +29,7 @@ LuaState *moon_new(void)
 	moon_ccall(L, luaopen_net);
 	moon_ccall(L, luaopen_handle);
 	moon_ccall(L, luaopen_linereader);
+	moon_ccall(L, luaopen_config);
 
 #	ifdef EMBED_LUA
 	moon_loader_init(L);
