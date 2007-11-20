@@ -247,7 +247,7 @@ static void do_print(Buffer *b, const char *text)/*{{{*/
 {
 	g_assert(g_utf8_validate(text, -1, NULL));
 
-	bufferline_t *elem = malloc(sizeof(bufferline_t) + strlen(text) + 1);
+	bufferline_t *elem = g_malloc(sizeof(bufferline_t) + strlen(text) + 1);
 	strcpy(elem->text, text);
 	elem->prev = elem->next = NULL;
 	elem->group = b->curgroup;
@@ -332,7 +332,6 @@ static int Buffer_at_end(LuaState *L)/*{{{*/
 	lua_pushboolean(L, b->tail == b->view);
 	return 1;
 }/*}}}*/
-
 
 static int Buffer_format(LuaState *L)/*{{{*/
 {
