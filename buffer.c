@@ -511,6 +511,7 @@ static int Buffer_reprint(LuaState *L)/*{{{*/
 					for (bufferline_t *delp = oldtail ? oldtail->next : NULL; delp;) {
 						bufferline_t *nextp = delp->next;
 						g_assert(delp->group == b->curgroup);
+						g_assert(delp != b->view);
 						g_free(delp);
 						if (b->view)
 							b->scrollfwd--;
@@ -518,8 +519,11 @@ static int Buffer_reprint(LuaState *L)/*{{{*/
 							b->scrollback--;
 						delp = nextp;
 					}
+					b->tail = oldtail;
 					if (!b->view)
 						b->view = b->tail;
+					g_assert(b->tail); /* an empty result is not possible; we must've reprinted SOMETHING */
+					b->tail->next = NULL;
 				} else {
 					do_print(b, l->text);
 				}
@@ -539,17 +543,21 @@ static int Buffer_clear_lines(LuaState *L)/*{{{*/
 	int count		= luaL_checkinteger(L, 2);
 	int realcount   = 0;
 
-	for (bufferline_t *l = b->tail; l && realcount < count; ) {
-		bufferline_t *prev = l->prev;
-		if (b->view == l) {
+	for (; b->tail && realcount < count; ) {
+		bufferline_t *prev = b->tail->prev;
+		if (b->view == b->tail) {
 			b->view = prev;
 			b->scrollback--;
 		} else {
 			b->scrollfwd--;
 		}
-		prev->next = NULL;
-		g_free(l);
-		l = prev;
+		if (prev)
+			prev->next = NULL;
+		else
+			b->head = NULL;
+		g_free(b->tail);
+		b->tail = prev;
+		realcount++;
 	}
 	if (!b->tail) {
 		g_assert(!b->view);
