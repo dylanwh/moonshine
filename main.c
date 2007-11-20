@@ -98,6 +98,23 @@ static int force_resize(LuaState *L)/*{{{*/
 	moon_call(L, "resize_hook", "");
 	return 0;
 }/*}}}*/
+static int shell_parse(LuaState *L)/*{{{*/
+{
+	const char *line = luaL_checkstring(L, 1);
+	int argc;
+	char **argv;
+	if (g_shell_parse_argv (line, &argc, &argv, NULL)) {
+		lua_createtable(L, argc, 0);
+		for (int i = 0; i < argc; i++) {
+			lua_pushstring(L, argv[i]);
+			lua_rawseti(L, -2, i+1);
+		}
+		g_strfreev(argv);
+		return 1;
+	} else {
+		return 0;
+	}
+}/*}}}*/
 
 static void on_log(const gchar *domain, GLogLevelFlags level, const gchar *message, gpointer data)/*{{{*/
 {
@@ -144,6 +161,7 @@ int main(int argc, char *argv[])
 	lua_register(L, "define_color", define_color);
 	lua_register(L, "status", status);
 	lua_register(L, "force_resize", force_resize);
+	lua_register(L, "shell_parse", shell_parse);
 	lua_pushstring(L, VERSION);
 	lua_setglobal(L, "VERSION");
 	if (moon_require(L, "moonshine")) {

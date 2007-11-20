@@ -26,10 +26,20 @@ local function _eval(text)
 	end
 end
 
+
+
 function eval(text)
 	ok, err = pcall(_eval, text)
 	if not ok then
 		screen:debug("Error: %1", err)
+	end
+end
+
+
+function cmd.open(text)
+	local t = shell_parse(text)
+	for i, x in ipairs(t) do
+		screen:debug("%1 = %2", i, x)
 	end
 end
 
