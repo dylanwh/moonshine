@@ -464,22 +464,14 @@ static int Buffer_clear_group_id(LuaState *L)/*{{{*/
 	return 1;
 }/*}}}*/
 
-static int Buffer_reprint_matching(LuaState *L)/*{{{*/
+static int Buffer_reprint(LuaState *L)/*{{{*/
 {
 	Buffer *b			= moon_checkclass(L, "Buffer", 1);
-	const char *regex	= luaL_checkstring(L, 2);
+	luaL_checktype(L, 2, LUA_TFUNCTION);
 	int group			= luaL_checkinteger(L, 3);
 	int max				= luaL_checkinteger(L, 4);
 
 	int count = 0;
-	GError *error = NULL;
-	GRegex *re = g_regex_new(regex, G_REGEX_CASELESS, 0, &error);
-	if (!re) {
-		lua_pushnil(L);
-		lua_pushfstring(L, "Buffer:reprint_matching - Bad regex: %s", error->message);
-		g_error_free(error);
-		return 2;
-	}
 
 	/* having entries purged as we go makes rolling back annoying
 	 * XXX: Should lastlog etc entries count to the history limit? how to handle
@@ -501,7 +493,13 @@ static int Buffer_reprint_matching(LuaState *L)/*{{{*/
 	for (; l; l = l->next) {
 		if (l->group != group) continue;
 
-		if (g_regex_match(re, l->text, 0, NULL)) {
+		lua_pushvalue(L, 2);
+		lua_pushstring(L, l->text);
+		lua_call(L, 1, 1);
+		gboolean matched = lua_toboolean(L, -1);
+		lua_pop(L, 1);
+
+		if (matched) {
 			count++;
 			if (!aborted) {
 				if (count && count > max) {
@@ -598,7 +596,7 @@ static const LuaLReg Buffer_methods[] = {/*{{{*/
 	{"format_escape", Buffer_format_escape},
 	{"set_group_id", Buffer_set_group_id},
 	{"clear_group_id", Buffer_clear_group_id},
-	{"reprint_matching", Buffer_reprint_matching},
+	{"reprint", Buffer_reprint},
 	{"clear_lines", Buffer_clear_lines},
 	{0, 0}
 };/*}}}*/

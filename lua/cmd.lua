@@ -124,7 +124,9 @@ function cmd.lastlog(text)
 	else
 		screen.window.buffer:set_group_id(1)
 		screen.window:print("%{notice}Lastlog for %1:", text)
-		local n, err = screen.window.buffer:reprint_matching(text, 0, max)
+		local n, err = screen.window.buffer:reprint(function (line)
+			return string.match(line, text)
+		end, 0, max)
 		if not n then
 			screen.window.buffer:clear_lines(1)
 			screen.window:print("%{notice}Lastlog for %1 failed: %2", text, err )
