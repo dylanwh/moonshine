@@ -490,7 +490,7 @@ static int Buffer_reprint(LuaState *L)/*{{{*/
 	bufferline_t *l = b->tail;
 	for (; l && l->prev; l = l->prev);
 	/* now start matching */
-	for (; l; l = l->next) {
+	for (; l && l != oldtail->next; l = l->next) {
 		if (l->group != group) continue;
 
 		lua_pushvalue(L, 2);
