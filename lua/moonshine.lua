@@ -16,8 +16,9 @@ local function is_not_tag(h)
 end
 
 function make_tag(hostname)
+	assert(type(hostname) == 'string', "hostname must be a string!")
 	local tag
-	local hostname = split(".", assert(hostname))
+	local hostname = split(".", hostname)
 	if is_not_tag(hostname[1]) then
 		tag = hostname[2]
 	else
@@ -34,7 +35,8 @@ end
 
 function boot_hook()
 	screen = Screen:clone()
-	
+
+	config = Config:new()
 	keypress_hook = screen:callback "keypress"
 	bind("^[[A", screen:callback "history_backward")
 	bind("^[[B", screen:callback "history_forward")
@@ -71,6 +73,15 @@ function boot_hook()
 	define_color("statusnormal", "white", "blue")
 	define_color("statusimportant", "brightmagenta", "blue")
 	screen:render()
+end
+
+function log_hook(domain, level, message)
+	if screen then
+		screen:debug("error: [%1] %2", domain, message)
+		return true
+	else
+		return false
+	end
 end
 
 function resize_hook()

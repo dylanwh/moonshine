@@ -7,26 +7,46 @@ typedef struct {
 	GKeyFile *keyfile;
 } Config;
 
+static int Config_new(LuaState *L)
+{
+	Config *cfg          = moon_newclass(L, "Config", sizeof(Config));
+	cfg->keyfile         = g_key_file_new();
+	return 1;
+}
+
+
 static int Config_open(LuaState *L)
 {
-	const char *filename = luaL_optstring(L, 2, "");
-	GError *error  = NULL;
-	const char *dirs[] = {
-		".",
-		g_get_home_dir (),
-		g_get_user_config_dir(),
-		NULL
-	};
-	Config *cfg            = moon_newclass(L, "Config", sizeof(Config));
-	cfg->keyfile           = g_key_file_new();
+	Config *cfg          = moon_checkclass(L, "Config", 1);
+	const char *filename = luaL_checkstring(L, 2);
 
+	GError *error        = NULL;
 	g_key_file_set_list_separator(cfg->keyfile, ',');
-	gboolean ok = g_key_file_load_from_dirs(cfg->keyfile, filename, dirs, NULL,
+	gboolean ok = g_key_file_load_from_file(cfg->keyfile, filename,
 			G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS, &error);
 
-	if (ok) return 1;
-	else {
-		lua_pop(L, 1);
+	if (ok) {
+		lua_pushboolean(L, TRUE);
+		return 1;
+	} else {
+		lua_pushnil(L);
+		moon_pusherror(L, error);
+		g_error_free(error);
+		return 2;
+	}
+}
+
+static int Config_save(LuaState *L)
+{
+	Config *cfg          = moon_checkclass(L, "Config", 1);
+	const char *filename = luaL_checkstring(L, 2);
+	GError *error        = NULL;
+	gsize len = 0;
+	char *data = g_key_file_to_data(cfg->keyfile, &len, NULL);
+	if (g_file_set_contents(filename, data, len, &error)) {
+		lua_pushboolean(L, TRUE);
+		return 1;
+	} else {
 		lua_pushnil(L);
 		moon_pusherror(L, error);
 		g_error_free(error);
@@ -75,7 +95,6 @@ static int Config_dump(LuaState *L)
 	return 1;
 }
 
-
 static int Config_tostring(LuaState *L)
 {
 	char buff[32];
@@ -92,7 +111,9 @@ static int Config_gc(LuaState *L)
 }
 
 static const LuaLReg Config_methods[] = {
+	{"new", Config_new},
 	{"open", Config_open},
+	{"save", Config_save},
 	{"get", Config_get},
 	{"set", Config_set},
 	{"dump", Config_dump},

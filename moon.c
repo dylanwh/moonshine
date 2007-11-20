@@ -125,6 +125,8 @@ void moon_pusherror(LuaState *L, GError *err)
 	lua_setfield(L, -2, "code");
 	lua_pushstring(L, err->message);
 	lua_setfield(L, -2, "message");
+	lua_pushstring(L, "Error");
+	lua_setfield(L, -2, "__type");
 }
 
 #ifdef EMBED_LUA

@@ -7,6 +7,11 @@ end
 string.join = join
 
 function split(div,str)
+	if div == nil or str == nil then
+		screen:print("div = %1, str = %2", div, str)
+		error("split does not work with nils!", 2)
+	end
+
     if (div=='') then return false end
     local pos,arr = 0,{}
     local function iter()
@@ -30,6 +35,22 @@ function type(x)
 		return t
 	end
 end
+
+function assert(cond, msg)
+	if not cond then
+		if not msg then
+			msg = "assertion failed!"
+		end
+		if type(msg) == 'Error' then
+			msg = msg.message
+		else
+			msg = tostring(msg)
+		end
+
+		error(msg, 2)
+	end
+end
+
 
 function string:split(pat)
   local st, g = 1, self:gmatch("()("..pat..")")

@@ -77,31 +77,47 @@ static int term_dimensions(LuaState *L)/*{{{*/
 	lua_pushinteger(L, TERM_COLS);
 	return 2;
 }/*}}}*/
-
-
-static int define_color(LuaState *L)
+static int define_color(LuaState *L)/*{{{*/
 {
 	const char *name = luaL_checkstring(L, 1);
 	const char *fg = luaL_checkstring(L, 2);
 	const char *bg = luaL_checkstring(L, 3);
 	term_color_set(name, fg, bg);
 	return 0;
-}
-
-static int status(LuaState *L)
+}/*}}}*/
+static int status(LuaState *L)/*{{{*/
 {
 	const char *msg = luaL_checkstring(L, 1);
 	printf("\e]2;%s\a", msg);
 	fflush(stdout);
 	return 0;
-}
-
-static int force_resize(LuaState *L)
+}/*}}}*/
+static int force_resize(LuaState *L)/*{{{*/
 {
 	term_resize();
 	moon_call(L, "resize_hook", "");
 	return 0;
-}
+}/*}}}*/
+
+static void on_log(const gchar *domain, GLogLevelFlags level, const gchar *message, gpointer data)/*{{{*/
+{
+	static gboolean ok = TRUE;
+
+	if (ok) {
+		LuaState *L = data;
+		lua_getglobal(L, "log_hook");
+		lua_pushstring(L, domain);
+		lua_pushnil(L);
+		lua_pushstring(L, message);
+		if (lua_pcall(L, 3, 1, 0) == 0) {
+			ok = lua_toboolean(L, -1);
+		} else {
+			ok = FALSE;
+		}
+	} else {
+		g_log_default_handler(domain, level, message, NULL);
+	}
+}/*}}}*/
 
 int main(int argc, char *argv[])
 {
@@ -121,7 +137,6 @@ int main(int argc, char *argv[])
 	g_option_context_free(context);
 
 	loop = g_main_loop_new(NULL, FALSE);
-	signal_catch(SIGWINCH, on_resize, L);
 
 	lua_register(L, "term_dimensions", term_dimensions);
 	lua_register(L, "quit", quit);
@@ -134,12 +149,16 @@ int main(int argc, char *argv[])
 	lua_setglobal(L, "VERSION");
 	if (moon_require(L, "moonshine")) {
 		term_init();
+		
+		signal_catch(SIGWINCH, on_resize, L);
+		g_log_set_default_handler(on_log, L);
 
 		g_io_add_watch_full(input, G_PRIORITY_HIGH, G_IO_IN, on_input, L, NULL);
 
-		moon_call(L, "boot_hook", "");
-		g_main_loop_run(loop);
-		moon_call(L, "quit_hook", "");
+		if (moon_call(L, "boot_hook", "")) {
+			g_main_loop_run(loop);
+			moon_call(L, "quit_hook", "");
+		}
 
 		g_io_channel_unref(input);
 		g_main_loop_unref(loop);
