@@ -472,7 +472,7 @@ static int Buffer_reprint_matching(LuaState *L)/*{{{*/
 	int max				= luaL_checkinteger(L, 4);
 
 	int count = 0;
-	GError *error;
+	GError *error = NULL;
 	GRegex *re = g_regex_new(regex, G_REGEX_CASELESS, 0, &error);
 	if (!re) {
 		lua_pushnil(L);
