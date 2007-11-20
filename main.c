@@ -109,10 +109,9 @@ static void on_log(const gchar *domain, GLogLevelFlags level, const gchar *messa
 		lua_pushstring(L, domain);
 		lua_pushnil(L);
 		lua_pushstring(L, message);
-		if (lua_pcall(L, 3, 1, 0) == 0) {
-			ok = lua_toboolean(L, -1);
-		} else {
+		if (lua_pcall(L, 3, 0, 0) != 0) {
 			ok = FALSE;
+			g_error("error running log_hook: %s", lua_tostring(L, -1));
 		}
 	} else {
 		g_log_default_handler(domain, level, message, NULL);

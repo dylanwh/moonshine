@@ -76,12 +76,7 @@ function boot_hook()
 end
 
 function log_hook(domain, level, message)
-	if screen then
-		screen:debug("error: [%1] %2", domain, message)
-		return true
-	else
-		return false
-	end
+	screen:debug("error: [%1] %2", domain, message)
 end
 
 function resize_hook()
