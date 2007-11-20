@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 	if (moon_require(L, "moonshine")) {
 		term_init();
 
-		g_io_add_watch(input, G_IO_IN, on_input, L);
+		g_io_add_watch_full(input, G_PRIORITY_HIGH, G_IO_IN, on_input, L, NULL);
 
 		moon_call(L, "boot_hook", "");
 		g_main_loop_run(loop);
