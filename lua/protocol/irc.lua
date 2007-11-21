@@ -101,11 +101,10 @@ function IRC:msg(target, kind, msg)
 	else
 		screen:debug("Unknown target type: %1", target.type)
 	end
-	if kind == 'say' then
-		self:send('PRIVMSG %s :%s', name, msg)
-	else
-		screen:debug("IRC cannot handle message type: %1", kind)
+	if kind == 'do' then
+		msg = "\001ACTION "..msg.."\001"
 	end
+	self:send('PRIVMSG %s :%s', name, msg)
 end
 
 
@@ -119,10 +118,26 @@ end
 
 function IRC:PRIVMSG(msg)
 	local user = msg.prefix:match("(.+)!")
-	if string.sub(msg[1], 1, 1) == '#' then
-		public_message_hook(self, string.sub(msg[1], 2), user, 'say', msg[2])
-	else
-		private_message_hook(self, user, 'say', msg[2])
+	local kind = 'say'
+	local name, text = msg[1], msg[2]
+	local ctcp = string.match(text, "^\001(.+)\001$")
+	if ctcp then
+		kind, text = string.match(text, "^([A-Z]+) ?:?(.+)$")
+		screen:debug("ctcp = %1", ctcp)
+	end
+	if kind == "ACTION" then
+		kind = "do"
+	elseif kind == "VERSION" then
+		kind = nil
+		self:send('PRIVMSG %s :\001VERSION Moonshine:%s:Pants\001', user, VERSION)
+	end
+
+	if kind then
+		if string.sub(name, 1, 1) == '#' then
+			public_message_hook(self, string.sub(name, 2), user, kind, text)
+		else
+			private_message_hook(self, user, kind, text)
+		end
 	end
 end
 

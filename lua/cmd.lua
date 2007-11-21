@@ -53,7 +53,7 @@ end
 
 function cmd.ircconnect(text)
 	local protocol = IRC:clone()
-	protocol:connect("irc.example.com", 6666)
+	protocol:connect("chat.freenode.net", 6667)
 	if not screen.window.protocol then
 		screen.window.protocol = protocol
 	end
@@ -70,6 +70,20 @@ function cmd.join(text)
 		end
 	else
 		screen:debug("Usage: /join room[@tag]")
+	end
+end
+
+function cmd.part(text)
+	local room, tag = frob(text)
+	if room and tag then
+		local protocol = protocols[tag]
+		if protocol then
+			protocol:part(room)
+		else
+			screen:debug("Unknown protocol tag: %1", tag)
+		end
+	else
+		screen:debug("Usage: /part room[@tag]")
 	end
 end
 

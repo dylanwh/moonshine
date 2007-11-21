@@ -94,6 +94,19 @@ function Screen:add(win)
 	return win.pos
 end
 
+function Screen:remove(win)
+	assert(win.pos ~= nil, "window has position")
+	if self.window == win then
+		self.window = self.windows[win.pos - 1]
+		self.window:set_topic("Moonshine - " .. (win.name or '???'));
+		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
+	end
+	table.remove(screen.windows, win.pos)
+	for i, w in ipairs(self.windows) do
+		w.pos = i
+	end
+end
+
 function Screen:view(x)
 	if self.windows[x] then
 		self.window = self.windows[x]

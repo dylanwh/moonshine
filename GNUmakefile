@@ -14,9 +14,6 @@ compile: configure
 purge:
 	rm -rf build
 
-
-
-
 install:
 	make --no-print-directory -C build install
 
@@ -29,4 +26,4 @@ api-docs:
 posthook:
 	-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl
 
-.PHONY: all posthook purge install test
+.PHONY: all posthook purge install test configure compile 

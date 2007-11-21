@@ -126,7 +126,11 @@ end
 function part_hook(protocol, room, user)
 	local tag = protocol.tag
 	local window = windows[tag]['room'][room]
-	window:print("[%1 parted %2]", user, room)
+	if user == protocol.username then
+		screen:remove(window)
+	else
+		window:print("[%1 parted %2]", user, room)
+	end
 	screen:render()
 end
 
