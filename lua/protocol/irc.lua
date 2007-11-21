@@ -18,6 +18,9 @@ local function ircsplit(cmd)
   return t
 end
 
+function IRC:init()
+	self.userlist = {}
+end
 
 function IRC:connect(hostname, port)
 	self.hostname = hostname or self.hostname
@@ -107,13 +110,14 @@ function IRC:msg(target, kind, msg)
 	self:send('PRIVMSG %s :%s', name, msg)
 end
 
-
-
-
 IRC['433'] = function (self, msg)
 	self.username = msg[2] .. "_"
 	self:send("NICK %s", self.username)
 	screen:debug("server: %|%1", msg[3])
+end
+
+IRC['332'] = function (self, msg)
+
 end
 
 function IRC:PRIVMSG(msg)
@@ -129,12 +133,12 @@ function IRC:PRIVMSG(msg)
 		kind = "do"
 	elseif kind == "VERSION" then
 		kind = nil
-		self:send('PRIVMSG %s :\001VERSION Moonshine:%s:Pants\001', user, VERSION)
+		self:send('PRIVMSG %s :\001VERSION Moonshine %s\001', user, VERSION)
 	end
 
 	if kind then
 		if string.sub(name, 1, 1) == '#' then
-			public_message_hook(self, string.sub(name, 2), user, kind, text)
+			public_message_hook(self, name, user, kind, text)
 		else
 			private_message_hook(self, user, kind, text)
 		end
@@ -143,12 +147,15 @@ end
 
 function IRC:JOIN(msg)
 	local user = msg.prefix:match("(.+)!")
-	join_hook(self, string.sub(msg[1], 2), user)
+	local room = msg[1]
+	join_hook(self, room, user)
 end
 
 function IRC:PART(msg)
 	local user = msg.prefix:match("(.+)!")
-	part_hook(self, string.sub(msg[1], 2), user)
+	local room = msg[1]
+	self.userlist[room] = nil
+	part_hook(self, room, user)
 end
 
 function IRC:PING(msg)
@@ -156,5 +163,9 @@ function IRC:PING(msg)
 end
 
 function IRC:MODE(msg)
+	-- ignore
+end
+
+function IRC:PONG(msg)
 	-- ignore
 end

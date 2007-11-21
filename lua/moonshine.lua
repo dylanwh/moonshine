@@ -72,6 +72,7 @@ function boot_hook()
 	define_color("statusboring", "cyan", "blue")
 	define_color("statusnormal", "white", "blue")
 	define_color("statusimportant", "brightmagenta", "blue")
+	define_color("self", "white", "default")
 	screen:render()
 end
 
@@ -151,7 +152,7 @@ function public_message_hook(protocol, room, user, type, msg)
 	if type == 'say' then
 		window:actprint(2, "<%1> %|%2", user, msg)
 	elseif type == 'do' then
-		window:actprint(2, "*%1 %|%2", user, msg)
+		window:actprint(2, "* %1 %|%2", user, msg)
 	else
 		window:actprint(2, "(%3)<%1> %|%2", user, msg, type)
 	end
@@ -167,11 +168,11 @@ function public_message_sent_hook(protocol, room, user, type, msg)
 	end
 
 	if type == 'say' then
-		window:print("<%1> %|%2", user, msg)
+		window:print("<%{self}%1%{default}> %|%2", user, msg)
 	elseif type == 'do' then
-		window:print("*%1 %|%2", user, msg)
+		window:print("* %{self}%1%{default} %|%2", user, msg)
 	else
-		window:print("(%3)<%1> %|%2", user, msg, type)
+		window:print("(%3)<%{self}%1%{default}> %|%2", user, msg, type)
 	end
 	screen:render()
 end
@@ -203,6 +204,6 @@ function private_message_sent_hook(protocol, user, type, msg)
 	if not window then
 		window = screen.window
 	end
-	window:print("[To %1] %|%2", user, msg)
+	window:print("[To %{self}%1%{default}] %|%2", user, msg)
 	screen:render()
 end

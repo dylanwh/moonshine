@@ -8,6 +8,7 @@ require "object"
 -- * msg(target, kind, msg)
 -- * connect(hostname, port)
 -- * disconnect()
+-- * canonize_name(type, name)
 --
 -- The following fields are optional:
 -- * username (default: $USER)
@@ -20,4 +21,7 @@ Protocol = Object:clone {
 	username = os.getenv "USER",
 }
 
+function Protocol:canonize_name(type, name)
+	return name:lower()
+end
 

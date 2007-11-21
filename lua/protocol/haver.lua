@@ -97,7 +97,7 @@ function Haver:HELLO(username, address)
 end
 
 function Haver:IN(room, user, type, msg)
-	if not (self.username == user) then
+	if not (self.username:lower() == user:lower()) then
 		public_message_hook(self, room, user, type, msg)
 	end
 end

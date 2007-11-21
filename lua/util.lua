@@ -1,31 +1,3 @@
-
-
-function join(sep, list)
-	return table.concat(list, sep)
-end
-
-string.join = join
-
-function split(div,str)
-	if div == nil or str == nil then
-		screen:print("div = %1, str = %2", div, str)
-		error("split does not work with nils!", 2)
-	end
-
-    if (div=='') then return false end
-    local pos,arr = 0,{}
-    local function iter()
-    	return string.find(str,div,pos,true)
-    end 
-    -- for each divider found
-    for st, sp in iter do
-    	table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
-    	pos = sp + 1 -- Jump past current divider
-	end
-	table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
-	return arr
-end
-
 basetype = type
 function type(x)
 	local t = basetype(x)
@@ -51,6 +23,12 @@ function assert(cond, msg)
 	end
 end
 
+function weaktable()
+	local t = {}
+	local mt = { __mode = "v" }
+	setmetatable(t, mt)
+	return t
+end
 
 function string:split(pat)
   local st, g = 1, self:gmatch("()("..pat..")")
@@ -70,4 +48,12 @@ function collect(f, ...)
 		table.insert(list, x)
 	end
 	return list
+end
+
+function join(sep, list)
+	return table.concat(list, sep)
+end
+
+function split(pat,str)
+	return collect(string.split, str, pat)
 end
