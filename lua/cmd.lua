@@ -53,7 +53,7 @@ end
 
 function cmd.ircconnect(text)
 	local protocol = IRC:clone()
-	protocol:connect("chat.freenode.net", 6667)
+	protocol:connect("irc.example.com", 6666)
 	if not screen.window.protocol then
 		screen.window.protocol = protocol
 	end

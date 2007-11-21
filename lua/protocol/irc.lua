@@ -122,7 +122,7 @@ function IRC:PRIVMSG(msg)
 	local name, text = msg[1], msg[2]
 	local ctcp = string.match(text, "^\001(.+)\001$")
 	if ctcp then
-		kind, text = string.match(text, "^([A-Z]+) ?:?(.+)$")
+		kind, text = string.match(ctcp, "^([A-Z]+) ?(.+)$")
 		screen:debug("ctcp = %1", ctcp)
 	end
 	if kind == "ACTION" then
