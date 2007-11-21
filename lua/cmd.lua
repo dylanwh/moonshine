@@ -126,7 +126,7 @@ function cmd.names(room)
 	local window = screen.window
 	local protocol = window.protocol
 	if protocol then
-		protocol:userlist(window)
+		protocol:usersof(window.name)
 	end
 end
 

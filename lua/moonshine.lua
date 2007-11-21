@@ -91,7 +91,10 @@ end
 function connect_hook(protocol)
 	protocol.tag = make_tag(protocol.hostname)
 	protocols[protocol.tag] = protocol
-	windows[protocol.tag] = { room = {}, user = {} }
+	windows[protocol.tag] = {
+		room = protocol:magic_table(),
+		user = protocol:magic_table(),
+	}
 	screen:debug("Connecting to %1 (%2:%3)", protocol.tag, protocol.hostname, protocol.port)
 end
 

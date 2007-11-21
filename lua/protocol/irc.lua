@@ -19,7 +19,7 @@ local function ircsplit(cmd)
 end
 
 function IRC:init()
-	self.userlist = {}
+	self.userlist = self:magic_table()
 end
 
 function IRC:connect(hostname, port)
@@ -86,21 +86,33 @@ function IRC:send(format, ...)
 	self.handle:write(line)
 end
 
-function IRC:join(room) self:send('JOIN #%s', room) end
-function IRC:part(room) self:send('PART #%s', room) end
+function IRC:join(room)
+	if not room:match("^[#&]") then
+		room = "#" .. room
+	end
+	self:send('JOIN %s', room)
+end
+
+function IRC:part(room)
+	if not room:match("^[#&]") then
+		room = "#" .. room
+	end
+	self:send('PART %s', room)
+end
 
 function IRC:userlist(room)
 	--self:send('USERSOF', room)
 end
 
 function IRC:msg(target, kind, msg)
-	local name
+	local name = target.name
 	if target.type == 'room' then
-		name = "#" .. target.name
-		public_message_sent_hook(self, target.name, self.username, kind, msg)
+		if not name:match("^[#&]") then
+			name = "#" .. name
+		end
+		public_message_sent_hook(self, name, self.username, kind, msg)
 	elseif target.type == 'user' then
-		name = target.name
-		private_message_sent_hook(self, target.name, kind, msg)
+		private_message_sent_hook(self, name, kind, msg)
 	else
 		screen:debug("Unknown target type: %1", target.type)
 	end
@@ -110,14 +122,25 @@ function IRC:msg(target, kind, msg)
 	self:send('PRIVMSG %s :%s', name, msg)
 end
 
+-- NICK response
 IRC['433'] = function (self, msg)
 	self.username = msg[2] .. "_"
 	self:send("NICK %s", self.username)
 	screen:debug("server: %|%1", msg[3])
 end
 
-IRC['332'] = function (self, msg)
+-- NAMES response
+IRC['353'] = function (self, msg)
+	local names = msg[4]
+	local room  = msg[3]
+	for name in names:split(" ") do
+		table.insert(self.userlist[room], name)
+	end
+end
 
+IRC['366'] = function (self, msg)
+	local room = msg[2]
+	userlist_hook(self, room, self.userlist[room])
 end
 
 function IRC:PRIVMSG(msg)
@@ -127,7 +150,6 @@ function IRC:PRIVMSG(msg)
 	local ctcp = string.match(text, "^\001(.+)\001$")
 	if ctcp then
 		kind, text = string.match(ctcp, "^([A-Z]+) ?(.+)$")
-		screen:debug("ctcp = %1", ctcp)
 	end
 	if kind == "ACTION" then
 		kind = "do"
@@ -148,6 +170,7 @@ end
 function IRC:JOIN(msg)
 	local user = msg.prefix:match("(.+)!")
 	local room = msg[1]
+	self.userlist[room] = {}
 	join_hook(self, room, user)
 end
 

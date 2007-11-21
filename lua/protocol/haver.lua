@@ -76,7 +76,7 @@ function Haver:msg(target, kind, msg)
 	self:send(cmd, target.name, kind, msg)
 end
 
-function Haver:userlist(target)
+function Haver:usersof(target)
 	if target.type == 'room' then
 		self:send('USERSOF', target.name)
 	else
