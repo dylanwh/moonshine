@@ -76,12 +76,8 @@ function Haver:msg(target, kind, msg)
 	self:send(cmd, target.name, kind, msg)
 end
 
-function Haver:usersof(target)
-	if target.type == 'room' then
-		self:send('USERSOF', target.name)
-	else
-		screen:debug("Unknown target type: %1", target.type)
-	end
+function Haver:usersof(room)
+	self:send('USERSOF', room)
 end
 
 function Haver:HAVER(host, version, extensions)

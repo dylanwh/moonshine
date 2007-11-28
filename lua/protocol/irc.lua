@@ -100,8 +100,12 @@ function IRC:part(room)
 	self:send('PART %s', room)
 end
 
-function IRC:userlist(room)
-	--self:send('USERSOF', room)
+function IRC:usersof(room)
+	if not room:match("^[#&]") then
+		room = "#" .. room
+	end
+	self.userlist[room] = {}
+	self:send('NAMES %s', room)
 end
 
 function IRC:msg(target, kind, msg)
@@ -134,7 +138,9 @@ IRC['353'] = function (self, msg)
 	local names = msg[4]
 	local room  = msg[3]
 	for name in names:split(" ") do
-		table.insert(self.userlist[room], name)
+		if name:len() > 0 then
+			table.insert(self.userlist[room], name)
+		end
 	end
 end
 

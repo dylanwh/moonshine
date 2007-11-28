@@ -31,10 +31,9 @@ end
 function eval(text)
 	ok, err = pcall(_eval, text)
 	if not ok then
-		screen:debug("Error: %1", err)
+		screen:debug("Error executing '%1': %2", text, err)
 	end
 end
-
 
 function cmd.open(text)
 	local t = shell_parse(text)
@@ -61,6 +60,7 @@ end
 
 function cmd.join(text)
 	local room, tag = frob(text)
+	screen:debug("text = %3, room = %1, tag = %2", room, tag, text)
 	if room and tag then
 		local protocol = protocols[tag]
 		if protocol then
