@@ -2,6 +2,18 @@ require "protocol"
 
 IRC = Protocol:clone { __type = "IRC" }
 
+-- Until we have real color support, this'll at least get the color codes
+-- out of the way.
+local function stripcolors(line)
+  -- Bold, underline, reverse/italic, reset
+  line = line:gsub("[\002\037\026\017]", "")
+  line = line:gsub("\003%d+,%d+", "")
+  line = line:gsub("\003%d+", "")
+  line = line:gsub("\003", "")
+  return line
+end
+
+
 local function ircsplit(cmd)
   local t = {}
   for word, colon, start in cmd:split"%s+(:?)()" do
@@ -164,6 +176,7 @@ function IRC:PRIVMSG(msg)
 		self:send('PRIVMSG %s :\001VERSION Moonshine %s\001', user, VERSION)
 	end
 
+    text = stripcolors(text)
 	if kind then
 		if string.sub(name, 1, 1) == '#' then
 			public_message_hook(self, name, user, kind, text)
