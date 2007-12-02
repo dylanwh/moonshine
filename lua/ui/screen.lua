@@ -126,7 +126,7 @@ function Screen:render()
 	self.status:render(rows - 2)
 	self.entry:render()
 	refresh()
-	status("Moonshine - " .. (self.window.name or '???'));
+	status( self.window.topic_text or 'O.o' )
 end
 
 function Screen:keypress(key)

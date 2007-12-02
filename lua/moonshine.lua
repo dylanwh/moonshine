@@ -108,6 +108,15 @@ function disconnect_hook(protocol)
 	screen:debug("Disconnected from %1 (%2:%3)", protocol.tag, protocol.hostname, protocol.port)
 end
 
+
+function topic_hook(protocol, room, topic)
+	local tag    = protocol.tag
+	local window = windows[tag]['room'][room]
+	if window then
+		window:set_topic(topic)
+	end
+end
+
 function join_hook(protocol, room, user)
 	local tag = protocol.tag
 	if user == protocol.username then
@@ -141,7 +150,7 @@ end
 function userlist_hook(protocol, room, users)
 	local tag = protocol.tag
 	local window = windows[tag]['room'][room]
-	window:print("[Users of %1: %2]", room, join(", ", users));
+	window:print("[Users of %1] %|%2", room, join(", ", users));
 	screen:render()
 end
 

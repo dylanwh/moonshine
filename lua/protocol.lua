@@ -1,6 +1,5 @@
 require "object"
 
-
 -- A protocol should define the following methods:
 -- * join(room)
 -- * part(room)
@@ -12,9 +11,6 @@ require "object"
 --
 -- The following fields are optional:
 -- * username (default: $USER)
---
--- The following fields are read-only:
--- * tag
 
 Protocol = Object:clone {
 	__type = "Protocol",
@@ -25,6 +21,8 @@ function Protocol:canonize_name(type, name)
 	return name:lower()
 end
 
+-- Returns a table which canonizes its keys according to the protocol's own
+-- canonize_name() method. By default, this yields a case-insensitive table.
 function Protocol:magic_table(type)
 	local t = {}
 	local mt = {}
@@ -37,5 +35,3 @@ function Protocol:magic_table(type)
 	setmetatable(t, mt)
 	return t
 end
-
-

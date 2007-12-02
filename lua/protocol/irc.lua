@@ -13,7 +13,6 @@ local function stripcolors(line)
   return line
 end
 
-
 local function ircsplit(cmd)
   local t = {}
   for word, colon, start in cmd:split"%s+(:?)()" do
@@ -31,7 +30,18 @@ local function ircsplit(cmd)
 end
 
 function IRC:init()
-	self.userlist = self:magic_table()
+	self.rooms = self:magic_table()
+end
+
+-- Because of IRC's scandanavian origin, the characters {}| are considered to be
+-- the lower case equivalents of the characters []\, respectively. This is a
+-- critical issue when determining the equivalence of two nicknames.
+function IRC:canonize_name(type, name)
+	name = name:lower()
+	name = name:gsub("[%{%}%|]", function (c)
+		return string.char(string.byte(x) - 32)
+	end)
+	return name
 end
 
 function IRC:connect(hostname, port)
@@ -116,7 +126,7 @@ function IRC:usersof(room)
 	if not room:match("^[#&]") then
 		room = "#" .. room
 	end
-	self.userlist[room] = {}
+	self.rooms[room].users = {}
 	self:send('NAMES %s', room)
 end
 
@@ -151,15 +161,22 @@ IRC['353'] = function (self, msg)
 	local room  = msg[3]
 	for name in names:split(" ") do
 		if name:len() > 0 then
-			table.insert(self.userlist[room], name)
+			table.insert(self.rooms[room].users, name)
 		end
 	end
 end
 
 IRC['366'] = function (self, msg)
 	local room = msg[2]
-	userlist_hook(self, room, self.userlist[room])
+	userlist_hook(self, room, self.rooms[room].users)
 end
+
+IRC['332'] = function (self, msg)
+	local room, topic = msg[2], msg[3]
+	topic_hook(self, room, topic)
+end
+
+
 
 function IRC:PRIVMSG(msg)
 	local user = msg.prefix:match("(.+)!")
@@ -189,14 +206,17 @@ end
 function IRC:JOIN(msg)
 	local user = msg.prefix:match("(.+)!")
 	local room = msg[1]
-	self.userlist[room] = {}
+	self.rooms[room] = {
+		users = {},
+		topic = nil,
+	}
 	join_hook(self, room, user)
 end
 
 function IRC:PART(msg)
 	local user = msg.prefix:match("(.+)!")
 	local room = msg[1]
-	self.userlist[room] = nil
+	self.rooms[room] = nil
 	part_hook(self, room, user)
 end
 

@@ -36,6 +36,7 @@ function Window:scroll(x)
 end
 
 function Window:set_topic(t)
+	self.topic_text = t
 	self.topic:set(Buffer.format("%{topic}%1", { t }))
 end
 

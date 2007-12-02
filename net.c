@@ -67,7 +67,7 @@ static void net_pool_worker(NetRequest *req, gpointer data)
 	int error = getaddrinfo(req->hostname, req->service, &dns_hints, &result);
 	if (error == 0) {
 		AddrInfo *rp = NULL;
-		int my_errno;
+		int my_errno = 0;
 		int fd = -1;
 		for (rp = result; rp != NULL; rp = rp->ai_next) {
 			fd = socket(rp->ai_family, rp->ai_socktype, 
