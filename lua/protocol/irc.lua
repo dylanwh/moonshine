@@ -82,14 +82,14 @@ function IRC:on_event(event, ...)
 		end
 	elseif event == 'eof' then
 		screen:debug("eof")
-		self:shutdown()
+		self:disconnect()
 	elseif event == 'hup' then
 		screen:debug("hup")
-		self:shutdown()
+		self:disconnect()
 	elseif event == 'error' then
 		local err = ...
 		screen:debug("error: %1[%2]: %3", err.domain, err.code, err.message)
-		self:shutdown()
+		self:disconnect()
 	end
 end
 

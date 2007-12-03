@@ -41,5 +41,6 @@ SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/moonlibs.h"
 
 # Install rules.
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)
+INSTALL(DIRECTORY lua/ DESTINATION share/moonshine/)
 
 INCLUDE(CheckRequired)

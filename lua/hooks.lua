@@ -1,8 +1,3 @@
-require "util"
-require "bind" 
-require "ui.screen"
-require "cmd"
-
 protocols = {}
 windows = {}
 
@@ -33,7 +28,7 @@ function make_tag(hostname)
 	return tag
 end
 
-function boot_hook()
+function init_hook()
 	screen = Screen:clone()
 
 	config = Config:new()

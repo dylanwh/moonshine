@@ -7,18 +7,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-/* Option definitions. {{{1 */
-static char *hostname = "chat.haverdev.org";
-static int port = 7575;
-
-static GOptionEntry entries[] = 
-{
-	{ "hostname", 'H', 0, G_OPTION_ARG_STRING, &hostname, "hostname to use ", "host" },
-	{ "port", 'p', 0, G_OPTION_ARG_INT, &port, "connect to port P", "P" },
-	{ NULL }
-};
-/* }}} */
-
 static GMainLoop *loop = NULL;
 static void on_log(const gchar *domain, GLogLevelFlags level, const gchar *message, gpointer data)/*{{{*/
 {
@@ -108,26 +96,17 @@ int main(int argc, char *argv[])
 	g_thread_init(NULL);
 	signal_init();
 	term_init_colors();
-	if (!getenv("LUA_PATH"))
-		setenv("LUA_PATH", "lua/?.lua;../lua/?.lua", 1);
 
-	GError *error     = NULL;
-	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
-	LuaState *L       = moon_new();
-
-	GOptionContext *context = g_option_context_new ("- a console haver client");
-	g_option_context_add_main_entries (context, entries, NULL);
-	g_option_context_parse (context, &argc, &argv, &error);
-	g_option_context_free(context);
-
-	loop = g_main_loop_new(NULL, FALSE);
+	LuaState *L = moon_new();
 
 	lua_register(L, "quit", quit);
 	lua_register(L, "make_keyspec", make_keyspec);
 	lua_register(L, "shell_parse", shell_parse);
-	lua_pushstring(L, VERSION);
-	lua_setglobal(L, "VERSION");
-	if (moon_require(L, "moonshine")) {
+
+	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
+	loop = g_main_loop_new(NULL, FALSE);
+
+	if (moon_require(L, "boot")) {
 		term_init();
 		
 		signal_catch(SIGWINCH, on_resize, L);
@@ -135,7 +114,7 @@ int main(int argc, char *argv[])
 
 		g_io_add_watch_full(input, G_PRIORITY_HIGH, G_IO_IN, on_input, L, NULL);
 
-		if (moon_call(L, "boot_hook", "")) {
+		if (moon_call(L, "init_hook", "")) {
 			g_main_loop_run(loop);
 			moon_call(L, "quit_hook", "");
 		}

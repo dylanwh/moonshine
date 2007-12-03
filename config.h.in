@@ -1,4 +1,5 @@
-#cmakedefine EMBED_LUA
+#define PACKAGE_PATH "@CMAKE_INSTALL_PREFIX@/share/moonshine"
+
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 
 #define CONST   __attribute__((const)) 
@@ -8,4 +9,3 @@
 #define BUFFER_COLOR_MAX_UCS   0xFCFFF
 
 #define VERSION "p2+"
-

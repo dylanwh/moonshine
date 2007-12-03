@@ -13,10 +13,32 @@ static void moon_openlibs(LuaState *L) {
   }
 }
 
-LuaState *moon_new(void)
+LuaState *moon_new()
 {
 	LuaState *L = lua_open();
 	moon_openlibs(L);
+	
+	LuaLBuffer B;
+	const char *homedir = g_getenv("HOME");
+	if (!homedir) homedir = g_get_home_dir();
+	g_assert(homedir != NULL);
+
+	lua_getglobal(L, "package");
+	luaL_buffinit(L, &B);
+	luaL_addstring(&B, homedir);
+	luaL_addstring(&B, "/.moonshine/?.lua;");
+	luaL_addstring(&B, PACKAGE_PATH);
+	luaL_addstring(&B, "/?.lua");
+	luaL_pushresult(&B);
+	lua_setfield(L, -2, "path");
+	lua_pop(L, 1);
+
+	lua_pushstring(L, VERSION);
+	lua_setglobal(L, "VERSION");
+
+	lua_pushstring(L, homedir);
+	lua_setglobal(L, "HOME");
+
 	return L;
 }
 
@@ -46,6 +68,14 @@ gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
     }
     va_end(vl);
     return rv;
+}
+
+int moon_ref(LuaState *L, int idx)
+{
+	lua_pushvalue(L, idx);
+	int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+	g_assert(ref != LUA_REFNIL);
+	return ref;
 }
 
 gpointer moon_toclass(LuaState *L, const char *class, int index)
