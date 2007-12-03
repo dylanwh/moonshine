@@ -3,8 +3,8 @@ require "ui.window"
 
 Screen = Object:clone { __type = 'Screen' }
 
-define_color("blue", "brightblue", "default")
-define_color("white", "white", "default")
+term.defcolor("blue", "brightblue", "default")
+term.defcolor("white", "white", "default")
 
 function Screen:init()
 	local window = Window:clone { name = "status" }
@@ -24,7 +24,7 @@ function Screen:init()
 	self:view(
 		self:add(window)
 	)
-	local sbartext = Buffer.format("%{topic}Status bar goes here", {})
+	local sbartext = term.format("%{topic}Status bar goes here", {})
 	self.status:set(sbartext)
 
 end
@@ -62,7 +62,7 @@ function Screen:status_activity()
 	end
 
 	local actString = "Act: "..join("%{statusboring},", actvals)
-	return Buffer.format(actString, {})
+	return term.format(actString, {})
 end
 
 function Screen:updatestatus()
@@ -70,7 +70,7 @@ function Screen:updatestatus()
 	for i, bit in ipairs(self.statusbits) do
 		local result = bit(self)
 		if result then
-			statusbuf = statusbuf .. Buffer.format("%{statusbracket} [%{statustext}%1%{statusbracket}]", {result})
+			statusbuf = statusbuf .. term.format("%{statusbracket} [%{statustext}%1%{statusbracket}]", {result})
 		end
 	end
 	self.status:set(statusbuf)
@@ -122,13 +122,13 @@ function Screen:view(x)
 end
 
 function Screen:render()
-	local rows, cols = term_dimensions()
+	local rows, cols = term.dimensions()
 	self.window:render(0, rows - 3)
 	self:updatestatus()
 	self.status:render(rows - 2)
 	self.entry:render()
-	refresh()
-	status( self.window.topic_text or 'O.o' )
+	term.refresh()
+	term.status(self.window.topic_text or 'O.o')
 end
 
 function Screen:keypress(key)

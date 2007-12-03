@@ -55,7 +55,7 @@ function boot_hook()
 	bind("^H",  screen:callback "backspace")
 	bind("^C", quit)
 	bind("^X", quit)
-	bind("^L", force_resize)
+	bind("^L", term.force_refresh)
 	bind("^M", screen:callback ("send_line", eval))
 	bind("\t", screen:callback "complete")
 
@@ -67,12 +67,12 @@ function boot_hook()
 	screen:print("/connect")
 	screen:print("/join main")
 
-	define_color("statusbracket", "cyan", "blue")
-	define_color("statustext", "lightgray", "blue")
-	define_color("statusboring", "cyan", "blue")
-	define_color("statusnormal", "white", "blue")
-	define_color("statusimportant", "brightmagenta", "blue")
-	define_color("self", "white", "default")
+	term.defcolor("statusbracket", "cyan", "blue")
+	term.defcolor("statustext", "lightgray", "blue")
+	term.defcolor("statusboring", "cyan", "blue")
+	term.defcolor("statusnormal", "white", "blue")
+	term.defcolor("statusimportant", "brightmagenta", "blue")
+	term.defcolor("self", "white", "default")
 	screen:render()
 
 
@@ -82,7 +82,11 @@ function boot_hook()
 end
 
 function log_hook(domain, level, message)
-	screen:debug("error: [%1] %2", domain, message)
+	if screen then
+		screen:debug("error: [%1] %2", domain, message)
+	else
+		error(message)
+	end
 end
 
 function resize_hook()

@@ -20,6 +20,24 @@ static GOptionEntry entries[] =
 /* }}} */
 
 static GMainLoop *loop = NULL;
+static void on_log(const gchar *domain, GLogLevelFlags level, const gchar *message, gpointer data)/*{{{*/
+{
+	static gboolean ok = TRUE;
+
+	if (ok) {
+		LuaState *L = data;
+		lua_getglobal(L, "log_hook");
+		lua_pushstring(L, domain);
+		lua_pushnil(L);
+		lua_pushstring(L, message);
+		if (lua_pcall(L, 3, 0, 0) != 0) {
+			ok = FALSE;
+			g_error("error running log_hook: %s", lua_tostring(L, -1));
+		}
+	} else {
+		g_log_default_handler(domain, level, message, NULL);
+	}
+}/*}}}*/
 static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer data) /*{{{*/
 {
 	LuaState *L = data;
@@ -42,6 +60,7 @@ static void on_resize(int sig, gpointer data)/*{{{*/
 	term_resize();
 	moon_call(L, "resize_hook", "");
 }/*}}}*/
+
 /* make_keyspec turns strings like "^A" into "\001", and so on. */
 static int make_keyspec(LuaState *L)/* {{{ */
 {
@@ -61,41 +80,9 @@ static int make_keyspec(LuaState *L)/* {{{ */
 	g_string_free(buf, TRUE);
 	return 1;
 }/*}}}*/
-static int refresh(LuaState *L)/*{{{*/
-{
-	term_refresh();
-	return 0;
-}/*}}}*/
 static int quit(LuaState *L)/*{{{*/
 {
 	g_main_loop_quit(loop);
-	return 0;
-}/*}}}*/
-static int term_dimensions(LuaState *L)/*{{{*/
-{
-	lua_pushinteger(L, TERM_LINES);
-	lua_pushinteger(L, TERM_COLS);
-	return 2;
-}/*}}}*/
-static int define_color(LuaState *L)/*{{{*/
-{
-	const char *name = luaL_checkstring(L, 1);
-	const char *fg = luaL_checkstring(L, 2);
-	const char *bg = luaL_checkstring(L, 3);
-	term_color_set(name, fg, bg);
-	return 0;
-}/*}}}*/
-static int status(LuaState *L)/*{{{*/
-{
-	const char *msg = luaL_checkstring(L, 1);
-	printf("\e]2;%s\a", msg);
-	fflush(stdout);
-	return 0;
-}/*}}}*/
-static int force_resize(LuaState *L)/*{{{*/
-{
-	term_resize();
-	moon_call(L, "resize_hook", "");
 	return 0;
 }/*}}}*/
 static int shell_parse(LuaState *L)/*{{{*/
@@ -116,24 +103,6 @@ static int shell_parse(LuaState *L)/*{{{*/
 	}
 }/*}}}*/
 
-static void on_log(const gchar *domain, GLogLevelFlags level, const gchar *message, gpointer data)/*{{{*/
-{
-	static gboolean ok = TRUE;
-
-	if (ok) {
-		LuaState *L = data;
-		lua_getglobal(L, "log_hook");
-		lua_pushstring(L, domain);
-		lua_pushnil(L);
-		lua_pushstring(L, message);
-		if (lua_pcall(L, 3, 0, 0) != 0) {
-			ok = FALSE;
-			g_error("error running log_hook: %s", lua_tostring(L, -1));
-		}
-	} else {
-		g_log_default_handler(domain, level, message, NULL);
-	}
-}/*}}}*/
 
 int main(int argc, char *argv[])
 {
@@ -154,13 +123,8 @@ int main(int argc, char *argv[])
 
 	loop = g_main_loop_new(NULL, FALSE);
 
-	lua_register(L, "term_dimensions", term_dimensions);
 	lua_register(L, "quit", quit);
-	lua_register(L, "refresh", refresh);
 	lua_register(L, "make_keyspec", make_keyspec);
-	lua_register(L, "define_color", define_color);
-	lua_register(L, "status", status);
-	lua_register(L, "force_resize", force_resize);
 	lua_register(L, "shell_parse", shell_parse);
 	lua_pushstring(L, VERSION);
 	lua_setglobal(L, "VERSION");

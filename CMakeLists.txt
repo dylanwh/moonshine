@@ -6,11 +6,11 @@ SET(BIN "${MOONSHINE_BINARY_DIR}")
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
-ADD_EXECUTABLE(moonshine term.c moon.c 
-	buffer.c entry.c statusbar.c config.c
-	linereader.c
-	completion.c
-	util.c main.c handle.c net.c signal.c)
+SET(CORE_FILES term.c moon.c util.c main.c signal.c)
+SET(PACKAGE_FILES buffer.c entry.c statusbar.c config.c
+	linereader.c completion.c term-lua.c handle.c net.c)
+
+ADD_EXECUTABLE(moonshine ${CORE_FILES} ${PACKAGE_FILES})
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" OFF)
 
@@ -49,6 +49,14 @@ IF (EMBED_LUA)
 
 	SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/packages.h")
 ENDIF()
+
+ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/moonlibs.h
+	COMMAND perl ${SRC}/cmake/moonlibs.pl 
+	${PACKAGE_FILES} > ${BIN}/moonlibs.h
+	MAIN_DEPENDENCY ${SRC}/cmake/moonlibs.pl DEPENDS ${PACKAGE_FILES}
+	WORKING_DIRECTORY ${SRC})
+
+SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/moonlibs.h")
 
 # Install rules.
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)

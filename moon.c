@@ -2,37 +2,27 @@
 #include "config.h"
 #include <glib.h>
 
-#define moon_ccall(L, f) (lua_pushcfunction(L, f), lua_call(L, 0, 0))
-
 #ifdef EMBED_LUA
 #	include <stdlib.h>
-
 #	include "packages.h"
-void moon_loader_init(LuaState *L);
+	void moon_loader_init(LuaState *L);
 #endif
 
-int luaopen_entry(LuaState *L);
-int luaopen_buffer(LuaState *L);
-int luaopen_statusbar(LuaState *L);
-int luaopen_net(LuaState *L);
-int luaopen_handle(LuaState *L);
-int luaopen_linereader(LuaState *L);
-int luaopen_config(LuaState *L);
-int luaopen_completion(LuaState *L);
+#include "moonlibs.h"
+
+static void moon_openlibs(LuaState *L) {
+  const LuaLReg *lib = lualibs;
+  for (; lib->func; lib++) {
+    lua_pushcfunction(L, lib->func);
+    lua_pushstring(L, lib->name);
+    lua_call(L, 1, 0);
+  }
+}
 
 LuaState *moon_new(void)
 {
 	LuaState *L = lua_open();
-	luaL_openlibs(L);
-	moon_ccall(L, luaopen_buffer);
-	moon_ccall(L, luaopen_entry);
-	moon_ccall(L, luaopen_statusbar);
-	moon_ccall(L, luaopen_net);
-	moon_ccall(L, luaopen_handle);
-	moon_ccall(L, luaopen_linereader);
-	moon_ccall(L, luaopen_config);
-	moon_ccall(L, luaopen_completion);
-
+	moon_openlibs(L);
 #	ifdef EMBED_LUA
 	moon_loader_init(L);
 #	endif
@@ -106,15 +96,6 @@ void moon_class_register(LuaState *L, const char *class, const LuaLReg methods[]
   	lua_rawset(L, -3);                /* hide metatable: metatable.__metatable =
   										 methods */
   	lua_pop(L, 2);                    /* drop metatable and methods */
-}
-
-void moon_weaktable(LuaState *L)
-{
-	lua_newtable(L);               /* push: table */
-	lua_newtable(L);               /* push: metatable */
-	lua_pushstring(L, "v");        /* push: "v" */
-	lua_setfield(L, -2, "__mode"); /* pop: "v" */
-	lua_setmetatable(L, -2);       /* pop: metatable */
 }
 
 void moon_pusherror(LuaState *L, GError *err)

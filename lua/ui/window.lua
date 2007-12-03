@@ -16,13 +16,13 @@ end
 
 function Window:actprint(activity, fmt, ...)
 	self.activity = math.max(self.activity, activity)
-	local s = Buffer.format(os.date("%H:%M ")..tostring(fmt), arg)
+	local s = term.format(os.date("%H:%M ")..tostring(fmt), arg)
 	self.buffer:print(s)
 	self.bufferdirty = true
 end
 
 function Window:render(toprow, bottomrow)
-	local rows, cols = term_dimensions()
+	local rows, cols = term.dimensions()
 	self.topic:render(toprow)
 	if self.bufferdirty then
 		self.buffer:render(toprow + 1, bottomrow)
@@ -37,7 +37,7 @@ end
 
 function Window:set_topic(t)
 	self.topic_text = t
-	self.topic:set(Buffer.format("%{topic}%1", { t }))
+	self.topic:set(term.format("%{topic}%1", { t }))
 end
 
 function Window:activate()

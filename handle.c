@@ -35,10 +35,6 @@ inline static gboolean on_input(Handle *h)/*{{{*/
 	gboolean rv = TRUE;
 
 	moon_pushref(L, h->callback);
-	/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
-	lua_pushlightuserdata(L, h);
-	lua_gettable(L, -2);
-	lua_remove(L, -2); // remove "HandleTable"*/
 	switch (status) {
 		case G_IO_STATUS_NORMAL:
 			lua_pushstring(L, "read");
@@ -101,10 +97,6 @@ inline static gboolean on_output(Handle *h)/*{{{*/
 		case G_IO_STATUS_ERROR:
 			g_assert(err != NULL);
 			moon_pushref(L, h->callback);
-			/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
-			lua_pushlightuserdata(L, h);
-			lua_gettable(L, -2);
-			lua_remove(L, -2); // remove "HandleTable"*/
 			lua_pushstring(L, "error");
 			moon_pusherror(L, err);
 			g_error_free(err);
@@ -125,10 +117,6 @@ static inline gboolean on_event_real(GIOChannel *ch, GIOCondition cond, gpointer
 	if (cond & G_IO_HUP) {
 		LuaState *L = h->L;
 		moon_pushref(L, h->callback);
-		/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
-		lua_pushlightuserdata(L, h);
-		lua_gettable(L, -2);
-		lua_remove(L, -2); // remove "HandleTable"*/
 		lua_pushstring(L, "hup");
     	if (lua_pcall(L, 1, 0, 0) != 0)
     		g_warning("error running Handle callback for hup event: %s",
@@ -182,12 +170,6 @@ static int Handle_new(LuaState *L)
 	h->closed = FALSE;
 	h->alive  = TRUE;
 
-	/*lua_getfield(L, LUA_REGISTRYINDEX, "HandleTable");
-	lua_pushlightuserdata(L, h);
-	lua_pushvalue(L, -3);
-	lua_settable(L, -3);
-	lua_pop(L, 1);
-*/
 	return 1;
 }
 
@@ -251,8 +233,6 @@ static const LuaLReg Handle_meta[] = {
 
 int luaopen_handle(LuaState *L)
 {
-	moon_weaktable(L);
-	lua_setfield(L, LUA_REGISTRYINDEX, "HandleTable");
 	moon_class_register(L, "Handle", Handle_methods, Handle_meta);
 	return 1;
 }
