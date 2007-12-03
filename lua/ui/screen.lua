@@ -18,6 +18,7 @@ function Screen:init()
 		self.status_current_window,
 		self.status_activity
 	}
+	self.cmp     = Completion:new()
 	self.windows = { }
 	self.window  = nil
 	self:view(
@@ -25,6 +26,7 @@ function Screen:init()
 	)
 	local sbartext = Buffer.format("%{topic}Status bar goes here", {})
 	self.status:set(sbartext)
+
 end
 
 function Screen:status_time()
@@ -237,4 +239,13 @@ function Screen:history_forward()
 		end
 	end
 	self:render()
+end
+
+function Screen:complete()
+	local line = self.entry:get()
+	local prefix, matches = self.cmp:complete(line)
+	if prefix then
+		self.entry:set(prefix)
+		self:render()
+	end
 end

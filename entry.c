@@ -4,7 +4,6 @@
 #include "moon.h"
 
 #include <string.h>
-#include <assert.h>
 
 typedef struct {
 	gchar *prompt;
@@ -18,7 +17,7 @@ typedef struct {
 
 static int Entry_new(LuaState *L)
 {
-	const char *prompt = luaL_optstring(L, 2, "% ");
+	const char *prompt = luaL_optstring(L, 2, "[moonshine] ");
 	Entry *e = moon_newclass(L, "Entry", sizeof(Entry));
 	e->buffer = NULL;
 	e->bufsize = e->bufused = 0;
@@ -341,7 +340,7 @@ static inline int wordlen_dir(Entry *e, int direction) {
 	int count = 0;
 	int i = e->curs_off;
 	gboolean expect_space = 1;
-	assert(direction);
+	g_assert(direction);
 	
 	if (direction == -1)
 		i--;

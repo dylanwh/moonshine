@@ -57,7 +57,7 @@ function boot_hook()
 	bind("^X", quit)
 	bind("^L", force_resize)
 	bind("^M", screen:callback ("send_line", eval))
-	bind("\t", function () end)
+	bind("\t", screen:callback "complete")
 
 	for i = 1, 9 do
 		bind("^[" .. i, screen:callback("view", i))
@@ -74,6 +74,11 @@ function boot_hook()
 	define_color("statusimportant", "brightmagenta", "blue")
 	define_color("self", "white", "default")
 	screen:render()
+
+
+	for key in pairs(cmd) do
+		screen.cmp:add( "/" .. key )
+	end
 end
 
 function log_hook(domain, level, message)

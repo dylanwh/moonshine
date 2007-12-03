@@ -9,6 +9,7 @@ SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 ADD_EXECUTABLE(moonshine term.c moon.c 
 	buffer.c entry.c statusbar.c config.c
 	linereader.c
+	completion.c
 	util.c main.c handle.c net.c signal.c)
 
 OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" OFF)
