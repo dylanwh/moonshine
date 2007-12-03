@@ -2,12 +2,6 @@
 #include "config.h"
 #include <glib.h>
 
-#ifdef EMBED_LUA
-#	include <stdlib.h>
-#	include "packages.h"
-	void moon_loader_init(LuaState *L);
-#endif
-
 #include "moonlibs.h"
 
 static void moon_openlibs(LuaState *L) {
@@ -23,9 +17,6 @@ LuaState *moon_new(void)
 {
 	LuaState *L = lua_open();
 	moon_openlibs(L);
-#	ifdef EMBED_LUA
-	moon_loader_init(L);
-#	endif
 	return L;
 }
 
@@ -111,51 +102,3 @@ void moon_pusherror(LuaState *L, GError *err)
 	lua_pushstring(L, "Error");
 	lua_setfield(L, -2, "__type");
 }
-
-#ifdef EMBED_LUA
-static int package_loader(LuaState *L)
-{
-	const char *pkg = lua_tostring(L, lua_upvalueindex(1));
-	const char *src = lua_tostring(L, lua_upvalueindex(2));
-	if (luaL_loadbuffer(L, src, strlen(src), pkg)) {
-		const char *err = lua_tostring(L, -1);
-		g_error("BUG: Cannot load in-core %s.lua: %s", pkg, err);
-		exit(EXIT_FAILURE);
-	} 
-	else if (lua_pcall(L, 0, LUA_MULTRET, 0)) {
-		const char *err = lua_tostring(L, -1);
-		g_error("BUG: Boot from in-core %s.lua failed after pcall: %s", pkg, err);
-		exit(EXIT_FAILURE);
-	} else {
-		return 0;
-	}
-}
-
-static int package_finder(LuaState *L)
-{
-	const char *pkg = luaL_checkstring(L, 1);
-	for (int i = 0; packages[i].module; i++) {
-		g_print("module: (%d) %s == %s\n", i, packages[i].module, pkg);
-		if (strcmp(packages[i].module, pkg) == 0) {
-			lua_pushstring(L, pkg);
-			lua_pushstring(L, packages[i].content);
-			lua_pushcclosure(L, package_loader, 2);
-			return 1;
-		}
-	}
-	return 0;
-}
-
-void moon_loader_init(LuaState *L)
-{
-	/* table.insert(package.loaders, package_finder) */
-	lua_register(L, "package_finder", package_finder);
-	if (luaL_dostring(L, "table.insert(package.loaders, package_finder)")) {
-		const char *err = lua_tostring(L, -1);
-		g_error("BUG: error adding package loader: %s", err);
-		exit(EXIT_FAILURE);
-	}
-	lua_pushnil(L);
-	lua_setglobal(L, "package_finder");
-}
-#endif

@@ -12,14 +12,6 @@ SET(PACKAGE_FILES buffer.c entry.c statusbar.c config.c
 
 ADD_EXECUTABLE(moonshine ${CORE_FILES} ${PACKAGE_FILES})
 
-OPTION(EMBED_LUA "Toggles the embeding of lua packages in the executable" OFF)
-
-IF (EMBED_LUA)
-	MESSAGE(STATUS "Will embed lua packages")
-ELSE()
-	MESSAGE(STATUS "Will not embed lua packages")
-ENDIF()
-
 FIND_PACKAGE(LUA REQUIRED)
 FIND_PACKAGE(SLANG REQUIRED)
 FIND_PACKAGE(GLIB REQUIRED)
@@ -38,17 +30,6 @@ ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GTHREAD_DEFINITIONS}")
 CONFIGURE_FILE(${SRC}/config.h.in
 	${BIN}/config.h
 	@ONLY IMMEDIATE)
-
-IF (EMBED_LUA)
-	FILE(GLOB_RECURSE PACKAGES ${SRC}/lua/*.lua)
-	ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/packages.h
-		COMMAND perl ${SRC}/cmake/embed-packages.pl 
-		${PACKAGES} > ${BIN}/packages.h
-		MAIN_DEPENDENCY ${SRC}/cmake/embed-packages.pl DEPENDS ${PACKAGES}
-		WORKING_DIRECTORY ${SRC})
-
-	SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/packages.h")
-ENDIF()
 
 ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/moonlibs.h
 	COMMAND perl ${SRC}/cmake/moonlibs.pl 
