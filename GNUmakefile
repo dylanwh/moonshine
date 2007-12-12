@@ -9,7 +9,7 @@ configure: build
 	cd build && cmake ..
 	
 compile: configure
-	make -C build --no-print-directory moonshine
+	make -C build --no-print-directory
 
 purge:
 	rm -rf build

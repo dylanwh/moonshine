@@ -1,37 +1,36 @@
 PROJECT (MOONSHINE C)
-INCLUDE(CheckFunctionExists)
 
 SET(SRC "${MOONSHINE_SOURCE_DIR}")
 SET(BIN "${MOONSHINE_BINARY_DIR}") 
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS 1)
 SET(CMAKE_MODULE_PATH "${SRC}/cmake")
 
-SET(CORE_FILES term.c moon.c util.c main.c signal.c)
-SET(PACKAGE_FILES buffer.c entry.c statusbar.c config.c
-	linereader.c completion.c term-lua.c handle.c net.c)
-
-SET(MOONSHINE_RUNTIME "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua" CACHE PATH "Path to install lua runtime files")
-
-ADD_EXECUTABLE(moonshine ${CORE_FILES} ${PACKAGE_FILES})
-
 FIND_PACKAGE(LUA REQUIRED)
 FIND_PACKAGE(SLANG REQUIRED)
 FIND_PACKAGE(GLIB REQUIRED)
 FIND_PACKAGE(GTHREAD REQUIRED)
 
+SET(CORE_FILES term.c moon.c util.c main.c signal.c)
+SET(PACKAGE_FILES buffer.c entry.c statusbar.c
+	linereader.c completion.c term-lua.c handle.c net.c)
+
+SET(MOONSHINE_RUNTIME "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua" CACHE PATH "Path to install lua runtime files")
+
 INCLUDE_DIRECTORIES(BEFORE ${SLANG_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${BIN}
 	${GLIB_INCLUDE_DIRS} ${GTHREAD_INCLUDE_DIRS} ${SRC})	
-
-TARGET_LINK_LIBRARIES(moonshine ${GLIB_LIBRARY} ${SLANG_LIBRARY}
-	${LUA_LIBRARY} ${GTHREAD_LIBRARY})
 
 ## Now we add these the the flags passed to the C compiler.
 ADD_DEFINITIONS("-std=gnu99 -Wall -Winline -I${BIN}")
 ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GTHREAD_DEFINITIONS}")
 
-CONFIGURE_FILE(${SRC}/config.h.in
-	${BIN}/config.h
-	@ONLY IMMEDIATE)
+## Build rules.
+
+ADD_EXECUTABLE(moonshine ${CORE_FILES} ${PACKAGE_FILES})
+
+TARGET_LINK_LIBRARIES(moonshine ${GLIB_LIBRARY} ${SLANG_LIBRARY}
+	${LUA_LIBRARY} ${GTHREAD_LIBRARY})
+
+SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/moonlibs.h")
 
 ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/moonlibs.h
 	COMMAND perl ${SRC}/cmake/moonlibs.pl 
@@ -39,7 +38,9 @@ ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/moonlibs.h
 	MAIN_DEPENDENCY ${SRC}/cmake/moonlibs.pl DEPENDS ${PACKAGE_FILES}
 	WORKING_DIRECTORY ${SRC})
 
-SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/moonlibs.h")
+CONFIGURE_FILE(${SRC}/config.h.in
+	${BIN}/config.h
+	@ONLY IMMEDIATE)
 
 # Install rules
 
