@@ -63,7 +63,7 @@ static char *package_path(void)
 			home = g_get_home_dir();
 			g_assert(home != NULL);
 		}
-		return g_strjoin(home, "/.moonshine/?.lua;" MOONSHINE_RUNTIME, NULL);
+		return g_strjoin("", home, "/.moonshine/?.lua;" MOONSHINE_RUNTIME, NULL);
 	}
 }
 
