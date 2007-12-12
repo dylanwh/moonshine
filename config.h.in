@@ -1,4 +1,4 @@
-#define PACKAGE_PATH "@CMAKE_INSTALL_PREFIX@/share/moonshine"
+#define MOONSHINE_RUNTIME "@MOONSHINE_RUNTIME@"
 
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 

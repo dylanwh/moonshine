@@ -49,6 +49,24 @@ static void on_resize(int sig, gpointer data)/*{{{*/
 	moon_call(L, "resize_hook", "");
 }/*}}}*/
 
+/* We use $MOONSHINE_RUNTIME as lua's package.path.
+ * If it isn't set, we default to $HOME/.moonshine/ and the compile-time
+ * constant MOONSHINE_RUNTIME. */
+static char *package_path(void)
+{
+	const char *path = g_getenv("MOONSHINE_RUNTIME");
+	if (path) {
+		return g_strdup(path);
+	} else {
+		const char *home = g_getenv("HOME");
+		if (home == NULL) {
+			home = g_get_home_dir();
+			g_assert(home != NULL);
+		}
+		return g_strjoin(home, "/.moonshine/?.lua;" MOONSHINE_RUNTIME, NULL);
+	}
+}
+
 /* make_keyspec turns strings like "^A" into "\001", and so on. */
 static int make_keyspec(LuaState *L)/* {{{ */
 {
@@ -97,7 +115,9 @@ int main(int argc, char *argv[])
 	signal_init();
 	term_init_colors();
 
-	LuaState *L = moon_new();
+	char *path = package_path();
+	LuaState *L = moon_new(path);
+	g_free(path);
 
 	lua_register(L, "quit", quit);
 	lua_register(L, "make_keyspec", make_keyspec);
@@ -106,6 +126,7 @@ int main(int argc, char *argv[])
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 	loop = g_main_loop_new(NULL, FALSE);
 
+	moon_require(L, "preboot");
 	if (moon_require(L, "boot")) {
 		term_init();
 		

@@ -10,7 +10,7 @@ typedef lua_State LuaState;
 typedef luaL_reg  LuaLReg;
 typedef luaL_Buffer LuaLBuffer;
 
-LuaState *moon_new();
+LuaState *moon_new(const char *path);
 gboolean moon_call(LuaState *L, const char *name, const char *sig, ...);
 void moon_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[]);
 void moon_weaktable(LuaState *L);

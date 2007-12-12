@@ -13,31 +13,18 @@ static void moon_openlibs(LuaState *L) {
   }
 }
 
-LuaState *moon_new()
+LuaState *moon_new(const char *path)
 {
 	LuaState *L = lua_open();
 	moon_openlibs(L);
 	
-	LuaLBuffer B;
-	const char *homedir = g_getenv("HOME");
-	if (!homedir) homedir = g_get_home_dir();
-	g_assert(homedir != NULL);
-
 	lua_getglobal(L, "package");
-	luaL_buffinit(L, &B);
-	luaL_addstring(&B, homedir);
-	luaL_addstring(&B, "/.moonshine/?.lua;");
-	luaL_addstring(&B, PACKAGE_PATH);
-	luaL_addstring(&B, "/?.lua");
-	luaL_pushresult(&B);
+	lua_pushstring(L, path);
 	lua_setfield(L, -2, "path");
 	lua_pop(L, 1);
 
 	lua_pushstring(L, VERSION);
 	lua_setglobal(L, "VERSION");
-
-	lua_pushstring(L, homedir);
-	lua_setglobal(L, "HOME");
 
 	return L;
 }

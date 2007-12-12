@@ -10,6 +10,8 @@ SET(CORE_FILES term.c moon.c util.c main.c signal.c)
 SET(PACKAGE_FILES buffer.c entry.c statusbar.c config.c
 	linereader.c completion.c term-lua.c handle.c net.c)
 
+SET(MOONSHINE_RUNTIME "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua" CACHE PATH "Path to install lua runtime files")
+
 ADD_EXECUTABLE(moonshine ${CORE_FILES} ${PACKAGE_FILES})
 
 FIND_PACKAGE(LUA REQUIRED)
@@ -39,7 +41,8 @@ ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/moonlibs.h
 
 SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/moonlibs.h")
 
-# Install rules.
+# Install rules
+
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)
 INSTALL(DIRECTORY lua/ DESTINATION share/moonshine/)
 
