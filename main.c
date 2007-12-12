@@ -126,7 +126,6 @@ int main(int argc, char *argv[])
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 	loop = g_main_loop_new(NULL, FALSE);
 
-	moon_require(L, "preboot");
 	if (moon_require(L, "boot")) {
 		term_init();
 		
