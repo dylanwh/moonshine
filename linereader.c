@@ -28,7 +28,7 @@ static int LineReader_read(LuaState *L)
 			lua_pushlstring(L, buffer->str, i);
 			lua_rawseti(L, -2, pos++);
 			g_string_erase(buffer, 0, i+1);
-			i = 0;
+			i = -1;
 		}
 	}
 	return 1;
