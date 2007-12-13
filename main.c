@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 		signal_catch(SIGWINCH, on_resize, L);
 		g_log_set_default_handler(on_log, L);
 
-		g_io_add_watch_full(input, G_PRIORITY_HIGH, G_IO_IN, on_input, L, NULL);
+		g_io_add_watch_full(input, G_PRIORITY_DEFAULT, G_IO_IN, on_input, L, NULL);
 
 		if (moon_call(L, "init_hook", "")) {
 			g_main_loop_run(loop);
