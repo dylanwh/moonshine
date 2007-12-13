@@ -37,7 +37,8 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer dat
 				buf[i] = 0;
 			g_unichar_to_utf8(c, buf);
 			moon_call(L, "input_hook", "s", buf);
-		} while (term_input_pending(1));
+		} while (term_input_pending(-1));
+		moon_call(L, "input_reset_hook", "");
 		return TRUE;
 	}
 	return FALSE;
