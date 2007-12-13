@@ -12,26 +12,34 @@ static int LineReader_new(LuaState *L)
 }
 
 
-static int LineReader_read(LuaState *L)
+static int readiter(LuaState *L)
 {
 	LineReader *lr = moon_checkclass(L, "LineReader", 1);
+	GString *buffer = lr->buffer;
+	if (buffer->len) {
+		for (int i = 0; i < buffer->len; i++) {
+			if (buffer->str[i] == '\n') {
+				lua_pushlstring(L, buffer->str, i);
+				g_string_erase(buffer, 0, i+1);
+				g_main_context_iteration(NULL, FALSE);
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+static int LineReader_read(LuaState *L)
+{
+	LineReader *lr  = moon_checkclass(L, "LineReader", 1);
 	const char *str = luaL_checkstring(L, 2);
 	gsize len       = lua_objlen(L, 2);
-	int pos = 1;
-
-	lua_newtable(L);
 
 	GString *buffer = lr->buffer;
 	g_string_append_len(buffer, str, len);
-	for (int i = 0; i < buffer->len; i++) {
-		if (buffer->str[i] == '\n') {
-			lua_pushlstring(L, buffer->str, i);
-			lua_rawseti(L, -2, pos++);
-			g_string_erase(buffer, 0, i+1);
-			i = -1;
-		}
-	}
-	return 1;
+	lua_pushcfunction(L, readiter);
+	lua_pushvalue(L, 1);
+	return 2;
 }
 
 static int LineReader_gc(LuaState *L)
