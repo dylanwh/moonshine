@@ -15,7 +15,7 @@ IF (SLANG_FOUND)
 	INCLUDE (cmake/SlangVersion.cmake)
 
 	IF (SLANG_VERSION LESS 20000)
-		MESSAGE(SEND_ERROR "moonshine requires slang-2")
+		MESSAGE(SEND_ERROR "moonshine requires slang 2 (found ${SLANG_VERSION})")
 	ELSE ()
 		MESSAGE(STATUS "Good, slang is version 2")
 	ENDIF ()
