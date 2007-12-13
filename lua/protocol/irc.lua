@@ -74,8 +74,7 @@ end
 
 function IRC:on_event(event, ...)
 	if event == 'read' then
-		local lines = self.reader:read(...)
-		for i, line in ipairs(lines) do
+		for line in self.reader:read(...) do
 			line = line:gsub("\r$", "")
 			local msg = ircsplit(line)
 			self:irc_event(msg)
