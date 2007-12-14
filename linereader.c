@@ -2,6 +2,7 @@
 
 typedef struct {
 	GString *buffer;
+	gboolean iterating;
 } LineReader;
 
 static int LineReader_new(LuaState *L)

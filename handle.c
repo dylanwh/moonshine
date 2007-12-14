@@ -1,8 +1,12 @@
+/* XXX: The file should be refactored, I'm pretty sure the Handle->alive field
+ * is not really needed, which would simplify the event handlers greatly. */
+
 #include "moon.h"
 #include "config.h"
 #include <string.h>
 #include <fcntl.h>
 
+/* Handle structure {{{ */
 typedef struct {
 	LuaState *L;
 	int callback;
@@ -14,12 +18,14 @@ typedef struct {
 	gboolean closed;
 	gboolean alive;
 } Handle;
+/* }}} */
 
 /* Events that we need to call the callback on:
- * - read string -- f(h, "read", str)
- * - error.      -- f(h, "error", error)
- * - eof.        -- f(h, "eof", nil)
- * - hup.        -- f(h, "hup", nil) */
+ * - read string   -- f(h, "read", str)
+ * - error         -- f(h, "error", error)
+ * - eof           -- f(h, "eof", nil)
+ * - hup           -- f(h, "hup", nil)
+ * - wrote         -- f(h, "wrote", nil) ( = the output queue is empty) */
 
 /* {{{ Event Handlers */
 inline static gboolean on_input(Handle *h)/*{{{*/
@@ -130,97 +136,141 @@ static inline gboolean on_event_real(GIOChannel *ch, GIOCondition cond, gpointer
 
 	return TRUE;
 }/*}}}*/
-
 static gboolean on_out_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
 {
 	Handle *h = data;
 	g_assert(cond & G_IO_OUT);
-	if (g_queue_is_empty(h->queue))
+	if (g_queue_is_empty(h->queue)) {
+		LuaState *L = h->L;
+		moon_pushref(L, h->callback);
+		lua_pushstring(L, "empty");
+		if (lua_pcall(L, 1, 0, 0) != 0)
+			g_warning("error running Handle callback for empty event: %s",
+					lua_tostring(L, -1));
 		return FALSE;
+	}
 	h->alive = on_output(h);
 	return h->alive;
 }/*}}}*/
-
-
 static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
 {
 	Handle *h = data;
 	h->alive = on_event_real(ch, cond, data);
 	return h->alive;
 }/*}}}*/
-
 /* }}} */
 
-/* Methods {{{ */
-static int Handle_new(LuaState *L)
+/* Utility Functions {{{ */
+static int handle_create(LuaState *L, GIOChannel *channel, int callback)
 {
-	int fd       = luaL_checkinteger(L, 2);
-	int callback = moon_ref(L, 3);
-
 	Handle *h = moon_newclass(L, "Handle", sizeof(Handle));
-
-	h->L        = L;
-	h->queue    = g_queue_new();
-	h->channel  = g_io_channel_unix_new(fd);
+	h->L = L;
+	h->queue = g_queue_new();
+	h->channel = channel;
 	h->callback = callback;
 	g_io_channel_set_encoding(h->channel, NULL, NULL);
 	g_io_channel_set_buffered(h->channel, FALSE);
 	g_io_channel_set_flags(h->channel, G_IO_FLAG_NONBLOCK, NULL);
-	h->tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
+	if (g_io_channel_get_flags(h->channel) & G_IO_FLAG_IS_READABLE)
+		h->tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
+	else
+		h->tag = g_io_add_watch(h->channel, G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
 	h->closed = FALSE;
 	h->alive  = TRUE;
-
 	return 1;
 }
-
-static int Handle_write(LuaState *L)
-{
-	Handle *h       = moon_checkclass(L, "Handle", 1);
-	if (h->alive && !h->closed) {
-		const char *str = luaL_checkstring(L, 2);
-		if (g_queue_is_empty(h->queue))
-			h->out_tag = g_io_add_watch(h->channel, G_IO_OUT, on_out_event, h);
-		g_queue_push_tail(h->queue, g_string_new(str));
-	}
-	return 0;
-}
-
 static void each_g_string(GString *msg, UNUSED gpointer data)
 {
 	g_string_free(msg, TRUE);
 }
+/* }}} */
 
-static int Handle_close(LuaState *L)
+/* Methods {{{ */
+static int Handle_new(LuaState *L)/*{{{*/
+{
+	int fd       = luaL_checkinteger(L, 2);
+	int callback = moon_ref(L, 3);
+	GIOChannel *channel  = g_io_channel_unix_new(fd);
+	return handle_create(L, channel, callback);
+}/*}}}*/
+
+static int Handle_open(LuaState *L)/*{{{*/
+{
+	const char *path = luaL_checkstring(L, 2);
+	const char *mode = luaL_checkstring(L, 3);
+	int callback     = moon_ref(L, 4);
+	GError *error = NULL;
+	GIOChannel *channel = g_io_channel_new_file(path, mode, &error);
+
+	if (channel) {
+		return handle_create(L, channel, callback);
+	} else {
+		lua_pushnil(L);
+		moon_pusherror(L, error);
+		g_error_free(error);
+		return 2;
+	}
+}/*}}}*/
+
+static int Handle_write(LuaState *L)/*{{{*/
+{
+	Handle *h       = moon_checkclass(L, "Handle", 1);
+
+	if (g_io_channel_get_flags(h->channel) & G_IO_FLAG_IS_WRITEABLE) {
+		if (h->alive && !h->closed) {
+			const char *str = luaL_checkstring(L, 2);
+			if (g_queue_is_empty(h->queue))
+				h->out_tag = g_io_add_watch(h->channel, G_IO_OUT, on_out_event, h);
+			g_queue_push_tail(h->queue, g_string_new(str));
+		}
+	} else {
+		return luaL_error(L, "Cannot write to read-only Handle");
+	}
+
+	return 0;
+}/*}}}*/
+
+static int Handle_is_empty(LuaState *L)/*{{{*/
+{
+	Handle *h = moon_checkclass(L, "Handle", 1); 
+	lua_pushboolean(L, g_queue_is_empty(h->queue));
+	return 1;
+}/*}}}*/
+
+static int Handle_close(LuaState *L)/*{{{*/
 {
 	Handle *h = moon_checkclass(L, "Handle", 1);
 
-	if (h->closed)
-		return 0;
+	if (h->closed) return 0;
 
 	moon_unref(L, h->callback);
 	if (!g_queue_is_empty(h->queue))
 		g_source_remove(h->out_tag);
 	g_queue_foreach(h->queue, (GFunc)each_g_string, NULL);
 	g_queue_free(h->queue);
-	g_source_remove(h->tag);
+	if (h->tag > 0)
+		g_source_remove(h->tag);
 	g_io_channel_shutdown(h->channel, TRUE, NULL);
 	g_io_channel_unref(h->channel);
 	h->closed = TRUE;
 	return 0;
-}
+}/*}}}*/
 
-static int Handle_tostring(LuaState *L)
+static int Handle_tostring(LuaState *L)/*{{{*/
 {
 	char buff[32];
   	sprintf(buff, "%p", moon_toclass(L, "Handle", 1));
   	lua_pushfstring(L, "Handle (%s)", buff);
   	return 1;
-}
+}/*}}}*/
 /* }}} */
 
+/* Boilerplate {{{ */
 static const LuaLReg Handle_methods[] = {
-	{"new", Handle_new},
+	{"new",   Handle_new},
+	{"open",  Handle_open},
 	{"write", Handle_write},
+	{"is_empty", Handle_is_empty},
 	{"close", Handle_close},
 	{0, 0}
 };
@@ -236,3 +286,4 @@ int luaopen_handle(LuaState *L)
 	moon_class_register(L, "Handle", Handle_methods, Handle_meta);
 	return 1;
 }
+/* }}} */
