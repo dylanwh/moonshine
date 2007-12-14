@@ -22,7 +22,6 @@ static int readiter(LuaState *L)
 			if (buffer->str[i] == '\n') {
 				lua_pushlstring(L, buffer->str, i);
 				g_string_erase(buffer, 0, i+1);
-				g_main_context_iteration(NULL, FALSE);
 				return 1;
 			}
 		}

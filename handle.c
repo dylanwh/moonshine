@@ -230,7 +230,7 @@ static int Handle_write(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static int Handle_is_empty(LuaState *L)/*{{{*/
+static int Handle_is_idle(LuaState *L)/*{{{*/
 {
 	Handle *h = moon_checkclass(L, "Handle", 1); 
 	lua_pushboolean(L, g_queue_is_empty(h->queue));
@@ -270,7 +270,7 @@ static const LuaLReg Handle_methods[] = {
 	{"new",   Handle_new},
 	{"open",  Handle_open},
 	{"write", Handle_write},
-	{"is_empty", Handle_is_empty},
+	{"is_idle", Handle_is_idle},
 	{"close", Handle_close},
 	{0, 0}
 };
