@@ -13,150 +13,104 @@ typedef struct {
 
 	GIOChannel *channel;
 	GQueue *queue;
-	guint tag;
+	guint in_tag;
 	guint out_tag;
 	gboolean closed;
-	gboolean alive;
 } Handle;
 /* }}} */
 
 /* Events that we need to call the callback on:
- * - read string   -- f(h, "read", str)
- * - error         -- f(h, "error", error)
- * - eof           -- f(h, "eof", nil)
- * - hup           -- f(h, "hup", nil)
- * - wrote         -- f(h, "wrote", nil) ( = the output queue is empty) */
+ * f("input")
+ * f("invalid")
+ * f("hangup")
+ * f("idle")
+ * f("error", nil)
+ * f("error", error) */
 
 /* {{{ Event Handlers */
-inline static gboolean on_input(Handle *h)/*{{{*/
+static gboolean on_output(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
 {
-	LuaState *L = h->L;
-	GError *err = NULL;
-	gchar str[256];
-	gsize len = 0;
-	memset(str, '\0', sizeof(str));
-	GIOStatus status = g_io_channel_read_chars(h->channel, str, sizeof(str) - 1, &len, &err);
-
-	int nargs = 0;
-	gboolean rv = TRUE;
-
-	moon_pushref(L, h->callback);
-	switch (status) {
-		case G_IO_STATUS_NORMAL:
-			lua_pushstring(L, "read");
-			lua_pushstring(L, str);
-			nargs = 2;
-			break;
-		case G_IO_STATUS_AGAIN:
-			lua_pop(L, 2);
-			nargs = -1;
-			break;
-		case G_IO_STATUS_EOF:
-			lua_pushstring(L, "eof");
-			nargs = 1;
-			rv = FALSE;
-			break;
-		case G_IO_STATUS_ERROR:
-			g_assert(err != NULL);
-			lua_pushstring(L, "error");
-			moon_pusherror(L, err);
-			g_error_free(err);
-			nargs = 2;
-			rv = FALSE;
-			break;
-	}
-	if (nargs >= 0) {
-    	if (lua_pcall(L, nargs, 0, 0) != 0)
-    		g_warning("error running Handle callback with %d args: %s",
-    				nargs,
-    				lua_tostring(L, -1));
-	}
-	return rv;
-}/*}}}*/
-inline static gboolean on_output(Handle *h)/*{{{*/
-{
+	Handle *h = data;
 	LuaState *L   = h->L;
 	GQueue *queue = h->queue;
-	GError *err = NULL;
-	GString *msg = (GString *)g_queue_pop_head(queue);
-	gsize len = 0;
-	GIOStatus status = g_io_channel_write_chars(h->channel, msg->str, msg->len, &len, &err);
-
-	switch (status) {
-		case G_IO_STATUS_NORMAL:
-			if (len < msg->len) {
-				g_string_erase(msg, 0, len);
-				g_queue_push_head(queue, msg);
-			} else if (len == msg->len) {
-				g_string_free(msg, TRUE);
-			} else {
-				g_warning("This situation is insane. I just wrote more bytes than I should have. Goodbye.");
-				g_assert_not_reached();
-			}
-			break;
-		case G_IO_STATUS_AGAIN:
-			break;
-		case G_IO_STATUS_EOF:
-			/* TODO: is it possible to get EOF while writing to a socket? */
-			g_assert_not_reached();
-			break;
-		case G_IO_STATUS_ERROR:
-			g_assert(err != NULL);
-			moon_pushref(L, h->callback);
-			lua_pushstring(L, "error");
-			moon_pusherror(L, err);
-			g_error_free(err);
-    		if (lua_pcall(L, 2, 0, 0) != 0)
-    			g_warning("error running Handle callback on G_IO_STATUS_ERROR during write: %s",
-    					lua_tostring(L, -1));
-			return FALSE;
-			break;
-	}
-	return TRUE;
-}/*}}}*/
-static inline gboolean on_event_real(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
-{
-	g_return_val_if_fail((cond & G_IO_NVAL) == 0, FALSE);
-	g_return_val_if_fail((cond & G_IO_ERR) == 0, FALSE);
-
-	Handle *h = data;
-	if (cond & G_IO_HUP) {
-		LuaState *L = h->L;
-		moon_pushref(L, h->callback);
-		lua_pushstring(L, "hup");
-    	if (lua_pcall(L, 1, 0, 0) != 0)
-    		g_warning("error running Handle callback for hup event: %s",
-    				lua_tostring(L, -1));
-    	return FALSE;
-	}
 	
-	if (cond & G_IO_IN)
-		if (!on_input(h))
-			return FALSE;
-
-	return TRUE;
-}/*}}}*/
-static gboolean on_out_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
-{
-	Handle *h = data;
-	g_assert(cond & G_IO_OUT);
 	if (g_queue_is_empty(h->queue)) {
 		LuaState *L = h->L;
 		moon_pushref(L, h->callback);
-		lua_pushstring(L, "empty");
+		lua_pushstring(L, "idle");
 		if (lua_pcall(L, 1, 0, 0) != 0)
 			g_warning("error running Handle callback for empty event: %s",
 					lua_tostring(L, -1));
 		return FALSE;
+	} else {
+		GError *err = NULL;
+		GString *msg = (GString *)g_queue_pop_head(queue);
+		gsize len = 0;
+		GIOStatus status = g_io_channel_write_chars(h->channel, msg->str, msg->len, &len, &err);
+
+		switch (status) {
+			case G_IO_STATUS_NORMAL:
+				if (len < msg->len) {
+					g_string_erase(msg, 0, len);
+					g_queue_push_head(queue, msg);
+				} else if (len == msg->len) {
+					g_string_free(msg, TRUE);
+				} else
+					g_assert_not_reached();
+				break;
+			case G_IO_STATUS_AGAIN:
+				break;
+			case G_IO_STATUS_EOF:
+				/* TODO: is it possible to get EOF while writing to a socket? */
+				g_assert_not_reached();
+				break;
+			case G_IO_STATUS_ERROR:
+				g_assert(err != NULL);
+				moon_pushref(L, h->callback);
+				lua_pushstring(L, "error");
+				moon_pusherror(L, err);
+				g_error_free(err);
+    			if (lua_pcall(L, 2, 0, 0) != 0)
+    				g_warning("error running Handle callback on G_IO_STATUS_ERROR during write: %s",
+    						lua_tostring(L, -1));
+				return FALSE;
+				break;
+		}
+		return TRUE;
 	}
-	h->alive = on_output(h);
-	return h->alive;
 }/*}}}*/
-static gboolean on_event(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
+static gboolean on_input(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
 {
-	Handle *h = data;
-	h->alive = on_event_real(ch, cond, data);
-	return h->alive;
+	Handle *h   = data;
+	LuaState *L = h->L;
+	gboolean result = TRUE;
+
+	moon_pushref(L, h->callback);
+
+	if (cond & G_IO_NVAL) {
+		lua_pushstring(L, "invalid");
+		result = FALSE;
+	}
+
+	if (cond & G_IO_ERR) {
+		lua_pushstring(L, "error");
+		result = FALSE;
+	}
+
+	if (cond & G_IO_HUP) {
+		lua_pushstring(L, "hangup");
+		result = FALSE;
+	}
+
+	if (cond & G_IO_IN)
+		lua_pushstring(L, "input");
+
+	if (lua_pcall(L, 1, 0, 0) != 0)
+    	g_warning("error running Handle callback for %s event: %s",
+    			lua_tostring(L, -2),
+    			lua_tostring(L, -1));
+    
+	return result;
 }/*}}}*/
 /* }}} */
 
@@ -172,11 +126,10 @@ static int handle_create(LuaState *L, GIOChannel *channel, int callback)
 	g_io_channel_set_buffered(h->channel, FALSE);
 	g_io_channel_set_flags(h->channel, G_IO_FLAG_NONBLOCK, NULL);
 	if (g_io_channel_get_flags(h->channel) & G_IO_FLAG_IS_READABLE)
-		h->tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
+		h->in_tag = g_io_add_watch(h->channel, G_IO_IN | G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, h);
 	else
-		h->tag = g_io_add_watch(h->channel, G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_event, h);
+		h->in_tag = g_io_add_watch(h->channel, G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, h);
 	h->closed = FALSE;
-	h->alive  = TRUE;
 	return 1;
 }
 static void each_g_string(GString *msg, UNUSED gpointer data)
@@ -193,7 +146,6 @@ static int Handle_new(LuaState *L)/*{{{*/
 	GIOChannel *channel  = g_io_channel_unix_new(fd);
 	return handle_create(L, channel, callback);
 }/*}}}*/
-
 static int Handle_open(LuaState *L)/*{{{*/
 {
 	const char *path = luaL_checkstring(L, 2);
@@ -205,57 +157,87 @@ static int Handle_open(LuaState *L)/*{{{*/
 	if (channel) {
 		return handle_create(L, channel, callback);
 	} else {
-		lua_pushnil(L);
 		moon_pusherror(L, error);
 		g_error_free(error);
-		return 2;
+		return lua_error(L);
 	}
 }/*}}}*/
-
 static int Handle_write(LuaState *L)/*{{{*/
 {
-	Handle *h       = moon_checkclass(L, "Handle", 1);
+	Handle *h = moon_checkclass(L, "Handle", 1);
+	if (h->closed)
+		luaL_error(L, "Cannot read from closed handle!");
 
 	if (g_io_channel_get_flags(h->channel) & G_IO_FLAG_IS_WRITEABLE) {
-		if (h->alive && !h->closed) {
-			const char *str = luaL_checkstring(L, 2);
-			if (g_queue_is_empty(h->queue))
-				h->out_tag = g_io_add_watch(h->channel, G_IO_OUT, on_out_event, h);
-			g_queue_push_tail(h->queue, g_string_new(str));
-		}
+		const char *str = luaL_checkstring(L, 2);
+		if (g_queue_is_empty(h->queue))
+			h->out_tag = g_io_add_watch(h->channel, G_IO_OUT, on_output, h);
+		g_queue_push_tail(h->queue, g_string_new(str));
 	} else {
 		return luaL_error(L, "Cannot write to read-only Handle");
 	}
 
 	return 0;
 }/*}}}*/
+static int Handle_read(LuaState *L)/*{{{*/
+{
+	Handle *h = moon_checkclass(L, "Handle", 1);
+	guint blocksize = luaL_optint(L, 2, 512);
 
+	if (h->closed)
+		luaL_error(L, "Cannot read from closed handle!");
+
+	GError *err = NULL;
+	gchar *str  = g_new0(gchar, blocksize);
+	gsize len   = 0;
+	GIOStatus status = g_io_channel_read_chars(h->channel, str, blocksize - 1, &len, &err);
+
+	switch (status) {
+		case G_IO_STATUS_NORMAL:
+			lua_pushlstring(L, str, len);
+			break;
+		case G_IO_STATUS_AGAIN:
+			break;
+		case G_IO_STATUS_EOF:
+			lua_pushnil(L);
+			break;
+		case G_IO_STATUS_ERROR:
+			g_assert(err != NULL);
+			moon_pusherror(L, err);
+			g_error_free(err);
+			g_free(str);
+			return lua_error(L);
+	}
+	g_free(str);
+	return 1;
+}/*}}}*/
 static int Handle_is_idle(LuaState *L)/*{{{*/
 {
 	Handle *h = moon_checkclass(L, "Handle", 1); 
+	if (h->closed)
+		luaL_error(L, "Cannot read from closed handle!");
+
 	lua_pushboolean(L, g_queue_is_empty(h->queue));
 	return 1;
 }/*}}}*/
-
 static int Handle_close(LuaState *L)/*{{{*/
 {
 	Handle *h = moon_checkclass(L, "Handle", 1);
 
 	if (h->closed) return 0;
 
-	moon_unref(L, h->callback);
 	if (!g_queue_is_empty(h->queue))
 		g_source_remove(h->out_tag);
+	if (h->in_tag > 0)
+		g_source_remove(h->in_tag);
+	moon_unref(L, h->callback);
 	g_queue_foreach(h->queue, (GFunc)each_g_string, NULL);
 	g_queue_free(h->queue);
-	if (h->tag > 0)
-		g_source_remove(h->tag);
 	g_io_channel_shutdown(h->channel, TRUE, NULL);
 	g_io_channel_unref(h->channel);
 	h->closed = TRUE;
 	return 0;
 }/*}}}*/
-
 static int Handle_tostring(LuaState *L)/*{{{*/
 {
 	char buff[32];
@@ -267,11 +249,12 @@ static int Handle_tostring(LuaState *L)/*{{{*/
 
 /* Boilerplate {{{ */
 static const LuaLReg Handle_methods[] = {
-	{"new",   Handle_new},
-	{"open",  Handle_open},
-	{"write", Handle_write},
+	{"new",     Handle_new},
+	{"open",    Handle_open},
+	{"write",   Handle_write},
+	{"read",    Handle_read},
 	{"is_idle", Handle_is_idle},
-	{"close", Handle_close},
+	{"close",   Handle_close},
 	{0, 0}
 };
 
