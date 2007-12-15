@@ -273,9 +273,7 @@ static int Buffer_print(LuaState *L)/*{{{*/
 	const char *text = luaL_checkstring(L, 2);
 
 	if (!g_utf8_validate(text, -1, NULL)) {
-		lua_pushnil(L);
-		lua_pushfstring(L, "Buffer:print - UTF8 validation failed.");
-		return 2;
+		return luaL_error(L, "Buffer:print - UTF8 validation failed.");
 	}
 	do_print(b, text);
 	lua_pushboolean(L, 1);

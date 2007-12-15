@@ -159,13 +159,11 @@ static int Entry_set(LuaState *L)
 		e->curs_off = e->bufused;
 		e->view_off = 0;
 		e->buffer = buffer;
-		lua_pushboolean(L, TRUE);
-		return 1;
+		return 0;
 	} else {
-		lua_pushnil(L);
 		lua_pushfstring(L, "Entry:set() - UCS4 conversion failed: %s", error->message);
 		g_error_free(error);
-		return 2;
+		return lua_error(L);
 	}
 }
 
