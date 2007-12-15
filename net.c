@@ -17,80 +17,134 @@
 #define NET_ERROR_SYS g_quark_from_string("NetErrorSys")
 
 /* {{{ Globals */
-static GThreadPool *net_pool; /// Receives NetRequests (from net_connect()), sends NetResponses.
+static GThreadPool *net_pool; /// Receives NetRequests (from net_connect()), sends NetResponse.
 static GAsyncQueue *net_queue; /// Queue which holds NetResponse structures.
 static GSource     *net_source; /// Connects net_queue to the GMainLoop.
 static gboolean    net_is_initialized = FALSE;
 /* }}} */
 
 /* {{{ Structures and typedefs */
+typedef struct addrinfo AddrInfo;
+
 typedef enum {
 	NET_CONNECT,
-	NET_ERROR,
-} NetType;
+	NET_LISTEN,
+} NetRequestType;
 
-typedef struct addrinfo AddrInfo;
 typedef struct {
 	LuaState *L;
+	NetRequestType type;
 	char *hostname;
 	char *service;
 	int callback;
 } NetRequest;
 
+typedef enum {
+	NET_FD,
+	NET_ERROR,
+} NetResponseType;
+
 typedef struct {
 	NetRequest *req;
-	NetType type;
+	NetResponseType type;
 	union {
 		int fd;
 		GError *error;
-	} data;
+	} variant;
 } NetResponse;
+
 /* }}} */
 
 /* {{{ Worker functions */
-static AddrInfo dns_hints = {
-	.ai_family   = AF_UNSPEC,
-	.ai_socktype = SOCK_STREAM,
-	.ai_protocol = IPPROTO_TCP,
-};
+static NetResponse *net_pool_connect(NetRequest *req, AddrInfo *result)
+{
+	NetResponse *resp = g_new(NetResponse, 1);
+	AddrInfo *rp = NULL;
+	int my_errno = 0;
+	int fd = -1;
 
-static void net_pool_worker(NetRequest *req, gpointer data)
+	resp->req = req;
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		fd = socket(rp->ai_family, rp->ai_socktype, 
+				rp->ai_protocol);
+        if (fd == -1)
+            continue;
+        if (connect(fd, rp->ai_addr, rp->ai_addrlen) != -1)
+        	break; /* Success */
+        my_errno = errno;
+        close(fd);
+    }
+
+	if (rp && fd != -1) {
+		resp->type    = NET_FD;
+		resp->variant.fd = fd;
+	} else {
+		resp->type       = NET_ERROR;
+		resp->variant.error = g_error_new_literal(NET_ERROR_SYS, my_errno, g_strerror(my_errno));
+	}
+
+	return resp;
+}
+
+static NetResponse *net_pool_listen(NetRequest *req, AddrInfo *result)
+{
+	NetResponse *resp = g_new(NetResponse, 1);
+	AddrInfo *rp = NULL;
+	int my_errno = 0;
+	int fd = -1;
+
+	resp->req = req;
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		fd = socket(rp->ai_family, rp->ai_socktype, 
+				rp->ai_protocol);
+        if (fd == -1)
+            continue;
+        if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0 && listen(fd, 5) == 0)
+        	break; /* Success */
+        my_errno = errno;
+        close(fd);
+    }
+
+	if (rp && fd != -1) {
+		resp->type    = NET_FD;
+		resp->variant.fd = fd;
+	} else {
+		resp->type       = NET_ERROR;
+		resp->variant.error = g_error_new_literal(NET_ERROR_SYS, my_errno, g_strerror(my_errno));
+	}
+
+	return resp;
+}
+
+static void net_pool_worker(NetRequest *req, gpointer data)/*{{{*/
 {
 	g_assert(req);
 	g_assert(data == NULL);
 
-	NetResponse *resp = g_new(NetResponse, 1);
-	resp->req = req;
-	
+	AddrInfo dns_hints = {
+		.ai_family   = AF_UNSPEC,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = IPPROTO_TCP,
+		.ai_flags    = req->type == NET_LISTEN ? AI_PASSIVE : 0,
+	};
+	NetResponse *resp = NULL;	
 	AddrInfo *result;
 	errno = 0;
 	int error = getaddrinfo(req->hostname, req->service, &dns_hints, &result);
+	
 	if (error == 0) {
-		AddrInfo *rp = NULL;
-		int my_errno = 0;
-		int fd = -1;
-		for (rp = result; rp != NULL; rp = rp->ai_next) {
-			fd = socket(rp->ai_family, rp->ai_socktype, 
-					rp->ai_protocol);
-        	if (fd == -1)
-            	continue;
-        	if (connect(fd, rp->ai_addr, rp->ai_addrlen) != -1)
-        		break; /* Success */
-        	my_errno = errno;
-        	close(fd);
-        }
-
-		if (rp && fd != -1) {
-			resp->type    = NET_CONNECT;
-			resp->data.fd = fd;
-		} else {
-			resp->type       = NET_ERROR;
-			resp->data.error = g_error_new_literal(NET_ERROR_SYS, my_errno, g_strerror(my_errno));
+		switch (req->type) {
+			case NET_CONNECT:
+				resp = net_pool_connect(req, result);
+				break;
+			case NET_LISTEN:
+				resp = net_pool_listen(req, result);
+				break;
 		}
 	} else {
 		/* FIXME: Some say gai_strerror is not thread safe. */
 		resp->type       = NET_ERROR;
-		resp->data.error = g_error_new_literal(NET_ERROR_DNS, error, gai_strerror(error));
+		resp->variant.error = g_error_new_literal(NET_ERROR_DNS, error, gai_strerror(error));
 	}
 
 	if (result && error == 0)
@@ -98,9 +152,9 @@ static void net_pool_worker(NetRequest *req, gpointer data)
 
 	g_async_queue_push(net_queue, resp);
 	g_main_context_wakeup(NULL);
-}
+}/*}}}*/
 
-static gboolean net_source_worker(NetResponse *resp)
+static gboolean net_source_worker(NetResponse *resp)/*{{{*/
 {
 	g_assert(resp);
 	LuaState *L = resp->req->L;
@@ -109,16 +163,16 @@ static gboolean net_source_worker(NetResponse *resp)
 
 	moon_pushref(L, callback);
 	switch (resp->type) {
-		case NET_CONNECT:
+		case NET_FD:
 		{
-			int fd = resp->data.fd;
+			int fd = resp->variant.fd;
 			nargs = 1;
 			lua_pushinteger(L, fd);
 			break;
 		}
 		case NET_ERROR:
 		{
-			GError *err = resp->data.error;
+			GError *err = resp->variant.error;
 			nargs = 2;
 			lua_pushnil(L);
 			moon_pusherror(L, err);
@@ -128,7 +182,8 @@ static gboolean net_source_worker(NetResponse *resp)
 		default: g_assert_not_reached();
 	}
     if (lua_pcall(L, nargs, 0, 0) != 0)
-    	g_warning("error running net.connect function with %d args: %s",
+    	g_warning("error running net.%s function with %d args: %s",
+    			resp->req->type == NET_CONNECT ? "connect" : "listen",
     			nargs,
     			lua_tostring(L, -1));
 
@@ -138,7 +193,8 @@ static gboolean net_source_worker(NetResponse *resp)
 	g_free(resp->req);
 	g_free(resp);
  	return TRUE;
-}
+}/*}}}*/
+
 /* }}} */
 
 /* {{{ GSource boilerplate */
@@ -172,7 +228,7 @@ static GSourceFuncs net_source_functions = {//{{{
 
 /* {{{ Lua stuff */
 
-static int net_connect(LuaState *L)
+static int net_connect(LuaState *L)/*{{{*/
 {
 	g_assert(net_pool && net_queue && net_source);
 	const char *hostname = luaL_checkstring(L, 1);
@@ -180,6 +236,7 @@ static int net_connect(LuaState *L)
 	int callback         = moon_ref(L, 3);
 
 	NetRequest *req = g_new(NetRequest, 1);// freed in net_source_worker.
+	req->type       = NET_CONNECT;
 	req->hostname   = g_strdup(hostname);  // freed in net_source_worker.
 	req->service    = g_strdup(service);   // freed in net_source_worker.
 	req->L          = L;
@@ -187,10 +244,31 @@ static int net_connect(LuaState *L)
 
 	g_thread_pool_push(net_pool, req, NULL);
 	return 0;
-}
+}/*}}}*/
+
+static int net_listen(LuaState *L)/*{{{*/
+{
+	g_assert(net_pool && net_queue && net_source);
+	const char *hostname = luaL_optstring(L, 1, NULL);
+	const char *service  = lua_tostring(L, 2);
+	int callback         = moon_ref(L, 3);
+
+	NetRequest *req = g_new(NetRequest, 1);// freed in net_source_worker.
+	req->type       = NET_LISTEN;
+	if (req->hostname)
+		req->hostname   = g_strdup(hostname);  // freed in net_source_worker.
+
+	req->service    = g_strdup(service);   // freed in net_source_worker.
+	req->L          = L;
+	req->callback   = callback;
+
+	g_thread_pool_push(net_pool, req, NULL);
+	return 0;
+}/*}}}*/
 
 static LuaLReg functions[] = {
 	{ "connect", net_connect },
+	{ "listen", net_listen },
 	{0, 0},
 };
 
@@ -207,6 +285,5 @@ int luaopen_net(LuaState *L)
 	luaL_register(L, "net", functions);
 	return 1;
 }
-
 
 /* }}} */ 
