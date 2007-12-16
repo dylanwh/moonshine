@@ -1,6 +1,3 @@
-/* XXX: The file should be refactored, I'm pretty sure the Handle->alive field
- * is not really needed, which would simplify the event handlers greatly. */
-
 #include "moon.h"
 #include "config.h"
 #include <string.h>
@@ -25,7 +22,6 @@ typedef struct {
  * f("error", "write", error)  -- called when there was an error writing data. 
  * f("error", "hangup")        -- for G_IO_HUP
  * f("error", "wtf")           -- for G_IO_ERR or G_IO_NVAL */
-
 
 /* {{{ Event Handlers */
 static gboolean on_output(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
@@ -119,7 +115,7 @@ static gboolean on_input(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*
 /* }}} */
 
 /* Utility Functions {{{ */
-static int handle_create(LuaState *L, GIOChannel *channel, int callback)
+static int handle_create(LuaState *L, GIOChannel *channel, int callback)/*{{{*/
 {
 	Handle *h = moon_newclass(L, "Handle", sizeof(Handle));
 	h->L = L;
@@ -135,11 +131,11 @@ static int handle_create(LuaState *L, GIOChannel *channel, int callback)
 		h->in_tag = g_io_add_watch(h->channel, G_IO_ERR | G_IO_HUP | G_IO_NVAL, on_input, h);
 	h->closed = FALSE;
 	return 1;
-}
-static void each_g_string(GString *msg, UNUSED gpointer data)
+}/*}}}*/
+static void each_g_string(GString *msg, UNUSED gpointer data)/*{{{*/
 {
 	g_string_free(msg, TRUE);
-}
+}/*}}}*/
 /* }}} */
 
 /* Methods {{{ */
@@ -215,6 +211,18 @@ static int Handle_read(LuaState *L)/*{{{*/
 	g_free(str);
 	return 1;
 }/*}}}*/
+static int Handle_seek(LuaState *L)/*{{{*/
+{
+	Handle *h = moon_checkclass(L, "Handle", 1);
+	int pos = luaL_optint(L, 2, 0);
+	GError *error = NULL;
+
+	if (h->closed)
+		luaL_error(L, "Cannot read from closed handle!");
+
+	g_io_channel_seek_position(h->channel, pos, G_SEEK_SET, &error);
+	return 0;
+}/*}}}*/
 static int Handle_is_idle(LuaState *L)/*{{{*/
 {
 	Handle *h = moon_checkclass(L, "Handle", 1); 
@@ -222,6 +230,16 @@ static int Handle_is_idle(LuaState *L)/*{{{*/
 		luaL_error(L, "Cannot read from closed handle!");
 
 	lua_pushboolean(L, g_queue_is_empty(h->queue));
+	return 1;
+}/*}}}*/
+static int Handle_get_fd(LuaState *L)/*{{{*/
+{
+	Handle *h = moon_checkclass(L, "Handle", 1);
+
+	if (h->closed)
+		luaL_error(L, "Cannot read from closed handle!");
+
+	lua_pushinteger(L, g_io_channel_unix_get_fd(h->channel));
 	return 1;
 }/*}}}*/
 static int Handle_close(LuaState *L)/*{{{*/
@@ -257,7 +275,9 @@ static const LuaLReg Handle_methods[] = {
 	{"open",    Handle_open},
 	{"write",   Handle_write},
 	{"read",    Handle_read},
+	{"seek",    Handle_seek},
 	{"is_idle", Handle_is_idle},
+	{"get_fd",  Handle_get_fd},
 	{"close",   Handle_close},
 	{0, 0}
 };
