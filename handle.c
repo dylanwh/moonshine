@@ -20,12 +20,12 @@ typedef struct {
 /* }}} */
 
 /* Events that we need to call the callback on:
- * f("input")
- * f("invalid")
- * f("hangup")
- * f("idle")
- * f("error", nil)
- * f("error", error) */
+ * f("input")                  -- called when there is data to read.
+ * f("idle")                   -- called when there is not any data to write.
+ * f("error", "write", error)  -- called when there was an error writing data. 
+ * f("error", "hangup")        -- for G_IO_HUP
+ * f("error", "wtf")           -- for G_IO_ERR or G_IO_NVAL */
+
 
 /* {{{ Event Handlers */
 static gboolean on_output(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
@@ -38,9 +38,11 @@ static gboolean on_output(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{
 		LuaState *L = h->L;
 		moon_pushref(L, h->callback);
 		lua_pushstring(L, "idle");
-		if (lua_pcall(L, 1, 0, 0) != 0)
+		if (lua_pcall(L, 1, 0, 0) != 0) {
 			g_warning("error running Handle callback for empty event: %s",
 					lua_tostring(L, -1));
+			lua_pop(L, 1);
+		}
 		return FALSE;
 	} else {
 		GError *err = NULL;
@@ -68,11 +70,14 @@ static gboolean on_output(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{
 				g_assert(err != NULL);
 				moon_pushref(L, h->callback);
 				lua_pushstring(L, "error");
+				lua_pushstring(L, "write");
 				moon_pusherror(L, err);
 				g_error_free(err);
-    			if (lua_pcall(L, 2, 0, 0) != 0)
+    			if (lua_pcall(L, 3, 0, 0) != 0) {
     				g_warning("error running Handle callback on G_IO_STATUS_ERROR during write: %s",
     						lua_tostring(L, -1));
+    				lua_pop(L, 1);
+    			}
 				return FALSE;
 				break;
 		}
@@ -87,17 +92,14 @@ static gboolean on_input(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*
 
 	moon_pushref(L, h->callback);
 
-	if (cond & G_IO_NVAL) {
-		lua_pushstring(L, "invalid");
-		result = FALSE;
-	}
-
-	if (cond & G_IO_ERR) {
+	if (cond & G_IO_ERR || cond & G_IO_NVAL) {
 		lua_pushstring(L, "error");
+		lua_pushstring(L, "wtf");
 		result = FALSE;
 	}
 
 	if (cond & G_IO_HUP) {
+		lua_pushstring(L, "error");
 		lua_pushstring(L, "hangup");
 		result = FALSE;
 	}
@@ -105,11 +107,13 @@ static gboolean on_input(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*
 	if (cond & G_IO_IN)
 		lua_pushstring(L, "input");
 
-	if (lua_pcall(L, 1, 0, 0) != 0)
-    	g_warning("error running Handle callback for %s event: %s",
-    			lua_tostring(L, -2),
+	if (lua_pcall(L, result ? 1 : 2, 0, 0) != 0) {
+    	g_warning("error running Handle callback: %s",
     			lua_tostring(L, -1));
-    
+    	lua_pop(L, 1);
+    }
+
+
 	return result;
 }/*}}}*/
 /* }}} */

@@ -181,11 +181,13 @@ static gboolean net_source_worker(NetResponse *resp)/*{{{*/
 		}
 		default: g_assert_not_reached();
 	}
-    if (lua_pcall(L, nargs, 0, 0) != 0)
+    if (lua_pcall(L, nargs, 0, 0) != 0) {
     	g_warning("error running net.%s function with %d args: %s",
     			resp->req->type == NET_CONNECT ? "connect" : "listen",
     			nargs,
     			lua_tostring(L, -1));
+    	lua_pop(L, 1);
+    }
 
 	g_free(resp->req->hostname);
 	g_free(resp->req->service);

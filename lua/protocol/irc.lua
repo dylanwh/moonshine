@@ -73,21 +73,25 @@ function IRC:on_connect(fd, err)
 end
 
 function IRC:on_event(event, ...)
-	if event == 'read' then
-		for line in self.reader:read(...) do
-			line = line:gsub("\r$", "")
-			local msg = ircsplit(line)
-			self:irc_event(msg)
+	if event == 'input' then
+		local str = self.handle:read()
+		if str then
+			for line in self.reader:read(str) do
+				line = line:gsub("\r$", "")
+				local msg = ircsplit(line)
+				self:irc_event(msg)
+			end
+		else
+			screen:debug("eof")
+			self:disconnect()
 		end
-	elseif event == 'eof' then
-		screen:debug("eof")
-		self:disconnect()
-	elseif event == 'hup' then
-		screen:debug("hup")
-		self:disconnect()
 	elseif event == 'error' then
-		local err = ...
-		screen:debug("error: %1[%2]: %3", err.domain, err.code, err.message)
+		local errtype, err = ...
+		if errtype == 'write' then
+			screen:debug("write error: %1[%2]: %3", err.domain, err.code, err.message)
+		else
+			screen:debug("error: %1", errtype)
+		end
 		self:disconnect()
 	end
 end
@@ -183,13 +187,14 @@ function IRC:PRIVMSG(msg)
 	local name, text = msg[1], msg[2]
 	local ctcp = string.match(text, "^\001(.+)\001$")
 	if ctcp then
-		kind, text = string.match(ctcp, "^([A-Z]+) ?(.+)$")
+		kind, text = string.match(ctcp, "^([A-Z]+) ?(.-)$")
+		screen:debug("CTCP: %1 (%2)", kind, text)
 	end
 	if kind == "ACTION" then
 		kind = "do"
 	elseif kind == "VERSION" then
 		kind = nil
-		self:send('PRIVMSG %s :\001VERSION Moonshine %s\001', user, VERSION)
+		self:send('NOTICE %s :\001VERSION Moonshine %s\001', user, VERSION)
 	end
 
     text = stripcolors(text)

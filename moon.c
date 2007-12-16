@@ -52,6 +52,7 @@ gboolean moon_call(LuaState *L, const char *name, const char *sig, ...)
     	rv = FALSE;
     	g_warning("error running function `%s': %s",
     			name, lua_tostring(L, -1));
+    	lua_pop(L, 1);
     }
     va_end(vl);
     return rv;
