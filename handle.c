@@ -1,7 +1,5 @@
 #include "moon.h"
 #include "config.h"
-#include <string.h>
-#include <fcntl.h>
 
 /* Handle structure {{{ */
 typedef struct {
@@ -15,13 +13,6 @@ typedef struct {
 	gboolean closed;
 } Handle;
 /* }}} */
-
-/* Events that we need to call the callback on:
- * f("input")                  -- called when there is data to read.
- * f("idle")                   -- called when there is not any data to write.
- * f("error", "write", error)  -- called when there was an error writing data. 
- * f("error", "hangup")        -- for G_IO_HUP
- * f("error", "wtf")           -- for G_IO_ERR or G_IO_NVAL */
 
 /* {{{ Event Handlers */
 static gboolean on_output(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{*/
@@ -136,9 +127,21 @@ static void each_g_string(GString *msg, UNUSED gpointer data)/*{{{*/
 {
 	g_string_free(msg, TRUE);
 }/*}}}*/
+static Handle *check_handle(LuaState *L, int i)/*{{{*/
+{
+	Handle *h = moon_checkclass(L, "Handle", i);
+	if (h->closed) luaL_error(L, "Cannot use closed Handle!");
+	return h;
+}/*}}}*/
 /* }}} */
 
 /* Methods {{{ */
+/* {{{ Events that we need to call the callback on:
+ * f("input")                  -- called when there is data to read.
+ * f("idle")                   -- called when there is not any data to write.
+ * f("error", "write", error)  -- called when there was an error writing data. 
+ * f("error", "hangup")        -- for G_IO_HUP
+ * f("error", "wtf")           -- for G_IO_ERR or G_IO_NVAL }}} */
 static int Handle_new(LuaState *L)/*{{{*/
 {
 	int fd       = luaL_checkinteger(L, 2);
@@ -164,9 +167,7 @@ static int Handle_open(LuaState *L)/*{{{*/
 }/*}}}*/
 static int Handle_write(LuaState *L)/*{{{*/
 {
-	Handle *h = moon_checkclass(L, "Handle", 1);
-	if (h->closed)
-		luaL_error(L, "Cannot read from closed handle!");
+	Handle *h = check_handle(L, 1);
 
 	if (g_io_channel_get_flags(h->channel) & G_IO_FLAG_IS_WRITEABLE) {
 		const char *str = luaL_checkstring(L, 2);
@@ -181,12 +182,8 @@ static int Handle_write(LuaState *L)/*{{{*/
 }/*}}}*/
 static int Handle_read(LuaState *L)/*{{{*/
 {
-	Handle *h = moon_checkclass(L, "Handle", 1);
+	Handle *h = check_handle(L, 1);
 	guint blocksize = luaL_optint(L, 2, 512);
-
-	if (h->closed)
-		luaL_error(L, "Cannot read from closed handle!");
-
 	GError *err = NULL;
 	gchar *str  = g_new0(gchar, blocksize);
 	gsize len   = 0;
@@ -202,7 +199,6 @@ static int Handle_read(LuaState *L)/*{{{*/
 			lua_pushnil(L);
 			break;
 		case G_IO_STATUS_ERROR:
-			g_assert(err != NULL);
 			moon_pusherror(L, err);
 			g_error_free(err);
 			g_free(str);
@@ -213,39 +209,36 @@ static int Handle_read(LuaState *L)/*{{{*/
 }/*}}}*/
 static int Handle_seek(LuaState *L)/*{{{*/
 {
-	Handle *h = moon_checkclass(L, "Handle", 1);
+	Handle *h = check_handle(L, 1);
 	int pos = luaL_optint(L, 2, 0);
 	GError *error = NULL;
 
-	if (h->closed)
-		luaL_error(L, "Cannot read from closed handle!");
+	if (!(g_io_channel_get_flags(h->channel) & G_IO_FLAG_IS_SEEKABLE))
+		return luaL_error(L, "Handle does not support seeking");
 
-	g_io_channel_seek_position(h->channel, pos, G_SEEK_SET, &error);
+	GIOStatus status = g_io_channel_seek_position(h->channel, pos, G_SEEK_SET, &error);
+
+	if (status != G_IO_STATUS_NORMAL)
+		return luaL_error(L, "Could not seek on handle");
+
 	return 0;
 }/*}}}*/
 static int Handle_is_idle(LuaState *L)/*{{{*/
 {
-	Handle *h = moon_checkclass(L, "Handle", 1); 
-	if (h->closed)
-		luaL_error(L, "Cannot read from closed handle!");
-
+	Handle *h = check_handle(L, 1);
 	lua_pushboolean(L, g_queue_is_empty(h->queue));
 	return 1;
 }/*}}}*/
 static int Handle_get_fd(LuaState *L)/*{{{*/
 {
-	Handle *h = moon_checkclass(L, "Handle", 1);
-
-	if (h->closed)
-		luaL_error(L, "Cannot read from closed handle!");
-
+	Handle *h = check_handle(L, 1);
 	lua_pushinteger(L, g_io_channel_unix_get_fd(h->channel));
 	return 1;
 }/*}}}*/
 static int Handle_close(LuaState *L)/*{{{*/
 {
 	Handle *h = moon_checkclass(L, "Handle", 1);
-
+	
 	if (h->closed) return 0;
 
 	if (!g_queue_is_empty(h->queue))

@@ -12,8 +12,8 @@ end
 
 function make_tag(hostname)
 	assert(type(hostname) == 'string', "hostname must be a string!")
+	local hostname = split("%.", hostname)
 	local tag
-	local hostname = split(".", hostname)
 	if is_not_tag(hostname[1]) then
 		tag = hostname[2]
 	else
@@ -96,7 +96,7 @@ function connect_hook(protocol)
 		room = protocol:magic_table(),
 		user = protocol:magic_table(),
 	}
-	screen:debug("Connecting to %1 (%2:%3)", protocol.tag, protocol.hostname, protocol.port)
+	screen:debug("Connecting to '%1' (%2:%3)", protocol.tag, protocol.hostname, protocol.port)
 end
 
 function connected_hook(protocol)

@@ -48,9 +48,8 @@ function IRC:connect(hostname, port)
 	self.hostname = hostname or self.hostname
 	self.port     = port     or self.port
 
-	net.connect(self.hostname, self.port, self:callback "on_connect")
-
 	connect_hook(self)
+	net.connect(self.hostname, self.port, self:callback "on_connect")
 end
 
 function IRC:disconnect()
