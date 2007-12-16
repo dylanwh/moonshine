@@ -1,19 +1,10 @@
 #include "moon.h"
-
 typedef struct {
 	GString *buffer;
 	gboolean iterating;
 } LineReader;
 
-static int LineReader_new(LuaState *L)
-{
-	LineReader *lr = moon_newclass(L, "LineReader", sizeof(LineReader));
-	lr->buffer = g_string_new("");
-	return 1;
-}
-
-
-static int readiter(LuaState *L)
+static int linesiter(LuaState *L)
 {
 	LineReader *lr = moon_checkclass(L, "LineReader", 1);
 	GString *buffer = lr->buffer;
@@ -29,7 +20,14 @@ static int readiter(LuaState *L)
 	return 0;
 }
 
-static int LineReader_read(LuaState *L)
+static int LineReader_new(LuaState *L)
+{
+	LineReader *lr = moon_newclass(L, "LineReader", sizeof(LineReader));
+	lr->buffer = g_string_new("");
+	return 1;
+}
+
+static int LineReader_lines(LuaState *L)
 {
 	LineReader *lr  = moon_checkclass(L, "LineReader", 1);
 	const char *str = luaL_checkstring(L, 2);
@@ -37,7 +35,7 @@ static int LineReader_read(LuaState *L)
 
 	GString *buffer = lr->buffer;
 	g_string_append_len(buffer, str, len);
-	lua_pushcfunction(L, readiter);
+	lua_pushcfunction(L, linesiter);
 	lua_pushvalue(L, 1);
 	return 2;
 }
@@ -59,7 +57,7 @@ static int LineReader_tostring(LuaState *L)
 
 static const LuaLReg LineReader_methods[] = {
 	{"new", LineReader_new},
-	{"read", LineReader_read},
+	{"lines", LineReader_lines},
 	{0, 0}
 };
 

@@ -175,7 +175,7 @@ static gboolean net_source_worker(NetResponse *resp)/*{{{*/
 			GError *err = resp->variant.error;
 			nargs = 2;
 			lua_pushnil(L);
-			moon_pusherror(L, err);
+			lua_pushstring(L, err->message);
 			g_error_free(err);
 			break;
 		}

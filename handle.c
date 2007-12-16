@@ -58,7 +58,7 @@ static gboolean on_output(GIOChannel *ch, GIOCondition cond, gpointer data)/*{{{
 				moon_pushref(L, h->callback);
 				lua_pushstring(L, "error");
 				lua_pushstring(L, "write");
-				moon_pusherror(L, err);
+				lua_pushstring(L, err->message);
 				g_error_free(err);
     			if (lua_pcall(L, 3, 0, 0) != 0) {
     				g_warning("error running Handle callback on G_IO_STATUS_ERROR during write: %s",
@@ -137,11 +137,11 @@ static Handle *check_handle(LuaState *L, int i)/*{{{*/
 
 /* Methods {{{ */
 /* {{{ Events that we need to call the callback on:
- * f("input")                  -- called when there is data to read.
- * f("idle")                   -- called when there is not any data to write.
- * f("error", "write", error)  -- called when there was an error writing data. 
- * f("error", "hangup")        -- for G_IO_HUP
- * f("error", "wtf")           -- for G_IO_ERR or G_IO_NVAL }}} */
+ * f("input")                        -- called when there is data to read.
+ * f("idle")                         -- called when there is not any data to write.
+ * f("error", "write", err->message) -- called when there was an error writing data. 
+ * f("error", "hangup")              -- for G_IO_HUP
+ * f("error", "wtf")                 -- for G_IO_ERR or G_IO_NVAL }}} */
 static int Handle_new(LuaState *L)/*{{{*/
 {
 	int fd       = luaL_checkinteger(L, 2);
@@ -160,7 +160,7 @@ static int Handle_open(LuaState *L)/*{{{*/
 	if (channel) {
 		return handle_create(L, channel, callback);
 	} else {
-		moon_pusherror(L, error);
+		lua_pushstring(L, error->message);
 		g_error_free(error);
 		return lua_error(L);
 	}
@@ -199,7 +199,7 @@ static int Handle_read(LuaState *L)/*{{{*/
 			lua_pushnil(L);
 			break;
 		case G_IO_STATUS_ERROR:
-			moon_pusherror(L, err);
+			lua_pushstring(L, err->message);
 			g_error_free(err);
 			g_free(str);
 			return lua_error(L);

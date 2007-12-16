@@ -2,53 +2,20 @@ require "protocol"
 
 Haver = Protocol:clone { __type   = 'Haver' }
 
-function Haver:connect(hostname, port)
-	self.hostname = hostname      or self.hostname
-	self.port     = port          or self.port
-	net.connect(self.hostname, self.port, self:callback "on_connect")
-	connect_hook(self)
-end
-
-function Haver:disconnect()
-	if self.handle then
-		self.handle:close()
-		self.handle = nil
-	end
-	disconnect_hook(self)
-end
-
-function Haver:on_connect(fd, err)
+function Haver:on_connect(fd, ...)
+	Protocol.on_connect(self, fd, ...)
 	if fd then
-		connected_hook(self, fd)
-		self.reader = LineReader:new()
-		self.handle = Handle:new(fd, self:callback "on_event")
 		self:send("HAVER", "Moonshine/"..VERSION)
-	else
-		connection_error_hook(err)
 	end
 end
 
-function Haver:on_event(event, ...)
-	if event == 'read' then
-		for line in self.reader:read(...) do
-			local msg = split("\t", line:gsub("\r$", ""))
-			local cmd = table.remove(msg, 1):upper()
-			if self[cmd] then
-				self[cmd](self, unpack(msg))
-			else
-				screen:debug("Unknown command: %1 (%2)", cmd, join(", ", msg))
-			end
-		end
-	elseif event == 'eof' then
-		screen:debug("eof")
-		self:disconnect()
-	elseif event == 'hup' then
-		screen:debug("hup")
-		self:disconnect()
-	elseif event == 'error' then
-		local err = ...
-		screen:debug("error: %1[%2]: %3", err.domain, err.code, err.message)
-		self:disconnect()
+function Haver:on_readline(line)
+	local msg = split("\t", line:gsub("\r$", ""))
+	local cmd = table.remove(msg, 1):upper()
+	if self[cmd] then
+		self[cmd](self, unpack(msg))
+	else
+		screen:debug("Unknown command: %1 (%2)", cmd, join(", ", msg))
 	end
 end
 

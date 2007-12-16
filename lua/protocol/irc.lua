@@ -44,58 +44,16 @@ function IRC:canonize_name(type, name)
 	return name
 end
 
-function IRC:connect(hostname, port)
-	self.hostname = hostname or self.hostname
-	self.port     = port     or self.port
-
-	connect_hook(self)
-	net.connect(self.hostname, self.port, self:callback "on_connect")
-end
-
-function IRC:disconnect()
-	if self.handle then
-		self.handle:close()
-	end
-	disconnect_hook(self)
-end
-
-function IRC:on_connect(fd, err)
+function IRC:on_connect(fd, ...)
+	Protocol.on_connect(self, fd, ...)
 	if fd then
-		connected_hook(self, fd)
-		self.reader = LineReader:new()
-		self.handle = Handle:new(fd, self:callback "on_event")
 		self:send("NICK %s", self.username)
 		self:send('USER %s hostname servername :%s', self.username, 'Moonshine User')
-	else
-		connection_error_hook(err)
 	end
 end
 
-function IRC:on_event(event, ...)
-	if event == 'input' then
-		local str = self.handle:read()
-		if str then
-			for line in self.reader:read(str) do
-				line = line:gsub("\r$", "")
-				local msg = ircsplit(line)
-				self:irc_event(msg)
-			end
-		else
-			screen:debug("eof")
-			self:disconnect()
-		end
-	elseif event == 'error' then
-		local errtype, err = ...
-		if errtype == 'write' then
-			screen:debug("write error: %1[%2]: %3", err.domain, err.code, err.message)
-		else
-			screen:debug("error: %1", errtype)
-		end
-		self:disconnect()
-	end
-end
-
-function IRC:irc_event(msg)
+function IRC:on_readline(line)
+	local msg = ircsplit(line:gsub("\r$", ""))
 	local cmd = string.upper(msg.cmd)
 	if self[cmd] and type(self[cmd]) == 'function' then
 		self[cmd](self, msg)
