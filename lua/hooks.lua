@@ -82,6 +82,7 @@ function log_hook(domain, level, message)
 end
 
 function resize_hook()
+	screen.window.bufferdirty = true
 	screen:render()
 end
 
