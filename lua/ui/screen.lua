@@ -241,11 +241,3 @@ function Screen:history_forward()
 	self:render()
 end
 
-function Screen:complete()
-	local line = self.entry:get()
-	local prefix, matches = self.cmp:complete(line)
-	if prefix then
-		self.entry:set(prefix)
-		self:render()
-	end
-end

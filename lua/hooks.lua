@@ -50,7 +50,7 @@ function init_hook()
 	bind("^C",      quit)
 	bind("^L",      term.force_refresh)
 	bind("^M",      screen:callback ("send_line", eval))
-	bind("\t",      screen:callback "complete")
+	bind("\t",      function () end)
 
 	for i = 1, 9 do
 		bind("^[" .. i, screen:callback("view", i))
