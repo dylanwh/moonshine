@@ -12,7 +12,7 @@ FIND_PACKAGE(GTHREAD REQUIRED)
 
 SET(CORE_FILES term.c moon.c util.c main.c signal.c)
 SET(PACKAGE_FILES buffer.c entry.c statusbar.c
-	linereader.c completion.c term-lua.c handle.c net.c)
+	linereader.c term-lua.c handle.c net.c)
 
 SET(MOONSHINE_RUNTIME "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua" CACHE PATH "Path to install lua runtime files")
 
