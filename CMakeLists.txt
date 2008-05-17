@@ -10,41 +10,14 @@ FIND_PACKAGE(SLANG REQUIRED)
 FIND_PACKAGE(GLIB REQUIRED)
 FIND_PACKAGE(GTHREAD REQUIRED)
 
-SET(CORE_FILES term.c moon.c util.c main.c signal.c)
-SET(PACKAGE_FILES buffer.c entry.c statusbar.c
-	linereader.c term-lua.c handle.c net.c)
+INCLUDE_DIRECTORIES(BEFORE
+	${SLANG_INCLUDE_DIR}
+	${LUA_INCLUDE_DIR}
+	${GLIB_INCLUDE_DIRS}
+	${GTHREAD_INCLUDE_DIRS} 
+	${SRC})
 
-SET(MOONSHINE_RUNTIME "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua" CACHE PATH "Path to install lua runtime files")
-
-INCLUDE_DIRECTORIES(BEFORE ${SLANG_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${BIN}
-	${GLIB_INCLUDE_DIRS} ${GTHREAD_INCLUDE_DIRS} ${SRC})	
-
-## Now we add these the the flags passed to the C compiler.
-ADD_DEFINITIONS("-std=gnu99 -Wall -Winline -I${BIN}")
+ADD_DEFINITIONS("-std=gnu99 -Wall -Winline")
 ADD_DEFINITIONS("${GLIB_DEFINITIONS} ${GTHREAD_DEFINITIONS}")
 
-## Build rules.
-
-ADD_EXECUTABLE(moonshine ${CORE_FILES} ${PACKAGE_FILES})
-
-TARGET_LINK_LIBRARIES(moonshine ${GLIB_LIBRARY} ${SLANG_LIBRARY}
-	${LUA_LIBRARY} ${GTHREAD_LIBRARY})
-
-SET_SOURCE_FILES_PROPERTIES(moon.c PROPERTIES OBJECT_DEPENDS "${BIN}/moonlibs.h")
-
-ADD_CUSTOM_COMMAND(OUTPUT ${BIN}/moonlibs.h
-	COMMAND perl ${SRC}/cmake/moonlibs.pl 
-	${PACKAGE_FILES} > ${BIN}/moonlibs.h
-	MAIN_DEPENDENCY ${SRC}/cmake/moonlibs.pl DEPENDS ${PACKAGE_FILES}
-	WORKING_DIRECTORY ${SRC})
-
-CONFIGURE_FILE(${SRC}/config.h.in
-	${BIN}/config.h
-	@ONLY IMMEDIATE)
-
-# Install rules
-
-INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)
-INSTALL(DIRECTORY lua/ DESTINATION share/moonshine/)
-
-INCLUDE(CheckRequired)
+ADD_SUBDIRECTORY(core)

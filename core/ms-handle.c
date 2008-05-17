@@ -1,5 +1,5 @@
 #include "moon.h"
-#include "config.h"
+#include "moonshine/config.h"
 
 /* Handle structure {{{ */
 typedef struct {

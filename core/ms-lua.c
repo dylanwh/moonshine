@@ -2,7 +2,7 @@
 #include "moonshine/ms-lua.h"
 #include <glib.h>
 
-MSLuaRef *ms_lua_ref(lua_State *L, int idx)
+MSLuaRef *ms_lua_ref(LuaState *L, int idx)
 {
 	MSLuaRef *R = NULL;
 	lua_pushvalue(L, idx);
@@ -12,7 +12,7 @@ MSLuaRef *ms_lua_ref(lua_State *L, int idx)
 	R = g_new0(MSLuaRef, 1);
 	R->L = L;
 	R->ref = ref;
-	return ref;
+	return R;
 }
 
 void ms_lua_pushref(MSLuaRef *R)
@@ -25,14 +25,14 @@ void ms_lua_unref(MSLuaRef *R)
 	luaL_unref(R->L, LUA_REGISTRYINDEX, R->ref);
 }
 
-gpointer ms_lua_toclass(lua_State *L, const char *class, int index)
+gpointer ms_lua_toclass(LuaState *L, const char *class, int index)
 {
   	gpointer p = lua_touserdata(L, index);
   	if (p == NULL) luaL_typerror(L, index, class);
   	return p;
 }
 
-gpointer ms_lua_checkclass(lua_State *L, const char *class, int index)
+gpointer ms_lua_checkclass(LuaState *L, const char *class, int index)
 {
   	luaL_checktype(L, index, LUA_TUSERDATA);
   	gpointer p = luaL_checkudata(L, index, class);
@@ -40,7 +40,7 @@ gpointer ms_lua_checkclass(lua_State *L, const char *class, int index)
   	return p;
 }
 
-gpointer ms_lua_newclass(lua_State *L, const char *class, gsize size)
+gpointer ms_lua_newclass(LuaState *L, const char *class, gsize size)
 {
   	gpointer p = lua_newuserdata(L, size);
   	luaL_getmetatable(L, class);
@@ -49,7 +49,7 @@ gpointer ms_lua_newclass(lua_State *L, const char *class, gsize size)
 }
 
 
-void ms_lua_class_register(lua_State *L, const char *class, const luaL_reg methods[], const luaL_reg meta[])
+void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[])
 {
   	luaL_register(L, class, methods); /* create methods table, add it to the
   										 globals */
