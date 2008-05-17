@@ -1,10 +1,9 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 : */
-#include "term.h"
-#include "config.h" // for BUFFER_COLOR_(MIN|MAX)_UCS
+#include "moonshine/ms-term.h"
 #include <string.h>
 #include <stdlib.h>
 
-static GHashTable *term_colors = NULL;
+static GHashTable *ms_term_colors = NULL;
 static int last_id = 0;
 
 static unsigned char utf8_length[256] =
@@ -19,14 +18,15 @@ static unsigned char utf8_length[256] =
   3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1   /* - 255 */
 };
 
-static void term_reset(void)
+static void ms_term_reset(void)
 {
 	SLsmg_reset_smg ();
 	SLang_reset_tty ();
-	g_hash_table_destroy(term_colors);
+	if (ms_term_colors)
+		g_hash_table_destroy(ms_term_colors);
 }
 
-void term_init(void)
+void ms_term_init(void)
 {
 	SLtt_get_terminfo ();
 	g_assert(SLang_init_tty (0, 1, 1) != -1);
@@ -36,21 +36,20 @@ void term_init(void)
 	SLsmg_utf8_enable(-1);
 	SLsmg_refresh();
 	/* SLsmg_embedded_escape_mode(1); */
-
-	atexit(term_reset);
+	atexit(ms_term_reset);
 }
 
-void term_init_colors(void)
+void ms_term_init_colors(void)
 {
-	term_colors = g_hash_table_new(g_str_hash, g_str_equal);
-	g_hash_table_insert(term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
-	g_hash_table_insert(term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
-	term_color_set("debug", "red", "black");
-	term_color_set("topic", "lightgray", "blue");
-	term_color_set("notice", "yellow", "black");	
+	ms_term_colors = g_hash_table_new(g_str_hash, g_str_equal);
+	g_hash_table_insert(ms_term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
+	g_hash_table_insert(ms_term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
+	ms_term_color_set("debug", "red", "black");
+	ms_term_color_set("topic", "lightgray", "blue");
+	ms_term_color_set("notice", "yellow", "black");	
 }
 
-gunichar term_getkey(void)
+gunichar ms_term_getkey(void)
 {
 	int ch = SLang_getkey();
 	g_assert(ch <= 256);
@@ -71,49 +70,49 @@ gunichar term_getkey(void)
 	return g_utf8_get_char(buf);
 }
 
-void term_resize(void)
+void ms_term_resize(void)
 {
 	SLtt_get_screen_size();
 	SLsmg_reinit_smg();
 }
 
 /* Color related functions */
-void term_color_set(const char *name, const char *fg, const char *bg)
+void ms_term_color_set(const char *name, const char *fg, const char *bg)
 {
-	g_assert(term_colors);
-	int *color_idp = g_hash_table_lookup(term_colors, name);
+	g_return_if_fail(ms_term_colors);
+	int *color_idp = g_hash_table_lookup(ms_term_colors, name);
 	if (color_idp) {
 		int color_id = GPOINTER_TO_INT(color_idp);
 		SLtt_set_color( color_id, (char *)name, (char *) fg, (char *)bg);
 	} else {
 		last_id += 1;
-		g_hash_table_insert(term_colors, g_strdup(name), GINT_TO_POINTER(last_id));
+		g_hash_table_insert(ms_term_colors, g_strdup(name), GINT_TO_POINTER(last_id));
 		SLtt_set_color( last_id, (char *)name, (char *) fg, (char *)bg);
 	}
 }
 
-void term_color_use(const char *name)
+void ms_term_color_use(const char *name)
 {
-	SLsmg_set_color(term_color_to_id(name));
+	SLsmg_set_color(ms_term_color_to_id(name));
 }
 
-int term_color_to_id(const char *name) {
-	g_assert(term_colors);
-	gpointer color = g_hash_table_lookup(term_colors, name);
+int ms_term_color_to_id(const char *name) {
+	g_return_val_if_fail(ms_term_colors, 0);
+	gpointer color = g_hash_table_lookup(ms_term_colors, name);
 	if (color)
 		return GPOINTER_TO_INT(color);
 	else
 		return 0;
 }
 
-const char *term_color_to_utf8(const char *name)
+const char *ms_term_color_to_utf8(const char *name)
 {
 	/* Per g_unichar_to_utf8 docs we need 6 chars *
 	 * here; add one for NUL					  */
 	static char buf[7];
 
-	gunichar ch = BUFFER_COLOR_MIN_UCS + term_color_to_id(name);
-	g_assert(ch <= BUFFER_COLOR_MAX_UCS); /* XXX: handle this failure better... */
+	gunichar ch = MS_TERM_COLOR_MIN_UCS + ms_term_color_to_id(name);
+	g_assert(ch <= MS_TERM_COLOR_MAX_UCS); /* XXX: handle this failure better... */
 
 	gint len = g_unichar_to_utf8(ch, buf);
 	g_assert(len < sizeof buf);
