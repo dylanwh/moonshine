@@ -1,7 +1,8 @@
-#define MOONSHINE_RUNTIME "@MOONSHINE_RUNTIME@"
+#define MOONSHINE_VERSION "@MOONSHINE_VERSION@"
+#define MOONSHINE_RUNTIME "@MOONSHINE_RUNTIME@/?.so;" LUA_PATH_DEFAULT
+#define MOONSHINE_MODULES "@MOONSHINE_MODULES@/?.so;" LUA_CPATH_DEFAULT
 
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 
 #define CONST   __attribute__((const)) 
 
-#define VERSION "p2+"
