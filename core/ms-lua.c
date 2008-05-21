@@ -48,20 +48,53 @@ gpointer ms_lua_newclass(LuaState *L, const char *class, gsize size)
   	return p;
 }
 
+static void stackDump (lua_State *L) {
+      int i;
+      int top = lua_gettop(L);
+      for (i = 1; i <= top; i++) {  /* repeat for each level */
+        int t = lua_type(L, i);
+        switch (t) {
+    
+          case LUA_TSTRING:  /* strings */
+            printf("['%s']", lua_tostring(L, i));
+            break;
+    
+          case LUA_TBOOLEAN:  /* booleans */
+            printf(lua_toboolean(L, i) ? "true" : "false");
+            break;
+    
+          case LUA_TNUMBER:  /* numbers */
+            printf("[%g]", lua_tonumber(L, i));
+            break; 
+          default:  /* other values */
+            printf("[%s]", lua_typename(L, t));
+            break;
+    
+        }
+        printf("  ");  /* put a separator */
+      }
+      printf("\n");  /* end the listing */
+    }
+
 
 void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[])
 {
   	luaL_register(L, class, methods); /* create methods table, add it to the
   										 globals */
+
   	luaL_newmetatable(L, class);      /* create metatable for Buffer, and add it
   										 to the Lua registry */
-  	luaL_openlib(L, 0, meta, 0);      /* fill metatable */
-  	lua_pushliteral(L, "__index");
+  	luaL_register(L, NULL, meta);      /* fill metatable */
+
+  	lua_pushliteral(L, "__index");    /* Set meta.__index = methods */
   	lua_pushvalue(L, -3);             /* dup methods table*/
   	lua_rawset(L, -3);                /* metatable.__index = methods */
+
   	lua_pushliteral(L, "__metatable");
   	lua_pushvalue(L, -3);             /* dup methods table*/
-  	lua_rawset(L, -3);                /* hide metatable: metatable.__metatable =
-  										 methods */
-  	lua_pop(L, 2);                    /* drop metatable and methods */
+  	lua_rawset(L, -3);                /* hide metatable: metatable.__metatable = methods */
+ 
+ 	lua_remove(L, -1);
 }
+
+

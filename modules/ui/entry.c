@@ -1,9 +1,10 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#include "term.h"
-#include "util.h"
-#include "moon.h"
-
+#include <moonshine/ms-term.h>
+#include <moonshine/ms-util.h>
+#include <moonshine/ms-lua.h>
 #include <string.h>
+
+#define CLASS "moonshine.ui.entry"
 
 typedef struct {
 	gchar *prompt;
@@ -15,10 +16,11 @@ typedef struct {
 	int dirty; /* True if the entry has been modified since the last set(), clear(), or clear_dirty() */
 } Entry;
 
-static int Entry_new(LuaState *L)
+static int entry_new(LuaState *L)
 {
+	g_print("running\n");
 	const char *prompt = luaL_optstring(L, 2, "[moonshine] ");
-	Entry *e = moon_newclass(L, "Entry", sizeof(Entry));
+	Entry *e = ms_lua_newclass(L, CLASS, sizeof(Entry));
 	e->buffer = NULL;
 	e->bufsize = e->bufused = 0;
 	e->view_off = e->curs_off = 0;
@@ -27,9 +29,9 @@ static int Entry_new(LuaState *L)
 	return 1;
 }
 
-static int Entry_set_prompt(LuaState *L)
+static int entry_set_prompt(LuaState *L)
 {
-	Entry *e           = moon_checkclass(L, "Entry", 1);
+	Entry *e           = ms_lua_checkclass(L, CLASS, 1);
 	const char *prompt = luaL_checkstring(L, 2);
 	g_free(e->prompt);
 	e->prompt = g_strdup(prompt);
@@ -58,18 +60,18 @@ inline static int keypress(Entry *e, gunichar uc)
 	return 0;
 }
 
-static int Entry_keypress(LuaState *L)
+static int entry_keypress(LuaState *L)
 {
-	Entry *e        = moon_checkclass(L, "Entry", 1);
+	Entry *e        = ms_lua_checkclass(L, CLASS, 1);
 	const char *key = luaL_checkstring(L, 2);
 	gunichar uc = g_utf8_get_char(key);
 
 	return keypress(e, uc);
 }
 
-static int Entry_move(LuaState *L)
+static int entry_move(LuaState *L)
 {
-	Entry *e   = moon_checkclass(L, "Entry", 1);
+	Entry *e   = ms_lua_checkclass(L, CLASS, 1);
 	int offset = luaL_checkinteger(L, 2);  
 
 	if (offset == 0) return 0;
@@ -88,9 +90,9 @@ static int Entry_move(LuaState *L)
 	return 0;
 }
 
-static int Entry_move_to(LuaState *L)
+static int entry_move_to(LuaState *L)
 {
-	Entry *e     = moon_checkclass(L, "Entry", 1);
+	Entry *e     = ms_lua_checkclass(L, CLASS, 1);
 	int absolute = luaL_checkinteger(L, 2);  
 
 	if (!e->bufused) return 0;
@@ -106,9 +108,9 @@ static int Entry_move_to(LuaState *L)
 	return 0;
 }
 
-static int Entry_get(LuaState *L)
+static int entry_get(LuaState *L)
 {
-	Entry *e  = moon_checkclass(L, "Entry", 1);
+	Entry *e  = ms_lua_checkclass(L, CLASS, 1);
 	if (e->bufused == 0) {
 		lua_pushstring(L, "");
 		return 1;
@@ -119,8 +121,6 @@ static int Entry_get(LuaState *L)
 		return 1;
 	}
 }
-
-
 
 inline static int clear(Entry *e)
 {
@@ -137,15 +137,15 @@ inline static int clear(Entry *e)
 	return 0;
 }
 
-static int Entry_clear(LuaState *L)
+static int entry_clear(LuaState *L)
 {
-	Entry *e  = moon_checkclass(L, "Entry", 1);
+	Entry *e  = ms_lua_checkclass(L, CLASS, 1);
 	return clear(e);
 }
 
-static int Entry_set(LuaState *L)
+static int entry_set(LuaState *L)
 {
-	Entry *e         = moon_checkclass(L, "Entry", 1);
+	Entry *e         = ms_lua_checkclass(L, CLASS, 1);
 	const char *line = luaL_checkstring(L, 2);
 
 	e->dirty = 0;
@@ -195,7 +195,7 @@ static guint center_view(Entry *e, guint width) {
 
 		if (left_w < right_w || right_i == e->bufused) {
 			gunichar ch = e->buffer[left_i];
-			int cwidth = unicode_charwidth(ch);
+			int cwidth = ms_unicode_charwidth(ch);
 			if (cwidth + total_width > width)
 				break;
 			left_i--;
@@ -204,7 +204,7 @@ static guint center_view(Entry *e, guint width) {
 				right_w += cwidth;
 		} else {
 			gunichar ch = e->buffer[right_i];
-			int cwidth = unicode_charwidth(ch);
+			int cwidth = ms_unicode_charwidth(ch);
 			if (cwidth + total_width > width)
 				break;
 			right_i++;
@@ -218,10 +218,10 @@ static int try_render(Entry *e, guint lmargin) {
 	guint idx = e->view_off;
 	guint width = 0;
 	int curs_pos = -1;
-	const guint max_width = TERM_COLS - lmargin;
+	const guint max_width = MS_TERM_COLS - lmargin;
 
-	term_goto(TERM_LINES - 1, lmargin);
-	term_erase_eol();
+	ms_term_goto(MS_TERM_LINES - 1, lmargin);
+	ms_term_erase_eol();
 
 	if (e->view_off >= e->bufused && e->view_off != 0)
 		return -1;
@@ -230,11 +230,11 @@ static int try_render(Entry *e, guint lmargin) {
 		if (idx == e->curs_off)
 			curs_pos = width + lmargin;
 		gunichar ch = e->buffer[idx];
-		guint charwidth = unicode_charwidth(ch);
+		guint charwidth = ms_unicode_charwidth(ch);
 		if (charwidth + width > max_width)
 			break;
 		width += charwidth;
-		term_write_gunichar(ch);
+		ms_term_write_gunichar(ch);
 		idx++;
 	}
 
@@ -242,22 +242,22 @@ static int try_render(Entry *e, guint lmargin) {
 		curs_pos = width + lmargin;
 
 	if (curs_pos != -1)
-		term_goto(TERM_LINES - 1, curs_pos);
+		ms_term_goto(MS_TERM_LINES - 1, curs_pos);
 	return curs_pos;
 }
 
-static int Entry_render(LuaState *L)
+static int entry_render(LuaState *L)
 {
-	Entry *e      = moon_checkclass(L, "Entry", 1);
+	Entry *e      = ms_lua_checkclass(L, CLASS, 1);
 	g_assert(e->curs_off <= e->bufused);
 
 	/* FIXME: This assumes 1 byte == 1 char */
 	guint lmargin = strlen(e->prompt);
-	term_goto(TERM_LINES - 1, 0);
-	term_write_chars(e->prompt);
+	ms_term_goto(MS_TERM_LINES - 1, 0);
+	ms_term_write_chars(e->prompt);
 
 	if (try_render(e, lmargin) == -1) {
-		e->view_off = center_view(e, TERM_COLS - lmargin);
+		e->view_off = center_view(e, MS_TERM_COLS - lmargin);
 		if (try_render(e, lmargin) == -1) {
 			/* This should never happen, but just in case. */
 			if (e->curs_off == 0) {
@@ -294,9 +294,9 @@ static void erase_region(Entry *e, int start, int end)
 	return;
 }
 
-static int Entry_erase(LuaState *L)
+static int entry_erase(LuaState *L)
 {
-	Entry *e  = moon_checkclass(L, "Entry", 1);
+	Entry *e  = ms_lua_checkclass(L, CLASS, 1);
 	int count = luaL_checkinteger(L, 2);
 	if (!count)
 		return 0;
@@ -319,17 +319,17 @@ static int Entry_erase(LuaState *L)
 	return 0;
 }
 
-static int Entry_gc(LuaState *L)
+static int entry_gc(LuaState *L)
 {
-	Entry *e = moon_toclass(L, "Entry", 1);
+	Entry *e = ms_lua_toclass(L, CLASS, 1);
 	g_free(e->buffer); /* XXX: is glib's free safe with NULL? */
 	return 0;
 }
 
-static int Entry_tostring(LuaState *L)
+static int entry_tostring(LuaState *L)
 {
 	char buff[32];
-  	sprintf(buff, "%p", moon_toclass(L, "Entry", 1));
+  	sprintf(buff, "%p", ms_lua_toclass(L, CLASS, 1));
   	lua_pushfstring(L, "Entry (%s)", buff);
   	return 1;
 }
@@ -355,56 +355,57 @@ static inline int wordlen_dir(Entry *e, int direction) {
 	return count;
 }
 
-static int Entry_wordlen(LuaState *L)
+static int entry_wordlen(LuaState *L)
 {
-	Entry *e  = moon_checkclass(L, "Entry", 1);
+	Entry *e  = ms_lua_checkclass(L, CLASS, 1);
 
 	lua_pushinteger(L, wordlen_dir(e, -1));
 	lua_pushinteger(L, wordlen_dir(e, 1));
 	return 2;
 }
 
-static int Entry_clear_dirty(LuaState *L)
+static int entry_clear_dirty(LuaState *L)
 {
-	Entry *e  = moon_checkclass(L, "Entry", 1);
+	Entry *e  = ms_lua_checkclass(L, CLASS, 1);
 
 	e->dirty = 0;
 	return 0;
 }
 
-static int Entry_is_dirty(LuaState *L)
+static int entry_is_dirty(LuaState *L)
 {
-	Entry *e  = moon_checkclass(L, "Entry", 1);
+	Entry *e  = ms_lua_checkclass(L, CLASS, 1);
 	
 	lua_pushboolean(L, e->dirty);
 	return 1;
 }
 
-static const LuaLReg Entry_methods[] = {
-	{"new", Entry_new},
-	{"keypress", Entry_keypress},
-	{"set_prompt", Entry_set_prompt},
-	{"move", Entry_move},
-	{"move_to", Entry_move_to},
-	{"get", Entry_get},
-	{"set", Entry_set},
-	{"clear", Entry_clear},
-	{"erase", Entry_erase},
-	{"render", Entry_render},
-	{"wordlen", Entry_wordlen},
-	{"clear_dirty", Entry_clear_dirty},
-	{"is_dirty", Entry_is_dirty},
+static const LuaLReg entry_methods[] = {
+	{"new", entry_new},
+	{"keypress", entry_keypress},
+	{"set_prompt", entry_set_prompt},
+	{"move", entry_move},
+	{"move_to", entry_move_to},
+	{"get", entry_get},
+	{"set", entry_set},
+	{"clear", entry_clear},
+	{"erase", entry_erase},
+	{"render", entry_render},
+	{"wordlen", entry_wordlen},
+	{"clear_dirty", entry_clear_dirty},
+	{"is_dirty", entry_is_dirty},
 	{0, 0}
 };
 
-static const LuaLReg Entry_meta[] = {
-	{"__gc", Entry_gc},
-	{"__tostring", Entry_tostring},
+static const LuaLReg entry_meta[] = {
+	{"__gc", entry_gc},
+	{"__tostring", entry_tostring},
 	{0, 0}
 };
 
-int luaopen_entry(LuaState *L)
+int luaopen_moonshine_ui_entry(LuaState *L)
 {
-	moon_class_register(L, "Entry", Entry_methods, Entry_meta);
+	ms_lua_class_register(L, CLASS, entry_methods, entry_meta);
+	g_print("loaded entry\n");
 	return 1;
 }

@@ -82,7 +82,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	plan_t *lines = NULL;
 
 	g_assert(bottom_row >= top_row);
-	term_goto(bottom_row, 0);
+	ms_term_goto(bottom_row, 0);
 
 	guint margin = 0;
 	guint color  = 0;
@@ -98,7 +98,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 		const char *seg_end   = line;
 		const char *last_word = line;
 		const char *next_line = NULL;
-		const guint max_width = TERM_COLS; 
+		const guint max_width = MS_TERM_COLS; 
 		guint cur_width       = thisline->margin;
 		guint next_color      = color;
 
@@ -106,20 +106,20 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 		gboolean advance_line = TRUE;
 		while (*seg_end) {
 			gunichar ch = g_utf8_get_char(seg_end);
-			if (ch == BUFFER_INDENT_MARK_UCS) {
+			if (ch == MS_TERM_INDENT_MARK_UCS) {
 				margin = cur_width;
 				advance_line = FALSE;
 				next_line = g_utf8_next_char(seg_end);
 				break;
 			}
-			if (ch >= BUFFER_COLOR_MIN_UCS && ch <= BUFFER_COLOR_MAX_UCS) {
+			if (ch >= MS_TERM_COLOR_MIN_UCS && ch <= MS_TERM_COLOR_MAX_UCS) {
 				temp_margin = cur_width;
-				next_color = ch - BUFFER_COLOR_MIN_UCS;
+				next_color = ch - MS_TERM_COLOR_MIN_UCS;
 				advance_line = FALSE;
 				next_line = g_utf8_next_char(seg_end);
 				break;
 			}
-			guint ch_len = unicode_charwidth(ch);
+			guint ch_len = ms_unicode_charwidth(ch);
 			if (cur_width + ch_len > max_width) {
 				/* This word extends beyond the current b.
 				 * Try to wrap in a way which doesn't break off this word. If
@@ -152,9 +152,9 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	}
 
 	while (lines && bottom_row >= top_row) {
-		term_goto(bottom_row, lines->margin);
-		term_color_use_id(lines->color);
-		term_write_chars_to((unsigned char *)lines->start, (unsigned char *)lines->end);
+		ms_term_goto(bottom_row, lines->margin);
+		ms_term_color_use_id(lines->color);
+		ms_term_write_chars_to((unsigned char *)lines->start, (unsigned char *)lines->end);
 
 		/* We want to make sure we advance at least once. So, the last line we
 		 * write, we don't change bottom_row; and then we subtract at the very
@@ -199,7 +199,7 @@ static int Buffer_new(LuaState *L)/*{{{*/
 {
 	guint histsize = luaL_optint(L, 2, 1024);
 	g_return_val_if_fail(histsize > 0, 0);
-	Buffer *b = moon_newclass(L, "Buffer", sizeof(Buffer));
+	Buffer *b = ms_lua_newclass(L, "Buffer", sizeof(Buffer));
 	b->head = b->view = b->tail = NULL;
 	b->histsize = histsize;
 	b->scrollback = b->scrollfwd = 0;
@@ -209,7 +209,7 @@ static int Buffer_new(LuaState *L)/*{{{*/
 
 static int Buffer_set_histsize(LuaState *L)/*{{{*/
 {
-	Buffer *b = moon_checkclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_checkclass(L, "Buffer", 1);
 	guint newsize = luaL_checkinteger(L, 2);
 	b->histsize = newsize;
 	purge(b);
@@ -218,22 +218,22 @@ static int Buffer_set_histsize(LuaState *L)/*{{{*/
 
 static int Buffer_get_histsize(LuaState *L)/*{{{*/
 {
-	Buffer *b = moon_checkclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_checkclass(L, "Buffer", 1);
 	lua_pushinteger(L, b->histsize);
 	return 1;
 }/*}}}*/
 
 static int Buffer_render(LuaState *L)/*{{{*/
 {
-	Buffer *b = moon_checkclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_checkclass(L, "Buffer", 1);
 	int top_row = luaL_checkinteger(L, 2);
 	int bottom_row = luaL_checkinteger(L, 3);
 
 	bufferline_t *ptr = b->view;
 
 	for (int i = top_row; i <= bottom_row; i++) {
-		term_goto(i, 0);
-		term_erase_eol();
+		ms_term_goto(i, 0);
+		ms_term_erase_eol();
 	}
 
 	while (ptr && bottom_row >= top_row) {
@@ -269,7 +269,7 @@ static void do_print(Buffer *b, const char *text)/*{{{*/
 
 static int Buffer_print(LuaState *L)/*{{{*/
 {
-	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
 	const char *text = luaL_checkstring(L, 2);
 
 	if (!g_utf8_validate(text, -1, NULL)) {
@@ -282,7 +282,7 @@ static int Buffer_print(LuaState *L)/*{{{*/
 
 static int Buffer_scroll(LuaState *L)/*{{{*/
 {
-	Buffer *b  = moon_checkclass(L, "Buffer", 1);
+	Buffer *b  = ms_lua_checkclass(L, "Buffer", 1);
 	int offset = luaL_checkinteger(L, 2);
 
 	if (offset > 0)
@@ -296,7 +296,7 @@ static int Buffer_scroll(LuaState *L)/*{{{*/
 
 static int Buffer_scroll_to(LuaState *L)/*{{{*/
 {
-	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
 	guint abs_offset = luaL_checkinteger(L, 2);
 
 	/* Scroll down to the bottom by twiddling pointers, then scroll up to the
@@ -312,7 +312,7 @@ static int Buffer_scroll_to(LuaState *L)/*{{{*/
 
 static int Buffer_get_current(LuaState *L)/*{{{*/
 {
-	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
 
 	if (b->view) {
 		lua_pushstring(L, b->view->text);
@@ -325,7 +325,7 @@ static int Buffer_get_current(LuaState *L)/*{{{*/
 
 static int Buffer_at_end(LuaState *L)/*{{{*/
 {
-	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
 
 	lua_pushboolean(L, b->tail == b->view);
 	return 1;
@@ -333,7 +333,7 @@ static int Buffer_at_end(LuaState *L)/*{{{*/
 
 static int Buffer_set_group_id(LuaState *L)/*{{{*/
 {
-	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
 	int gid			 = luaL_checkinteger(L, 2);
 
 	b->curgroup = gid;
@@ -342,7 +342,7 @@ static int Buffer_set_group_id(LuaState *L)/*{{{*/
 
 static int Buffer_clear_group_id(LuaState *L)/*{{{*/
 {
-	Buffer *b        = moon_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
 	int gid			 = luaL_checkinteger(L, 2);
 	
 	/* group clear operations are assumed to be uncommon, so we'll
@@ -381,7 +381,7 @@ static int Buffer_clear_group_id(LuaState *L)/*{{{*/
 
 static int Buffer_reprint(LuaState *L)/*{{{*/
 {
-	Buffer *b			= moon_checkclass(L, "Buffer", 1);
+	Buffer *b			= ms_lua_checkclass(L, "Buffer", 1);
 	luaL_checktype(L, 2, LUA_TFUNCTION);
 	int group			= luaL_checkinteger(L, 3);
 	int max				= luaL_checkinteger(L, 4);
@@ -454,7 +454,7 @@ static int Buffer_reprint(LuaState *L)/*{{{*/
 
 static int Buffer_clear_lines(LuaState *L)/*{{{*/
 {
-	Buffer *b		= moon_checkclass(L, "Buffer", 1);
+	Buffer *b		= ms_lua_checkclass(L, "Buffer", 1);
 	int count		= luaL_checkinteger(L, 2);
 	int realcount   = 0;
 
@@ -487,7 +487,7 @@ static int Buffer_clear_lines(LuaState *L)/*{{{*/
 /* {{{ Meta methods */
 static int Buffer_gc(LuaState *L)/*{{{*/
 {
-	Buffer *b = moon_toclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_toclass(L, "Buffer", 1);
 	for(bufferline_t *ptr = b->head; ptr;) {
 		bufferline_t *next = ptr->next;
 		g_free(ptr);
@@ -499,7 +499,7 @@ static int Buffer_gc(LuaState *L)/*{{{*/
 static int Buffer_tostring(LuaState *L)/*{{{*/
 {
 	char buff[32];
-  	sprintf(buff, "%p", moon_toclass(L, "Buffer", 1));
+  	sprintf(buff, "%p", ms_lua_toclass(L, "Buffer", 1));
   	lua_pushfstring(L, "Buffer (%s)", buff);
   	return 1;
 }/*}}}*/
@@ -530,6 +530,6 @@ static const LuaLReg Buffer_meta[] = {/*{{{*/
 
 int luaopen_buffer(LuaState *L)/*{{{*/
 {
-	moon_class_register(L, "Buffer", Buffer_methods, Buffer_meta);
+	ms_lua_class_register(L, "Buffer", Buffer_methods, Buffer_meta);
 	return 1;
 }/*}}}*/
