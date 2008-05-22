@@ -1,6 +1,6 @@
-#include "moon.h"
-#include "term.h"
-#include "config.h"
+#include <moonshine/config.h>
+#include <moonshine/ms-lua.h>
+#include <moonshine/ms-term>
 
 static int term_format(LuaState *L)/*{{{*/
 {
@@ -47,7 +47,7 @@ static int term_format(LuaState *L)/*{{{*/
 						gchar name[end - start + 1];
 						memcpy(name, start, sizeof name - 1);
 						name[sizeof name - 1] = '\0';
-						g_string_append(out, term_color_to_utf8(name));
+						g_string_append(out, ms_term_color_to_utf8(name));
 						p = end + 1;
 						break;
 					} else { goto unknown_esc; }
@@ -83,15 +83,15 @@ static int term_format_escape(LuaState *L)/*{{{*/
 	}
 	g_assert_not_reached();
 }/*}}}*/
-static int term_refresh_lua(LuaState *L)/*{{{*/
+static int term_refresh(LuaState *L)/*{{{*/
 {
-	term_refresh();
+	ms_term_refresh();
 	return 0;
 }/*}}}*/
 static int term_dimensions(LuaState *L)/*{{{*/
 {
-	lua_pushinteger(L, TERM_LINES);
-	lua_pushinteger(L, TERM_COLS);
+	lua_pushinteger(L, MS_TERM_LINES);
+	lua_pushinteger(L, MS_TERM_COLS);
 	return 2;
 }/*}}}*/
 static int term_defcolor(LuaState *L)/*{{{*/
@@ -99,7 +99,7 @@ static int term_defcolor(LuaState *L)/*{{{*/
 	const char *name = luaL_checkstring(L, 1);
 	const char *fg = luaL_checkstring(L, 2);
 	const char *bg = luaL_checkstring(L, 3);
-	term_color_set(name, fg, bg);
+	ms_term_color_set(name, fg, bg);
 	return 0;
 }/*}}}*/
 static int term_status(LuaState *L)/*{{{*/
@@ -111,8 +111,8 @@ static int term_status(LuaState *L)/*{{{*/
 }/*}}}*/
 static int term_force_refresh(LuaState *L)/*{{{*/
 {
-	term_resize();
-	moon_call(L, "resize_hook", "");
+	ms_term_resize();
+	ms_lua_call(L, "resize_hook", "");
 	return 0;
 }/*}}}*/
 

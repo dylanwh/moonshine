@@ -1,13 +1,12 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
-#include "term.h"
-#include "config.h"
-#include "moon.h"
-#include "util.h"
+#include <moonshine/config.h>
+#include <moonshine/ms-term.h>
+#include <moonshine/ms-lua.h>
+#include <moonshine/ms-util.h>
 
 #include <glib.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 typedef struct bufferline {
 	struct bufferline *prev, *next;
@@ -15,6 +14,7 @@ typedef struct bufferline {
 	char text[0];
 } bufferline_t;
 
+#define CLASS "moonshine.ui.buffer"
 /* {{{ Buffer structure */
 typedef struct {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
@@ -195,11 +195,11 @@ static void scroll_down(Buffer *b, guint offset) {
 /* }}} */
 
 /* {{{ Methods */
-static int Buffer_new(LuaState *L)/*{{{*/
+static int buffer_new(LuaState *L)/*{{{*/
 {
 	guint histsize = luaL_optint(L, 2, 1024);
 	g_return_val_if_fail(histsize > 0, 0);
-	Buffer *b = ms_lua_newclass(L, "Buffer", sizeof(Buffer));
+	Buffer *b = ms_lua_newclass(L, CLASS, sizeof(Buffer));
 	b->head = b->view = b->tail = NULL;
 	b->histsize = histsize;
 	b->scrollback = b->scrollfwd = 0;
@@ -207,25 +207,25 @@ static int Buffer_new(LuaState *L)/*{{{*/
 	return 1;
 }/*}}}*/
 
-static int Buffer_set_histsize(LuaState *L)/*{{{*/
+static int buffer_set_histsize(LuaState *L)/*{{{*/
 {
-	Buffer *b = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_checkclass(L, CLASS, 1);
 	guint newsize = luaL_checkinteger(L, 2);
 	b->histsize = newsize;
 	purge(b);
 	return 0;
 }/*}}}*/
 
-static int Buffer_get_histsize(LuaState *L)/*{{{*/
+static int buffer_get_histsize(LuaState *L)/*{{{*/
 {
-	Buffer *b = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_checkclass(L, CLASS, 1);
 	lua_pushinteger(L, b->histsize);
 	return 1;
 }/*}}}*/
 
-static int Buffer_render(LuaState *L)/*{{{*/
+static int buffer_render(LuaState *L)/*{{{*/
 {
-	Buffer *b = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_checkclass(L, CLASS, 1);
 	int top_row = luaL_checkinteger(L, 2);
 	int bottom_row = luaL_checkinteger(L, 3);
 
@@ -267,22 +267,22 @@ static void do_print(Buffer *b, const char *text)/*{{{*/
 	purge(b);
 }/*}}}*/
 
-static int Buffer_print(LuaState *L)/*{{{*/
+static int buffer_print(LuaState *L)/*{{{*/
 {
-	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, CLASS, 1);
 	const char *text = luaL_checkstring(L, 2);
 
 	if (!g_utf8_validate(text, -1, NULL)) {
-		return luaL_error(L, "Buffer:print - UTF8 validation failed.");
+		return luaL_error(L, CLASS ":print - UTF8 validation failed.");
 	}
 	do_print(b, text);
 	lua_pushboolean(L, 1);
 	return 1;
 }/*}}}*/
 
-static int Buffer_scroll(LuaState *L)/*{{{*/
+static int buffer_scroll(LuaState *L)/*{{{*/
 {
-	Buffer *b  = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b  = ms_lua_checkclass(L, CLASS, 1);
 	int offset = luaL_checkinteger(L, 2);
 
 	if (offset > 0)
@@ -294,9 +294,9 @@ static int Buffer_scroll(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static int Buffer_scroll_to(LuaState *L)/*{{{*/
+static int buffer_scroll_to(LuaState *L)/*{{{*/
 {
-	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, CLASS, 1);
 	guint abs_offset = luaL_checkinteger(L, 2);
 
 	/* Scroll down to the bottom by twiddling pointers, then scroll up to the
@@ -310,9 +310,9 @@ static int Buffer_scroll_to(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static int Buffer_get_current(LuaState *L)/*{{{*/
+static int buffer_get_current(LuaState *L)/*{{{*/
 {
-	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, CLASS, 1);
 
 	if (b->view) {
 		lua_pushstring(L, b->view->text);
@@ -323,26 +323,26 @@ static int Buffer_get_current(LuaState *L)/*{{{*/
 	}
 }/*}}}*/
 
-static int Buffer_at_end(LuaState *L)/*{{{*/
+static int buffer_at_end(LuaState *L)/*{{{*/
 {
-	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, CLASS, 1);
 
 	lua_pushboolean(L, b->tail == b->view);
 	return 1;
 }/*}}}*/
 
-static int Buffer_set_group_id(LuaState *L)/*{{{*/
+static int buffer_set_group_id(LuaState *L)/*{{{*/
 {
-	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, CLASS, 1);
 	int gid			 = luaL_checkinteger(L, 2);
 
 	b->curgroup = gid;
 	return 0;
 }/*}}}*/
 
-static int Buffer_clear_group_id(LuaState *L)/*{{{*/
+static int buffer_clear_group_id(LuaState *L)/*{{{*/
 {
-	Buffer *b        = ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b        = ms_lua_checkclass(L, CLASS, 1);
 	int gid			 = luaL_checkinteger(L, 2);
 	
 	/* group clear operations are assumed to be uncommon, so we'll
@@ -379,9 +379,9 @@ static int Buffer_clear_group_id(LuaState *L)/*{{{*/
 	return 1;
 }/*}}}*/
 
-static int Buffer_reprint(LuaState *L)/*{{{*/
+static int buffer_reprint(LuaState *L)/*{{{*/
 {
-	Buffer *b			= ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b			= ms_lua_checkclass(L, CLASS, 1);
 	luaL_checktype(L, 2, LUA_TFUNCTION);
 	int group			= luaL_checkinteger(L, 3);
 	int max				= luaL_checkinteger(L, 4);
@@ -452,9 +452,9 @@ static int Buffer_reprint(LuaState *L)/*{{{*/
 	return 1;
 }/*}}}*/
 
-static int Buffer_clear_lines(LuaState *L)/*{{{*/
+static int buffer_clear_lines(LuaState *L)/*{{{*/
 {
-	Buffer *b		= ms_lua_checkclass(L, "Buffer", 1);
+	Buffer *b		= ms_lua_checkclass(L, CLASS, 1);
 	int count		= luaL_checkinteger(L, 2);
 	int realcount   = 0;
 
@@ -485,9 +485,9 @@ static int Buffer_clear_lines(LuaState *L)/*{{{*/
 /* }}} */
 
 /* {{{ Meta methods */
-static int Buffer_gc(LuaState *L)/*{{{*/
+static int buffer_gc(LuaState *L)/*{{{*/
 {
-	Buffer *b = ms_lua_toclass(L, "Buffer", 1);
+	Buffer *b = ms_lua_toclass(L, CLASS, 1);
 	for(bufferline_t *ptr = b->head; ptr;) {
 		bufferline_t *next = ptr->next;
 		g_free(ptr);
@@ -496,40 +496,40 @@ static int Buffer_gc(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static int Buffer_tostring(LuaState *L)/*{{{*/
+static int buffer_tostring(LuaState *L)/*{{{*/
 {
 	char buff[32];
-  	sprintf(buff, "%p", ms_lua_toclass(L, "Buffer", 1));
+  	sprintf(buff, "%p", ms_lua_toclass(L, CLASS, 1));
   	lua_pushfstring(L, "Buffer (%s)", buff);
   	return 1;
 }/*}}}*/
 /* }}} */
 
-static const LuaLReg Buffer_methods[] = {/*{{{*/
-	{"new", Buffer_new},
-	{"set_histsize", Buffer_set_histsize},
-	{"get_histsize", Buffer_get_histsize},
-	{"get_current", Buffer_get_current},
-	{"render", Buffer_render},
-	{"print", Buffer_print},
-	{"scroll", Buffer_scroll},
-	{"scroll_to", Buffer_scroll_to},
-	{"at_end", Buffer_at_end},
-	{"set_group_id", Buffer_set_group_id},
-	{"clear_group_id", Buffer_clear_group_id},
-	{"reprint", Buffer_reprint},
-	{"clear_lines", Buffer_clear_lines},
+static const LuaLReg buffer_methods[] = {/*{{{*/
+	{"new", buffer_new},
+	{"set_histsize", buffer_set_histsize},
+	{"get_histsize", buffer_get_histsize},
+	{"get_current", buffer_get_current},
+	{"render", buffer_render},
+	{"print", buffer_print},
+	{"scroll", buffer_scroll},
+	{"scroll_to", buffer_scroll_to},
+	{"at_end", buffer_at_end},
+	{"set_group_id", buffer_set_group_id},
+	{"clear_group_id", buffer_clear_group_id},
+	{"reprint", buffer_reprint},
+	{"clear_lines", buffer_clear_lines},
 	{0, 0}
 };/*}}}*/
-static const LuaLReg Buffer_meta[] = {/*{{{*/
-	{"__gc", Buffer_gc},
-	{"__tostring", Buffer_tostring},
+static const LuaLReg buffer_meta[] = {/*{{{*/
+	{"__gc", buffer_gc},
+	{"__tostring", buffer_tostring},
 	{0, 0}
 };
 /*}}}*/
 
-int luaopen_buffer(LuaState *L)/*{{{*/
+int luaopen_moonshine_ui_buffer(LuaState *L)/*{{{*/
 {
-	ms_lua_class_register(L, "Buffer", Buffer_methods, Buffer_meta);
+	ms_lua_class_register(L, CLASS, buffer_methods, buffer_meta);
 	return 1;
 }/*}}}*/
