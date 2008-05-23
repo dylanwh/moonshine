@@ -1,6 +1,14 @@
-Object = { __type = 'Object' }
+local getmetatable = getmetatable
+local setmetatable = setmetatable
+local table        = table
+local unpack       = unpack
+local ipairs       = ipairs
 
-function Object:clone (obj)
+module "moonshine.object"
+
+__type = 'Object'
+
+function clone (self, obj)
 	obj = obj or {}
   	setmetatable(obj, self)
   	self.__index = self
@@ -10,11 +18,11 @@ function Object:clone (obj)
   	return obj
 end
 
-function Object:parent()
+function parent(self)
 	return getmetatable(self)
 end
 
-function Object:callback(name, ...)
+function callback(self, name, ...)
 	local args = {...}
 	return function (...)
 		if #args == 0 then

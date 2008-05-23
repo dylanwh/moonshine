@@ -1,5 +1,7 @@
-require "object"
 
+Entry  = require "moonshine.ui.entry"
+Buffer = require "moonshine.ui.buffer"
+Object = require "moonshine.object"
 Window = Object:clone { __type = 'Window' }
 
 function Window:init()
@@ -43,3 +45,5 @@ end
 function Window:activate()
 	self.bufferdirty = true
 end
+
+_G.moonshine.ui.window = Window

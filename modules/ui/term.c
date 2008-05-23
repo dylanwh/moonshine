@@ -1,6 +1,6 @@
 #include <moonshine/config.h>
 #include <moonshine/ms-lua.h>
-#include <moonshine/ms-term>
+#include <moonshine/ms-term.h>
 
 static int term_format(LuaState *L)/*{{{*/
 {
@@ -26,7 +26,7 @@ static int term_format(LuaState *L)/*{{{*/
 				p = nextesc + 2;
 				break;
 			case '|':
-				g_string_append(out, BUFFER_INDENT_MARK_UTF);
+				g_string_append(out, MS_TERM_INDENT_MARK_UTF);
 				p = nextesc + 2;
 				break;
 			case '1' ... '9':
@@ -112,14 +112,21 @@ static int term_status(LuaState *L)/*{{{*/
 static int term_force_refresh(LuaState *L)/*{{{*/
 {
 	ms_term_resize();
-	ms_lua_call(L, "resize_hook", "");
+	//ms_lua_call(L, "resize_hook", "");
 	return 0;
 }/*}}}*/
 
+static int term_setup(LuaState *L)
+{
+	ms_term_init();
+	return 0;
+}
+
 static LuaLReg functions[] = {
+	{"setup",  term_setup },
 	{"format", term_format },
 	{"format_escape", term_format_escape },
-	{"refresh", term_refresh_lua },
+	{"refresh", term_refresh },
 	{"dimensions", term_dimensions },
 	{"defcolor", term_defcolor },
 	{"status", term_status },
@@ -127,9 +134,9 @@ static LuaLReg functions[] = {
 	{ 0, 0 },
 };
 
-int luaopen_term(LuaState *L)
+int luaopen_moonshine_ui_term(LuaState *L)
 {
-	luaL_register(L, "term", functions);
+	luaL_register(L, "moonshine.ui.term", functions);
 	return 1;
 }
 
