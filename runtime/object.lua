@@ -24,17 +24,17 @@ end
 
 function callback(self, name, ...)
 	local args = {...}
-	return function (...)
-		if #args == 0 then
-			return self[name](self, ...)
-		elseif #args == 1 then
-			return self[name](self, args[1], ...)
-		elseif #args > 1 then
-			local nargs = { unpack(args) }
-			for i, v in ipairs { ... } do
-				table.insert(nargs, v)
+	if #args == 0 then
+		return function (...) self[name](self, ...) end
+	elseif #args == 1 then
+		return function (...) self[name](self, args[1], ...) end
+	else
+		return function (...)
+			local xs = { unpack(args) }
+			for _, x in ipairs { ... } do
+				table.insert(xs, x)
 			end
-			return self[name](self, unpack(nargs))
+			return self[name](self, unpack(xs))
 		end
 	end
 end

@@ -198,7 +198,6 @@ static void scroll_down(Buffer *b, guint offset) {
 static int buffer_new(LuaState *L)/*{{{*/
 {
 	guint histsize = luaL_optint(L, 2, 1024);
-	g_return_val_if_fail(histsize > 0, 0);
 	Buffer *b = ms_lua_newclass(L, CLASS, sizeof(Buffer));
 	b->head = b->view = b->tail = NULL;
 	b->histsize = histsize;

@@ -118,9 +118,12 @@ static int term_force_refresh(LuaState *L)/*{{{*/
 
 static int term_setup(LuaState *L)
 {
+	luaL_checktype(L, 1, LUA_TTABLE);
+	
 	ms_term_init();
 	return 0;
 }
+
 
 static LuaLReg functions[] = {
 	{"setup",  term_setup },
