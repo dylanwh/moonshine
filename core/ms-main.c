@@ -1,13 +1,60 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "moonshine/ms-lua.h"
+#include "moonshine/ms-signal.h"
 #include "moonshine/config.h"
+
+static void init_paths(LuaState *L);
+
 
 int main(int argc, char *argv[])
 {
+	GMainLoop *loop = g_main_loop_new(NULL, FALSE);
+	LuaState *L     = lua_open();
+	luaL_openlibs(L);
+
+	g_thread_init(NULL);
+	init_paths(L);
+	ms_signal_init();
+
+	lua_getglobal(L, "require");
+	lua_pushstring(L, "moonshine");
+	if(lua_pcall(L, 1, 0, 0) != 0) {
+		g_error("moonshine error in require 'moonshine': %s", lua_tostring(L, -1));
+	}
+
+	lua_getglobal(L, "main");
+	lua_checkstack(L, argc);
+	for (int i = 0; i < argc; i++) {
+		lua_pushstring(L, argv[i]);
+	}
+
+	if (lua_isfunction(L, 1)) {
+		if (lua_pcall(L, argc, 0, 0) != 0) {
+			g_error("moonshine error in main(): %s", lua_tostring(L, -1));
+		}
+	}
+
+	g_main_loop_run(loop);
+
+	lua_getglobal(L, "exit_hook");
+	if (lua_isfunction(L, -1)) {
+		if (lua_pcall(L, 0, 0, 0) != 0) {
+			g_error("moonshine error in END: %s", lua_tostring(L, -1));
+		}
+	}
+
+	lua_close(L);
+	g_main_loop_unref(loop);
+
+	exit(0);
+}
+
+
+static void init_paths(LuaState *L)
+{
 	const char *runtime = g_getenv("MOONSHINE_RUNTIME");
 	const char *modules = g_getenv("MOONSHINE_MODULES");
-	LuaState *L   = lua_open();
-	luaL_openlibs(L);
 
 	if (!runtime)
 		runtime = MOONSHINE_RUNTIME;
@@ -21,8 +68,4 @@ int main(int argc, char *argv[])
 	lua_pushstring(L, modules);
 	lua_setfield(L, -2, "cpath");
 	lua_pop(L, 1);
-
-	luaL_dofile(L, argv[1]);
-
-	return 0;
 }

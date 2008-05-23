@@ -14,9 +14,10 @@ static GHashTable *signals;
 typedef struct {
 	MSSignalFunc func;
 	gpointer data;
+	GDestroyNotify destroy;
 } MSSignalCallback;
 
-static gboolean on_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer p)
+static gboolean on_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer p)/*{{{*/
 {
 	int sig;
 	read(sigin, &sig, sizeof(sig));
@@ -24,14 +25,14 @@ static gboolean on_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer p
 	if (cb)
 		cb->func(sig, cb->data);
 	return TRUE;
-}
+}/*}}}*/
 
-static void on_signal(int sig)
+static void on_signal(int sig)/*{{{*/
 {
 	write(sigout, &sig, sizeof(sig));
-}
+}/*}}}*/
 
-void ms_signal_init(void)
+void ms_signal_init(void)/*{{{*/
 {
 	int fildes[2];
 	if (pipe(fildes) != 0)
@@ -44,9 +45,9 @@ void ms_signal_init(void)
 	g_io_channel_set_flags(channel, G_IO_FLAG_NONBLOCK, NULL);
 	signals   = g_hash_table_new(NULL, NULL);
 	g_io_add_watch(channel, G_IO_IN, on_input, NULL);
-}
+}/*}}}*/
 
-void ms_signal_catch(int signum, MSSignalFunc func, gpointer data)
+void ms_signal_catch(int sig, MSSignalFunc func, gpointer data, GDestroyNotify destroy)/*{{{*/
 {
 	/* Set up the structure to specify the new action. */
 	struct sigaction action;
@@ -57,7 +58,25 @@ void ms_signal_catch(int signum, MSSignalFunc func, gpointer data)
 	MSSignalCallback *callback = g_new(MSSignalCallback, 1);
 	callback->func = func;
 	callback->data = data;
-	g_hash_table_insert(signals, GINT_TO_POINTER(signum), callback);
+	callback->destroy = destroy;
+	g_hash_table_insert(signals, GINT_TO_POINTER(sig), callback);
 
-	sigaction (signum, &action, NULL);
-}
+	sigaction (sig, &action, NULL);
+}/*}}}*/
+
+void ms_signal_clear(int sig)/*{{{*/
+{
+	MSSignalCallback *cb = g_hash_table_lookup(signals, GINT_TO_POINTER(sig));
+	struct sigaction action;
+	action.sa_handler = SIG_DFL;
+	sigemptyset (&action.sa_mask);
+	action.sa_flags = 0;
+
+	g_return_if_fail(cb != NULL);
+	
+	sigaction(sig, &action, NULL);
+	g_hash_table_remove(signals, GINT_TO_POINTER(sig));
+
+	if (cb->data && cb->destroy)
+		cb->destroy(cb->data);
+}/*}}}*/
