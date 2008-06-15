@@ -22,8 +22,7 @@ static void ms_term_reset(void)
 {
 	SLsmg_reset_smg ();
 	SLang_reset_tty ();
-	if (ms_term_colors)
-		g_hash_table_destroy(ms_term_colors);
+	g_hash_table_destroy(ms_term_colors);
 }
 
 void ms_term_init(void)
@@ -37,17 +36,10 @@ void ms_term_init(void)
 	SLsmg_refresh();
 	/* SLsmg_embedded_escape_mode(1); */
 	atexit(ms_term_reset);
-	ms_term_init_colors();
-}
 
-void ms_term_init_colors(void)
-{
 	ms_term_colors = g_hash_table_new(g_str_hash, g_str_equal);
 	g_hash_table_insert(ms_term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
 	g_hash_table_insert(ms_term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
-	ms_term_color_set("debug", "red", "black");
-	ms_term_color_set("topic", "lightgray", "blue");
-	ms_term_color_set("notice", "yellow", "black");	
 }
 
 gunichar ms_term_getkey(void)

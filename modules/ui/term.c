@@ -173,9 +173,6 @@ static int term_setup(LuaState *L)/*{{{*/
 	ms_signal_catch(SIGWINCH, on_resize, (gpointer) resize_ref,
 			(GDestroyNotify) ms_lua_unref);
 
-
-	ms_term_init();
-
 	return 0;
 }/*}}}*/
 
@@ -211,6 +208,7 @@ static LuaLReg functions[] = {/*{{{*/
 
 int luaopen_moonshine_ui_term(LuaState *L)/*{{{*/
 {
+	ms_term_init();
 	luaL_register(L, "moonshine.ui.term", functions);
 	return 1;
 }/*}}}*/

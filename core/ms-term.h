@@ -10,7 +10,6 @@
 #define MS_TERM_COLOR_MIN_UCS   0xFC000
 #define MS_TERM_COLOR_MAX_UCS   0xFCFFF
 
-void ms_term_init_colors(void);
 void ms_term_init(void);
 void ms_term_resize(void);
 
