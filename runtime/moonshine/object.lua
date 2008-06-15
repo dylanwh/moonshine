@@ -1,28 +1,30 @@
-local getmetatable = getmetatable
-local setmetatable = setmetatable
-local table        = table
-local unpack       = unpack
-local ipairs       = ipairs
+local Object = {}
 
-module "moonshine.object"
-
-__type = 'Object'
-
-function clone (self, obj)
-	obj = obj or {}
-  	setmetatable(obj, self)
-  	self.__index = self
-  	if obj.init then
-  		obj:init()
-  	end
-  	return obj
+function Object:clone (...)
+	local mt  = { __index = self }
+	local thing = {}
+	setmetatable(thing, mt)
+	print "running init on thing..."
+	thing:init(...)
+	return thing
 end
 
-function parent(self)
-	return getmetatable(self)
+function Object:init(table)
+	if table then
+		for k, v in pairs(table) do
+			self[k] = v
+		end
+	end
 end
 
-function callback(self, name, ...)
+function Object:parent()
+	local mt = getmetatable(self)
+	if mt then
+		return mt.__index
+	end
+end
+
+function Object:callback(name, ...)
 	local args = {...}
 	if #args == 0 then
 		return function (...) self[name](self, ...) end
@@ -38,3 +40,5 @@ function callback(self, name, ...)
 		end
 	end
 end
+
+return Object

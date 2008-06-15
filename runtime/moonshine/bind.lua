@@ -35,7 +35,7 @@ function bind(spec, f)
 end
 
 function input_hook(key)
-	if basetype(last_key) == 'table' then
+	if type(last_key) == 'table' then
 		last_key = last_key[key]
 	else
 		last_key = keys[key]
@@ -43,7 +43,7 @@ function input_hook(key)
 			keypress_hook(key)
 		end
 	end
-	if basetype(last_key) == 'function' then
+	if type(last_key) == 'function' then
 		last_key()
 		last_key = nil
 	end

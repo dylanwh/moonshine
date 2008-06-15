@@ -1,12 +1,16 @@
+local term      = require "moonshine.ui.term"
+local buffer    = require "moonshine.ui.buffer"
+local statusbar = require "moonshine.ui.statusbar"
+local object    = require "moonshine.object"
 
-Entry  = require "moonshine.ui.entry"
-Buffer = require "moonshine.ui.buffer"
-Object = require "moonshine.object"
-Window = Object:clone { __type = 'Window' }
+local Window = object:clone ()
 
-function Window:init()
-	self.topic  = Statusbar:new("")
-	self.buffer = Buffer:new()
+function Window:init(...)
+	print "init window..."
+	object.init(self, ...)
+
+	self.topic  = statusbar:new("")
+	self.buffer = buffer:new(1014)
 	self.activity = 0
 	self:set_topic("Moonshine - A Haver Client")
 	self.bufferdirty = true
@@ -46,4 +50,4 @@ function Window:activate()
 	self.bufferdirty = true
 end
 
-_G.moonshine.ui.window = Window
+return Window

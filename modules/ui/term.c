@@ -64,6 +64,7 @@ unknown_esc:
 	g_assert_not_reached();
 
 }/*}}}*/
+
 static int term_format_escape(LuaState *L)/*{{{*/
 {
 	const char *input = luaL_checkstring(L, 1);
@@ -84,17 +85,20 @@ static int term_format_escape(LuaState *L)/*{{{*/
 	}
 	g_assert_not_reached();
 }/*}}}*/
+
 static int term_refresh(LuaState *L)/*{{{*/
 {
 	ms_term_refresh();
 	return 0;
 }/*}}}*/
+
 static int term_dimensions(LuaState *L)/*{{{*/
 {
 	lua_pushinteger(L, MS_TERM_LINES);
 	lua_pushinteger(L, MS_TERM_COLS);
 	return 2;
 }/*}}}*/
+
 static int term_defcolor(LuaState *L)/*{{{*/
 {
 	const char *name = luaL_checkstring(L, 1);
@@ -103,6 +107,7 @@ static int term_defcolor(LuaState *L)/*{{{*/
 	ms_term_color_set(name, fg, bg);
 	return 0;
 }/*}}}*/
+
 static int term_status(LuaState *L)/*{{{*/
 {
 	const char *msg = luaL_checkstring(L, 1);
@@ -110,10 +115,10 @@ static int term_status(LuaState *L)/*{{{*/
 	fflush(stdout);
 	return 0;
 }/*}}}*/
-static int term_force_refresh(LuaState *L)/*{{{*/
+
+static int term_resize(LuaState *L)/*{{{*/
 {
 	ms_term_resize();
-	//ms_lua_call(L, "resize_hook", "");
 	return 0;
 }/*}}}*/
 
@@ -138,17 +143,16 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer R) 
 	return FALSE;
 }/* }}} */
 
-static void on_resize (int signal, gpointer R)
+static void on_resize (int signal, gpointer R)/*{{{*/
 {
 	LuaState *L = ms_lua_pushref( (MSLuaRef *) R);
 	ms_term_resize();
 	if (lua_pcall(L, 0, 0, 0) != 0) {
 		g_warning("error in resize function: %s", lua_tostring(L, -1));
 	}
-}
+}/*}}}*/
 
-
-static int term_setup(LuaState *L)
+static int term_setup(LuaState *L)/*{{{*/
 {
 	luaL_checktype(L, 1, LUA_TTABLE);
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
@@ -161,32 +165,53 @@ static int term_setup(LuaState *L)
 
 	lua_pop(L, 2);
 
+	g_assert(input_ref != NULL);
+	g_assert(resize_ref != NULL);
+
 	g_io_add_watch_full(input, G_PRIORITY_DEFAULT, G_IO_IN, on_input,
 			(gpointer) input_ref, (GDestroyNotify) ms_lua_unref);
 	ms_signal_catch(SIGWINCH, on_resize, (gpointer) resize_ref,
 			(GDestroyNotify) ms_lua_unref);
 
+
 	ms_term_init();
 
 	return 0;
-}
+}/*}}}*/
 
+static int term_make_keyspec(LuaState *L)/* {{{ */
+{
+	const char *str = luaL_checkstring(L, 1);
+	gsize len       = lua_objlen(L, 1); 
+	GString *buf    = g_string_sized_new(len);
 
-static LuaLReg functions[] = {
-	{"setup",  term_setup },
-	{"format", term_format },
+	for (gsize i = 0; i < len; i++) {
+		if (str[i] == '^')
+			g_string_append_c(buf, str[++i] ^ 64);
+		else
+			g_string_append_c(buf, str[i]);
+	}
+	lua_pushlstring(L, buf->str, buf->len);
+	g_string_free(buf, TRUE);
+	return 1;
+}/*}}}*/
+
+static LuaLReg functions[] = {/*{{{*/
+	{"make_keyspec",  term_make_keyspec },
+	{"setup",         term_setup },
+	{"format",        term_format },
 	{"format_escape", term_format_escape },
-	{"refresh", term_refresh },
-	{"dimensions", term_dimensions },
-	{"defcolor", term_defcolor },
-	{"status", term_status },
-	{"force_refresh", term_force_refresh },
+	{"refresh",       term_refresh },
+	{"dimensions",    term_dimensions },
+	{"defcolor",      term_defcolor },
+	{"status",        term_status },
+	{"resize",        term_resize },
 	{ 0, 0 },
-};
+};/*}}}*/
 
-int luaopen_moonshine_ui_term(LuaState *L)
+int luaopen_moonshine_ui_term(LuaState *L)/*{{{*/
 {
 	luaL_register(L, "moonshine.ui.term", functions);
 	return 1;
-}
+}/*}}}*/
 

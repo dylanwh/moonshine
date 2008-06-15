@@ -55,7 +55,8 @@ gpointer ms_lua_newclass(LuaState *L, const char *class, gsize size)/*{{{*/
 
 void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[])/*{{{*/
 {
-  	luaL_register(L, class, methods); /* create methods table, add it to the
+	lua_newtable(L);
+  	luaL_register(L, NULL, methods); /* create methods table, add it to the
   										 globals */
 
   	luaL_newmetatable(L, class);      /* create metatable for Buffer, and add it

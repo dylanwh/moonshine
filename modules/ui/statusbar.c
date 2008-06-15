@@ -82,7 +82,7 @@ static const LuaLReg statusbar_meta[] = {
 	{0, 0}
 };
 
-int luaopen_statusbar(LuaState *L)
+int luaopen_moonshine_ui_statusbar(LuaState *L)
 {
 	ms_lua_class_register(L, CLASS, statusbar_methods, statusbar_meta);
 	return 1;

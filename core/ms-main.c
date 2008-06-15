@@ -24,16 +24,17 @@ int main(int argc, char *argv[])
 	}
 
 	lua_getglobal(L, "main");
-	lua_checkstack(L, argc);
-	for (int i = 0; i < argc; i++) {
+	lua_createtable(L, argc, 1);
+	lua_pushstring(L, argv[0]);
+	lua_setfield(L, -2, "name");
+	for (int i = 1; i < argc; i++) {
 		lua_pushstring(L, argv[i]);
+		lua_rawseti(L, -2, i);
 	}
-
-	if (lua_isfunction(L, 1)) {
-		if (lua_pcall(L, argc, 0, 0) != 0) {
-			g_error("moonshine error in main(): %s", lua_tostring(L, -1));
-		}
+	if (lua_pcall(L, 1, 0, 0) != 0) {
+		g_error("moonshine error in main(): %s", lua_tostring(L, -1));
 	}
+	lua_pop(L, 1);
 
 	g_main_loop_run(loop);
 

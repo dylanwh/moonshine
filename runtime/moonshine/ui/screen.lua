@@ -1,13 +1,19 @@
-require "object"
-require "ui.window"
+local term      = require "moonshine.ui.term"
+local Entry     = require "moonshine.ui.entry"
+local Buffer    = require "moonshine.ui.buffer"
+local Statusbar = require "moonshine.ui.statusbar"
+local Window    = require "moonshine.ui.window"
 
-Screen = Object:clone { __type = 'Screen' }
+local object    = require "moonshine.object"
+local Screen    = object:clone ()
 
 term.defcolor("blue", "brightblue", "default")
 term.defcolor("white", "white", "default")
 
-function Screen:init()
-	local window = Window:clone { name = "status" }
+function Screen:init(...)
+	print "init screen..."
+	object.init(self, ...)
+
 	self.entry   = Entry:new()
 	self.status  = Statusbar:new()
 	self.history = Buffer:new()
@@ -18,16 +24,16 @@ function Screen:init()
 		self.status_current_window,
 		self.status_activity
 	}
-	self.cmp     = Completion:new()
 	self.windows = { }
 	self.window  = nil
-	self:view(
-		self:add(window)
-	)
+
+	local window = Window:clone { name = "status" }
+	self:view( self:add(window) )
+
 	local sbartext = term.format("%{topic}Status bar goes here", {})
 	self.status:set(sbartext)
-
 end
+
 
 function Screen:status_time()
 	return os.date("%H:%M")
@@ -103,13 +109,14 @@ function Screen:remove(win)
 		self.window:set_topic("Moonshine - " .. (win.name or '???'));
 		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
 	end
-	table.remove(screen.windows, win.pos)
+	table.remove(Screen.windows, win.pos)
 	for i, w in ipairs(self.windows) do
 		w.pos = i
 	end
 end
 
 function Screen:view(x)
+	print ("view", x)
 	if self.windows[x] then
 		self.window = self.windows[x]
 		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
@@ -119,6 +126,11 @@ function Screen:view(x)
 	else
 		return false, "invalid window index: " .. tostring(x)
 	end
+end
+
+function Screen:resize()
+	print ("self", self)
+	self:render()
 end
 
 function Screen:render()
@@ -172,30 +184,30 @@ function Screen:backspace()
 end
 
 function Screen:word_delete()
-	local wlback, wlfwd = screen.entry:wordlen()
-	screen.entry:erase(-wlback)
+	local wlback, wlfwd = self.entry:wordlen()
+	Screen.entry:erase(-wlback)
 	self:render()
 end
 
 function Screen:word_left()
-	local wlback, wlfwd = screen.entry:wordlen()
-	screen.entry:move(-wlback)
+	local wlback, wlfwd = self.entry:wordlen()
+	self.entry:move(-wlback)
 	self:render()
 end
 
 function Screen:word_right()
-	local wlback, wlfwd = screen.entry:wordlen()
-	screen.entry:move(wlfwd)
+	local wlback, wlfwd = self.entry:wordlen()
+	self.entry:move(wlfwd)
 	self:render()
 end
 
 function Screen:send_line(f)
-	local line = screen.entry:get()
+	local line = self.entry:get()
 	if #line > 0 then
 		self:history_save()
 		self.history:scroll_to(0)
 		self.sb_at_end = true
-		screen.entry:clear()
+		self.entry:clear()
 		f(line)
 		self:render()
 	end
@@ -241,3 +253,5 @@ function Screen:history_forward()
 	self:render()
 end
 
+Screen:init()
+return Screen

@@ -37,6 +37,7 @@ void ms_term_init(void)
 	SLsmg_refresh();
 	/* SLsmg_embedded_escape_mode(1); */
 	atexit(ms_term_reset);
+	ms_term_init_colors();
 }
 
 void ms_term_init_colors(void)
