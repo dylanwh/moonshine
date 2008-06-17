@@ -1,4 +1,4 @@
-#include "moonshine/ms-cmdparser.h"
+#include "moonshine/ms-parseopt.h"
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -108,7 +108,7 @@ static const struct token *get_lookahead(struct parsectx *pc, size_t offset) {
 	return &pc->lookahead[offset];
 }
 
-const char *ms_cmdparser(void *baton, const char *argstr, const cmdparser_cb *cb) {
+const char *ms_parseopt_run(void *baton, const char *argstr, const parseopt_cb *cb) {
 	struct parsectx pc;
 	initctx(argstr, &pc);
 
@@ -119,8 +119,8 @@ const char *ms_cmdparser(void *baton, const char *argstr, const cmdparser_cb *cb
 			break;
 		if (pc.all_literal || t->str->str[0] != '-') {
 			ret = cb->literalopt(baton, t->str->str, t->start);
-			if (ret != MS_CMDPARSER_STOP)
-				ret = MS_CMDPARSER_NOARG;
+			if (ret != MS_PARSEOPT_STOP)
+				ret = MS_PARSEOPT_NOARG;
 		} else if (t->str->str[1] == '-') {
 			if (t->str->str[2] == '\0') {
 				pc.all_literal = 1;
@@ -141,11 +141,11 @@ const char *ms_cmdparser(void *baton, const char *argstr, const cmdparser_cb *cb
 						argument = NULL;
 				}
 				ret = cb->longopt(baton, &t->str->str[2], argument, t->start);
-				if (ret == MS_CMDPARSER_EATARG && inline_arg)
-					ret = MS_CMDPARSER_NOARG;
+				if (ret == MS_PARSEOPT_EATARG && inline_arg)
+					ret = MS_PARSEOPT_NOARG;
 			}
 		} else {
-			ret = MS_CMDPARSER_NOARG;
+			ret = MS_PARSEOPT_NOARG;
 			for (const char *p = &t->str->str[1]; *p; p++) {
 				int inline_arg;
 				const char *argp;
@@ -161,19 +161,19 @@ const char *ms_cmdparser(void *baton, const char *argstr, const cmdparser_cb *cb
 						argp = NULL;
 				}
 				ret = cb->shortopt(baton, *p, argp, t->start);
-				if (ret == MS_CMDPARSER_EATARG) {
+				if (ret == MS_PARSEOPT_EATARG) {
 					if (inline_arg)
-						ret = MS_CMDPARSER_NOARG;
+						ret = MS_PARSEOPT_NOARG;
 					break;
 				}
 			}
 		}
-		if (ret == MS_CMDPARSER_STOP) {
+		if (ret == MS_PARSEOPT_STOP) {
 			pc.p = t->start;
 			break;
 		}
 		consume_token(&pc);
-		if (ret == MS_CMDPARSER_EATARG)
+		if (ret == MS_PARSEOPT_EATARG)
 			consume_token(&pc);
 	}
 	freectx(&pc);
