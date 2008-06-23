@@ -27,11 +27,11 @@ end
 function Object:callback(name, ...)
 	local args = {...}
 	if #args == 0 then
-		return function (...) self[name](self, ...) end
+		return function (...) return self[name](self, ...) end
 	elseif #args == 1 then
-		return function (...) self[name](self, args[1], ...) end
+		return function (...) return self[name](self, args[1], ...) end
 	elseif #args == 2 then
-		return function (...) self[name](self, args[1], args[2], ...) end
+		return function (...) return self[name](self, args[1], args[2], ...) end
 	else
 		return function (...)
 			local xs = { unpack(args) }

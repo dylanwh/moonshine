@@ -1,11 +1,11 @@
-local command = require "moonshine.command"
+--[===[local command = require "moonshine.command"
 local term    = require "moonshine.ui.term"
 local keymap  = require "moonshine.ui.keymap"
 local screen  = require "moonshine.ui.screen"
 
 local bind   = keymap:callback "bind"
 
-function main(argv)
+function notmain(argv)
 	term.setup {
 		input  = keymap:callback "process",
 		resize = screen:callback "resize",
@@ -35,3 +35,20 @@ function main(argv)
 		bind("^[" .. i, "view " .. i)
 	end
 end
+
+]===]
+
+local Pirate = require "moonshine.pirate"
+function main ()
+	local p = Pirate:clone("name|n=s", "help|h", "include|I=l", 1, 2)
+	local options, one, two, rest = p:parse("--name=bob -Ifoo --help -I foo -I bar -I baz I like cheese.");
+	print ("name", options.name)
+	print ("help", options.help)
+	for i, v in ipairs (options.include) do
+		print ("include", v)
+	end
+	print("one", one)
+	print("two", two)
+	print("rest", rest)
+end
+

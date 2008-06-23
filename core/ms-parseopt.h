@@ -29,8 +29,8 @@ typedef struct {
 	MSParseOptStatus (*shortopt)(void *baton, const char opt, const char *argument, const char *start);
 	MSParseOptStatus (*longopt)(void *baton, const char *opt, const char *argument, const char *start);
 	MSParseOptStatus (*literalopt)(void *baton, const char *literal, const char *start);
-} parseopt_cb;
+} MSParseOptCallbacks;
 
-const char *ms_parseopt_run(void *baton, const char *argstr, const parseopt_cb *cb);
+const char *ms_parseopt_run(void *baton, const char *argstr, const MSParseOptCallbacks *cb);
 
 #endif
