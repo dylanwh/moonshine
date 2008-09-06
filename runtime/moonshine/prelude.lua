@@ -1,8 +1,3 @@
-term   = require "moonshine.ui.term"
-keymap = require "moonshine.ui.keymap"
-Screen = require "moonshine.ui.screen"
-screen = nil
-
 basetype = type
 function type(x)
 	local t = basetype(x)

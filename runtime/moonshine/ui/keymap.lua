@@ -3,16 +3,20 @@ local term   = require "moonshine.ui.term"
 
 local keymap = object:clone {
 	__type = 'keymap',
-	clone = nil,
 	keys = {},
 	key = nil
 }
 
-assert(keymap.keys)
-
 local function index(s, i) return s:sub(i+1, i+1) end
 
-function keymap:bind(spec, f)
+function keymap:init(...)--{{{
+	self.keys = {}
+	self.key = nil
+	object.clone(self, ...)
+	return self
+end--}}}
+
+function keymap:bind(spec, f)--{{{
 	if spec ~= '' then
 		local k = self.keys
 		local spec = term.make_keyspec(spec)
@@ -31,9 +35,9 @@ function keymap:bind(spec, f)
 	else
 		self.keys[""] = f
 	end
-end
+end--}}}
 
-function keymap:process(k)
+function keymap:process(k)--{{{
 	local key = self.key
 	local keys = self.keys
 
@@ -52,6 +56,6 @@ function keymap:process(k)
 	end
 
 	self.key = key
-end
+end--}}}
 
 return keymap

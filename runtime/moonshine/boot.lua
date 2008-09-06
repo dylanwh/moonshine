@@ -1,6 +1,0 @@
-require "util"
-require "bind" 
-require "ui.screen"
-require "cmd"
-require "hooks"
-require "rc"

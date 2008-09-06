@@ -38,17 +38,10 @@ end
 
 ]===]
 
-local Pirate = require "moonshine.pirate"
+
+local builder = require "moonshine.parseopt.builder"
 function main ()
-	local p = Pirate:clone("name|n=s", "help|h", "include|I=l", 1, 2)
-	local options, one, two, rest = p:parse("--name=bob -Ifoo --help -I foo -I bar -I baz I like cheese.");
-	print ("name", options.name)
-	print ("help", options.help)
-	for i, v in ipairs (options.include) do
-		print ("include", v)
-	end
-	print("one", one)
-	print("two", two)
-	print("rest", rest)
+	local s = builder:new("name|n=s", 1, 2)
+
 end
 
