@@ -6,7 +6,6 @@
 
 static void init_paths(LuaState *L);
 
-
 int main(int argc, char *argv[])
 {
 	GMainLoop *loop = g_main_loop_new(NULL, FALSE);
@@ -51,7 +50,6 @@ int main(int argc, char *argv[])
 	exit(0);
 }
 
-
 static void init_paths(LuaState *L)
 {
 	const char *runtime = g_getenv("MOONSHINE_RUNTIME");
@@ -63,10 +61,17 @@ static void init_paths(LuaState *L)
 	if (!modules)
 		modules = MOONSHINE_MODULES;
 
+	/* push the global package onto the stack */
 	lua_getglobal(L, "package");
+
+	/* Assign package.path = runtime */
 	lua_pushstring(L, runtime);
 	lua_setfield(L, -2, "path");
+
+	/* Assign package.cpath = modules */
 	lua_pushstring(L, modules);
 	lua_setfield(L, -2, "cpath");
+
+	/* remove package from the stack. */
 	lua_pop(L, 1);
 }
