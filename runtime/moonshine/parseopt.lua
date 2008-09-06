@@ -1,6 +1,6 @@
 -- vim: set et:
 local lpeg          = require "lpeg"
-local parseopt_core = require "moonshine.parseopt.core"
+local parseopt_core = require "moonshine.parseopt_core"
 local Object        = require "moonshine.object"
 local Parseopt      = Object:clone()
 
