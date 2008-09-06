@@ -1,22 +1,18 @@
-local object = require "moonshine.object"
+local Object = require "moonshine.object"
 local term   = require "moonshine.ui.term"
 
-local keymap = object:clone {
-	__type = 'keymap',
-	keys = {},
-	key = nil
-}
+local KeyMap = Object:clone()
 
 local function index(s, i) return s:sub(i+1, i+1) end
 
-function keymap:init(...)--{{{
+function KeyMap:init(...)--{{{
 	self.keys = {}
 	self.key = nil
-	object.clone(self, ...)
+	Object.init(self, ...)
 	return self
 end--}}}
 
-function keymap:bind(spec, f)--{{{
+function KeyMap:bind(spec, f)--{{{
 	if spec ~= '' then
 		local k = self.keys
 		local spec = term.make_keyspec(spec)
@@ -37,7 +33,7 @@ function keymap:bind(spec, f)--{{{
 	end
 end--}}}
 
-function keymap:process(k)--{{{
+function KeyMap:process(k)--{{{
 	local key = self.key
 	local keys = self.keys
 
@@ -58,4 +54,4 @@ function keymap:process(k)--{{{
 	self.key = key
 end--}}}
 
-return keymap
+return KeyMap

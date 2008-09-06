@@ -1,12 +1,11 @@
-local term      = require "moonshine.ui.term"
 local Entry     = require "moonshine.ui.entry"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
+local Object    = require "moonshine.object"
+local Screen    = Object:clone ()
 
-local object    = require "moonshine.object"
-local Screen    = object:clone ()
-
+local term      = require "moonshine.ui.term"
 term.defcolor("blue", "brightblue", "default")
 term.defcolor("white", "white", "default")
 term.defcolor("topic", "lightgray", "blue")
@@ -17,10 +16,9 @@ term.defcolor("statusnormal", "white", "blue")
 term.defcolor("statusimportant", "brightmagenta", "blue")
 term.defcolor("self", "white", "default")
 
-
 function Screen:init(...)
 	print "init screen..."
-	object.init(self, ...)
+	Object.init(self, ...)
 
 	self.entry   = Entry:new()
 	self.status  = Statusbar:new()
@@ -260,7 +258,5 @@ function Screen:history_forward()
 	end
 	self:render()
 end
-
-Screen:init()
 
 return Screen

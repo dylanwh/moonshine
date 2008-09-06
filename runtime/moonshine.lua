@@ -1,11 +1,13 @@
---[===[local command = require "moonshine.command"
 local term    = require "moonshine.ui.term"
-local keymap  = require "moonshine.ui.keymap"
-local screen  = require "moonshine.ui.screen"
+local KeyMap  = require "moonshine.ui.keymap"
+local Screen  = require "moonshine.ui.screen"
 
-local bind   = keymap:callback "bind"
+function main(argv)
+	keymap = KeyMap:clone()
+	screen = Screen:clone()
+	bind = keymap:callback "bind"
 
-function notmain(argv)
+
 	term.setup {
 		input  = keymap:callback "process",
 		resize = screen:callback "resize",
@@ -29,19 +31,10 @@ function notmain(argv)
 	bind("^H",      screen:callback "backspace")
 	bind("^C",      screen:callback "quit")
 	bind("^L",      screen:callback "redraw")
-	bind("^M",      screen:callback("send_line", command:callback "eval") )
+	--bind("^M",      screen:callback("send_line", command:callback "eval") )
+	bind("^M",     function () end) 
 
 	for i = 1, 9 do
 		bind("^[" .. i, "view " .. i)
 	end
 end
-
-]===]
-
-
-local parser = require "moonshine.parseopt"
-function main ()
-	local p = parser:clone("name|n=s", 1, 2)
-	print(p:run("--name=foo bar baz quux"))
-end
-
