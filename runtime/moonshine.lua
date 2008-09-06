@@ -39,9 +39,9 @@ end
 ]===]
 
 
-local builder = require "moonshine.parseopt.builder"
+local parser = require "moonshine.parseopt"
 function main ()
-	local s = builder:new("name|n=s", 1, 2)
-
+	local p = parser:clone("name|n=s", 1, 2)
+	print(p:run("--name=foo bar baz quux"))
 end
 

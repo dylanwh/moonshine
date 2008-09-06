@@ -1,4 +1,4 @@
-#include "moonshine/ms-parseopt.h"
+#include "ms-parseopt.h"
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>

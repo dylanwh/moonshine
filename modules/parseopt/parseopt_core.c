@@ -1,6 +1,6 @@
 #include <moonshine/config.h>
 #include <moonshine/ms-lua.h>
-#include <moonshine/ms-parseopt.h>
+#include "ms-parseopt.h"
 
 static MSParseOptStatus short_option(gpointer baton, const char opt, const char *argument, const char *start)/*{{{*/
 {
@@ -57,7 +57,7 @@ static LuaLReg functions[] = {
 	{ 0, 0 },
 };
 
-int luaopen_moonshine_parseopt(LuaState *L)/*{{{*/
+int luaopen_moonshine_parseopt_core(LuaState *L)/*{{{*/
 {
 	lua_newtable(L);
 	lua_pushinteger(L, MS_PARSEOPT_STOP);
