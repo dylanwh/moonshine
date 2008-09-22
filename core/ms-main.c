@@ -16,13 +16,6 @@ int main(int argc, char *argv[])
 	init_paths(L);
 	ms_signal_init();
 
-	lua_getglobal(L, "require");
-	lua_pushstring(L, "moonshine");
-	if(lua_pcall(L, 1, 0, 0) != 0) {
-		g_error("moonshine error in require 'moonshine': %s", lua_tostring(L, -1));
-	}
-
-	lua_getglobal(L, "main");
 	lua_createtable(L, argc, 1);
 	lua_pushstring(L, argv[0]);
 	lua_setfield(L, -2, "name");
@@ -30,19 +23,12 @@ int main(int argc, char *argv[])
 		lua_pushstring(L, argv[i]);
 		lua_rawseti(L, -2, i);
 	}
-	if (lua_pcall(L, 1, 0, 0) != 0) {
-		g_error("moonshine error in main(): %s", lua_tostring(L, -1));
-	}
-	lua_pop(L, 1);
+	lua_setglobal(L, "argv");
 
+	ms_lua_require(L, "moonshine");
+	ms_lua_call_hook(L, "startup_hook");
 	g_main_loop_run(loop);
-
-	lua_getglobal(L, "exit_hook");
-	if (lua_isfunction(L, -1)) {
-		if (lua_pcall(L, 0, 0, 0) != 0) {
-			g_error("moonshine error in END: %s", lua_tostring(L, -1));
-		}
-	}
+	ms_lua_call_hook(L, "shutdown_hook");
 
 	lua_close(L);
 	g_main_loop_unref(loop);

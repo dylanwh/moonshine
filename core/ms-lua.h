@@ -24,5 +24,8 @@ gpointer ms_lua_toclass(LuaState *L, const char *class, int index);
 gpointer ms_lua_checkclass(LuaState *L, const char *class, int index);
 gpointer ms_lua_newclass(LuaState *L, const char *class, gsize size);
 
+void ms_lua_call_hook(LuaState *L, const char *name);
+void ms_lua_require(LuaState *L, const char *name);
+
 
 #endif
