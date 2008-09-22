@@ -12,6 +12,7 @@ static gboolean ms_async_queue_source_prepare(GSource *src_arg, gint *timeout) /
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
 	g_assert(src->queue);
 	*timeout = -1;
+	g_warning("ms_async_queue_source_prepare(): %d", g_async_queue_length(src->queue));
 	return g_async_queue_length(src->queue) > 0;
 }/*}}}*/
 
@@ -19,6 +20,7 @@ static gboolean ms_async_queue_source_check(GSource *src_arg) /*{{{*/
 { 	
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
 	g_assert(src->queue);
+	g_warning("ms_async_queue_source_check(): %d", g_async_queue_length(src->queue));
 	return g_async_queue_length(src->queue) > 0;
 }/*}}}*/
 
@@ -27,6 +29,7 @@ static gboolean ms_async_queue_source_dispatch (/*{{{*/
 		GSourceFunc func_arg, 
 		gpointer userdata)
 {
+	g_warning("dispatch");
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
 	g_assert(src->queue);
 	MSAsyncQueueSourceFunc func            = (MSAsyncQueueSourceFunc) func_arg;
@@ -36,6 +39,8 @@ static gboolean ms_async_queue_source_dispatch (/*{{{*/
 
 static void ms_async_queue_source_finalize(GSource *src_arg)/*{{{*/
 {
+	g_assert(src_arg);
+	g_warning("BYE!");
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
 	g_async_queue_unref(src->queue);
 }/*}}}*/

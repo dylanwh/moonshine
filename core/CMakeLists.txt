@@ -8,11 +8,17 @@ ADD_EXECUTABLE(moonshine
 	ms-lua.c
 	ms-main.c)
 
+ADD_EXECUTABLE(async-queue-test
+	ms-async-queue-source.c
+	async-queue-test.c)
+
 TARGET_LINK_LIBRARIES(moonshine
 	${SLANG_LIBRARY}
 	${GLIB_LIBRARIES}
 	${LUA_LIBRARIES})
 
+TARGET_LINK_LIBRARIES(async-queue-test
+	${GLIB_LIBRARIES})	
 
 INCLUDE_DIRECTORIES ( ${MOONSHINE_CORE_SOURCE_DIR} )
 
