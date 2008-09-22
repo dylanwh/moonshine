@@ -10,17 +10,21 @@ typedef struct {
 static gboolean ms_async_queue_source_prepare(GSource *src_arg, gint *timeout) /*{{{*/
 {
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
-	g_assert(src->queue);
-	*timeout = -1;
-	g_warning("ms_async_queue_source_prepare(): %d", g_async_queue_length(src->queue));
+
+	g_return_val_if_fail(src, FALSE);
+	g_return_val_if_fail(src->queue, FALSE);
+
+	*timeout = 1000;
 	return g_async_queue_length(src->queue) > 0;
 }/*}}}*/
 
 static gboolean ms_async_queue_source_check(GSource *src_arg) /*{{{*/
 { 	
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
-	g_assert(src->queue);
-	g_warning("ms_async_queue_source_check(): %d", g_async_queue_length(src->queue));
+
+	g_return_val_if_fail(src, FALSE);
+	g_return_val_if_fail(src->queue, FALSE);
+
 	return g_async_queue_length(src->queue) > 0;
 }/*}}}*/
 
@@ -29,19 +33,24 @@ static gboolean ms_async_queue_source_dispatch (/*{{{*/
 		GSourceFunc func_arg, 
 		gpointer userdata)
 {
-	g_warning("dispatch");
-	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
-	g_assert(src->queue);
-	MSAsyncQueueSourceFunc func            = (MSAsyncQueueSourceFunc) func_arg;
+	AsyncQueueSource *src       = (AsyncQueueSource *) src_arg;
+	MSAsyncQueueSourceFunc func = (MSAsyncQueueSourceFunc) func_arg;
+
+	g_return_val_if_fail(src, FALSE);
+	g_return_val_if_fail(func, FALSE);
+	g_return_val_if_fail(src->queue, FALSE);
+
 	gpointer data         = g_async_queue_pop(src->queue);
 	return func(data, userdata);
 }//}}}
 
 static void ms_async_queue_source_finalize(GSource *src_arg)/*{{{*/
 {
-	g_assert(src_arg);
-	g_warning("BYE!");
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
+
+	g_return_if_fail(src);
+	g_return_if_fail(src->queue);
+
 	g_async_queue_unref(src->queue);
 }/*}}}*/
 

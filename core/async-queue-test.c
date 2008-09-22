@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
 	g_thread_init(NULL);
 
 	g_timeout_add(10, my_start_func, NULL);
-	g_timeout_add(1000, my_beep_func, NULL);
-	g_timeout_add(3000, my_stop_func, NULL);
-	g_timeout_add(5000, my_beep_func, NULL);
+	//g_timeout_add(1000, my_beep_func, NULL);
+	//g_timeout_add(5000, my_beep_func, NULL);
+	g_timeout_add(5000, my_stop_func, NULL);
 	g_main_loop_run(loop);
 
 	return 0;
