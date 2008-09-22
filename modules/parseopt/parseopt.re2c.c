@@ -1,4 +1,4 @@
-#include "ms-parseopt.h"
+#include "parseopt.h"
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
