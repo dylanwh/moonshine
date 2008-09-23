@@ -58,6 +58,7 @@ gboolean my_beep_func(gpointer userdata)
 
 gboolean my_stop_func(gpointer userdata)
 {
+	g_print("stopping...\n");
 	gboolean rv = g_source_remove(tag);
 	g_print("g_source_remove(%d): %s\n", tag, rv ? "TRUE" : "FALSE");
 	return FALSE;

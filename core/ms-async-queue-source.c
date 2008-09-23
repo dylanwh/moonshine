@@ -48,6 +48,7 @@ static void ms_async_queue_source_finalize(GSource *src_arg)/*{{{*/
 {
 	AsyncQueueSource *src = (AsyncQueueSource *) src_arg;
 
+	g_print("Pants!\n");
 	g_return_if_fail(src);
 	g_return_if_fail(src->queue);
 
@@ -66,7 +67,9 @@ guint ms_async_queue_add_watch(GAsyncQueue *queue, MSAsyncQueueSourceFunc func, 
 	AsyncQueueSource *src = (AsyncQueueSource *) g_source_new(&ms_async_queue_source_functions, sizeof(AsyncQueueSource));
 	src->queue            = g_async_queue_ref(queue);
 	g_source_set_callback((GSource *) src, (GSourceFunc) func, userdata, notify);
-	return g_source_attach((GSource *) src, NULL);
+	guint tag = g_source_attach((GSource *) src, NULL);
+	g_source_unref((GSource *) src);
+	return tag;
 }/*}}}*/
 
 
