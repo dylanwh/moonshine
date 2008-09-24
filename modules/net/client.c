@@ -5,12 +5,6 @@
 #define CLASS "moonshine.net.client"
 #define REFS  "moonshine.net._client"
 
-/* {{{ Client Structure */
-typedef struct {
-	GConn *conn;
-	MSLuaRef *ref;
-} Client; /* }}} */
-
 /* {{{ Utility functions */
 inline static int push_event(LuaState *L, GConnEvent *event)/*{{{*/
 {
@@ -35,15 +29,13 @@ inline static int push_event(LuaState *L, GConnEvent *event)/*{{{*/
   	}
 }/*}}}*/
 
-// push a table on to the stack where the values
-// are weak.
 inline static void push_weaktable(LuaState *L)/*{{{*/
 {
-	lua_newtable(L); // push table.
-	lua_newtable(L); // push metatable.	
-	lua_pushstring(L, "v");
-	lua_setfield(L, -1, "__mode");
-	lua_setmetatable(L, -2);
+	lua_newtable(L);               // push table (t).
+	lua_newtable(L);               // push metatable (mt).
+	lua_pushstring(L, "v");        // push "v"
+	lua_setfield(L, -1, "__mode"); // mt.__mode = "v"
+	lua_setmetatable(L, -2);       // setmetatable(t, mt)
 }/*}}}*/
 
 static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)/*{{{*/
@@ -63,6 +55,12 @@ static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)/*
 		g_warning("moonshine error in client callback: %s", lua_tostring(L, -1));
 }/*}}}*/
 /* }}} */
+
+/* {{{ Client Structure */
+typedef struct {
+	GConn *conn;
+	MSLuaRef *ref;
+} Client; /* }}} */
 
 /* {{{ Methods */
 static int client_new(LuaState *L)/*{{{*/
