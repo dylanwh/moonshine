@@ -34,7 +34,7 @@ inline static void push_weaktable(LuaState *L)/*{{{*/
 	lua_newtable(L);               // push table (t).
 	lua_newtable(L);               // push metatable (mt).
 	lua_pushstring(L, "v");        // push "v"
-	lua_setfield(L, -1, "__mode"); // mt.__mode = "v"
+	lua_setfield(L, -2, "__mode"); // mt.__mode = "v"
 	lua_setmetatable(L, -2);       // setmetatable(t, mt)
 }/*}}}*/
 

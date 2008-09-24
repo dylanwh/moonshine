@@ -1,6 +1,7 @@
 local term    = require "moonshine.ui.term"
 local KeyMap  = require "moonshine.ui.keymap"
 local Screen  = require "moonshine.ui.screen"
+local Client  = require "moonshine.net.client"
 
 keymap = KeyMap:clone()
 screen = Screen:clone()
@@ -36,4 +37,11 @@ for i = 1, 9 do
 	bind("^[" .. i, "view " .. i)
 end
 
-
+screen:print("Hello, world!")
+client = Client:new(
+	"irc.example.com", 6666,
+	function (client, event, msg)
+		screen:debug("event: %1", event)
+	end
+)
+client:connect()
