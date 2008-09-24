@@ -1,6 +1,5 @@
-require "protocol"
-
-Haver = Protocol:clone { __type   = 'Haver' }
+local Protocol = require "moonshine.protocol"
+local Haver = Protocol:clone { __type   = 'Haver' }
 
 function Haver:on_connect(fd, ...)
 	Protocol.on_connect(self, fd, ...)
@@ -84,3 +83,5 @@ function Haver:USERSOF(room, ...)
 	local users = {...}
 	userlist_hook(self, room, users)
 end
+
+return Haver

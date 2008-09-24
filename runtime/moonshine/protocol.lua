@@ -1,4 +1,4 @@
-require "object"
+local Object = require "moonshine.object"
 
 -- A protocol should define the following methods:
 -- * join(room)
@@ -11,8 +11,7 @@ require "object"
 --
 -- The following fields are optional:
 -- * username (default: $USER)
-
-Protocol = Object:clone {
+local Protocol = Object:clone {
 	__type = "Protocol",
 	username = os.getenv "USER",
 }
@@ -35,7 +34,6 @@ function Protocol:magic_table(type)
 	setmetatable(t, mt)
 	return t
 end
-
 
 function Protocol:connect(hostname, port)
 	self.hostname = hostname or self.hostname
@@ -82,5 +80,3 @@ function Protocol:on_event(event, errtype, errmsg)
 		self:disconnect()
 	end
 end
-
-
