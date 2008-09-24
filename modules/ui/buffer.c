@@ -8,14 +8,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define CLASS "moonshine.ui.buffer"
+
+/* {{{ Buffer structure */
 typedef struct bufferline {
 	struct bufferline *prev, *next;
 	unsigned int group;
 	char text[0];
 } bufferline_t;
 
-#define CLASS "moonshine.ui.buffer"
-/* {{{ Buffer structure */
 typedef struct {
 	/* These are three pointers into a doubly-linked list of lines (as strings,
 	 * for now).  head and tail, of course, point to the head and tail of the
@@ -37,8 +38,7 @@ typedef struct {
 /* }}} */
 
 /* {{{ Utility functions */
-
-static void purge(Buffer *b) {
+static void purge(Buffer *b) {/*{{{*/
 	if (b->histsize == 0)
 		return;
 	if (b->scrollback > b->histsize) {
@@ -171,6 +171,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 	return bottom_row - 1;
 }
 /* }}} */
+
 /* {{{ Utility functions for scrolling */
 static void scroll_up(Buffer *b, guint offset) {
 	while (offset-- && b->scrollback > 1) {
@@ -480,7 +481,6 @@ static int buffer_clear_lines(LuaState *L)/*{{{*/
 	lua_pushinteger(L, realcount);
 	return 1;
 }/*}}}*/
-
 /* }}} */
 
 /* {{{ Meta methods */

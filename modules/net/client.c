@@ -5,12 +5,14 @@
 #define CLASS "moonshine.net.client"
 #define REFS  "moonshine.net._client"
 
+/* {{{ Client Structure */
 typedef struct {
 	GConn *conn;
 	MSLuaRef *ref;
-} Client;
+} Client; /* }}} */
 
-inline static int push_event(LuaState *L, GConnEvent *event)
+/* {{{ Utility functions */
+inline static int push_event(LuaState *L, GConnEvent *event)/*{{{*/
 {
 	char *type;
 	switch (event->type) {
@@ -31,20 +33,20 @@ inline static int push_event(LuaState *L, GConnEvent *event)
   	} else {
   		return 1;
   	}
-}
+}/*}}}*/
 
 // push a table on to the stack where the values
 // are weak.
-inline static void push_weaktable(LuaState *L)
+inline static void push_weaktable(LuaState *L)/*{{{*/
 {
 	lua_newtable(L); // push table.
 	lua_newtable(L); // push metatable.	
 	lua_pushstring(L, "v");
 	lua_setfield(L, -1, "__mode");
 	lua_setmetatable(L, -2);
-}
+}/*}}}*/
 
-static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)
+static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)/*{{{*/
 {
 	MSLuaRef *func = userdata;
 	LuaState *L    = ms_lua_pushref(func);    // push function
@@ -59,9 +61,11 @@ static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)
 	// call func(client, event_type [, buffer ]). 
 	if (lua_pcall(L, argc, 0, 0)) 
 		g_warning("moonshine error in client callback: %s", lua_tostring(L, -1));
-}
+}/*}}}*/
+/* }}} */
 
-static int client_new(LuaState *L)
+/* {{{ Methods */
+static int client_new(LuaState *L)/*{{{*/
 {
 	const char *host = luaL_checkstring(L, 2);
 	guint port       = luaL_checkinteger(L, 3);
@@ -79,41 +83,41 @@ static int client_new(LuaState *L)
 	lua_pop(L, 1);
 
 	return 1;
-}
+}/*}}}*/
 
-static int client_connect(LuaState *L)
+static int client_connect(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_checkclass(L, CLASS, 1);
 	gnet_conn_connect(client->conn);
 
 	return 0;
-}
+}/*}}}*/
 
-static int client_disconnect(LuaState *L)
+static int client_disconnect(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_checkclass(L, CLASS, 1);
 	gnet_conn_disconnect(client->conn);
 
 	return 0;
-}
+}/*}}}*/
 
-static int client_is_connected(LuaState *L)
+static int client_is_connected(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_checkclass(L, CLASS, 1);
 	lua_pushboolean(L, gnet_conn_is_connected(client->conn));
 
 	return 1;
-}
+}/*}}}*/
 
-static int client_read(LuaState *L)
+static int client_read(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_checkclass(L, CLASS, 1);
 	gnet_conn_read(client->conn);
 
 	return 0;
-}
+}/*}}}*/
 
-static int client_readn(LuaState *L)
+static int client_readn(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_checkclass(L, CLASS, 1);
 	gint length    = luaL_checkinteger(L, 2);
@@ -121,9 +125,9 @@ static int client_readn(LuaState *L)
 	gnet_conn_readn(client->conn, length);
 
 	return 0;
-}
+}/*}}}*/
 
-static int client_write(LuaState *L)
+static int client_write(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_checkclass(L, CLASS, 1);
 	size_t length = 0;
@@ -132,28 +136,29 @@ static int client_write(LuaState *L)
 	gnet_conn_write(client->conn, (char *)buffer, length);
 
 	return 0;
-}
+}/*}}}*/
+/* }}} */
 
-static int client_tostring(LuaState *L)
+/* {{{ Meta Methods */
+static int client_tostring(LuaState *L)/*{{{*/
 {
 	char buff[32];
   	sprintf(buff, "%p", ms_lua_toclass(L, CLASS, 1));
   	lua_pushfstring(L, "Client (%s)", buff);
   	return 1;
-}
+}/*}}}*/
 
-static int client_gc(LuaState *L)
+static int client_gc(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_toclass(L, CLASS, 1);
 	gnet_conn_delete(client->conn);
 	ms_lua_unref(client->ref);
 
 	return 0;
-}
+}/*}}}*/
+/* }}} */
 
-
-
-static const LuaLReg client_methods[] = {
+static const LuaLReg client_methods[] = {/*{{{*/
 	{"new", client_new},
 	{"connect", client_connect},
 	{"disconnect", client_disconnect},
@@ -162,21 +167,19 @@ static const LuaLReg client_methods[] = {
 	{"readn", client_readn},
 	{"write", client_write},
 	{0, 0}
-};
+};/*}}}*/
 
-static const LuaLReg client_meta[] = {
+static const LuaLReg client_meta[] = {/*{{{*/
 	{"__gc", client_gc},
 	{"__tostring", client_tostring},
 	{0, 0}
-};
+};/*}}}*/
 
-int luaopen_moonshine_net_client(LuaState *L)
+int luaopen_moonshine_net_client(LuaState *L)/*{{{*/
 {
 	push_weaktable(L);
 	lua_setfield(L, LUA_REGISTRYINDEX, REFS);
-
 	ms_lua_class_register(L, CLASS, client_methods, client_meta);
 
 	return 1;
-}
-
+}/*}}}*/
