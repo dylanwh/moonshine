@@ -125,11 +125,19 @@ static int client_readn(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
+static int client_readline(LuaState *L)/*{{{*/
+{
+	Client *client = ms_lua_checkclass(L, CLASS, 1);
+	gnet_conn_readline(client->conn);
+
+	return 0;
+}/*}}}*/
+
 static int client_write(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_checkclass(L, CLASS, 1);
 	size_t length = 0;
-	const char *buffer = luaL_checklstring(L, 1, &length);
+	const char *buffer = luaL_checklstring(L, 2, &length);
 
 	gnet_conn_write(client->conn, (char *)buffer, length);
 
@@ -163,6 +171,7 @@ static const LuaLReg client_methods[] = {/*{{{*/
 	{"is_connected", client_is_connected},
 	{"read", client_read},
 	{"readn", client_readn},
+	{"readline", client_readline},
 	{"write", client_write},
 	{0, 0}
 };/*}}}*/
