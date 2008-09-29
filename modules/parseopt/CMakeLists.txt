@@ -7,9 +7,22 @@ INCLUDE_DIRECTORIES(BEFORE
 	${MOONSHINE_PARSEOPT_BINARY_DIR})
 
 FIND_PROGRAM(RE2C re2c)
+FIND_PROGRAM(LUABIN lua lua51 lua5.1 lua50 lua5.0)
+
+IF (NOT LUABIN)
+	MESSAGE(FATAL_ERROR "moonshine requires the lua binary to build")
+ENDIF()
 
 IF (NOT RE2C)
 	MESSAGE(FATAL_ERROR "moonshine requires re2c!")
+ENDIF()
+
+EXEC_PROGRAM(${LUABIN}
+	ARGS -e "'if pcall(require, \"lpeg\") then print \"YES\" else print \"NO\" end'"
+	OUTPUT_VARIABLE LUA_LPEG)
+
+IF(NOT LUA_LPEG)
+	MESSAGE(FATAL_ERROR "moonshine requires the lpeg lua package.")
 ENDIF()
 
 ADD_CUSTOM_COMMAND(
