@@ -30,11 +30,13 @@ OPTION(IRONTROUSERS
 	"Add build/modules and runtime/ into the lua package.cpath and path")
 
 IF (NOT IRONTROUSERS)
-	SET(MOONSHINE_RUNTIME "${CMAKE_INSTALL_PREFIX}/share/moonshine")
-	SET(MOONSHINE_MODULES "${CMAKE_INSTALL_PREFIX}/lib/moonshine")
+	MESSAGE(STATUS "Irontrousers: disabled")
+	SET(MOONSHINE_RUNTIME "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua")
+	SET(MOONSHINE_MODULES "${CMAKE_INSTALL_PREFIX}/lib/moonshine/?.so")
 ELSE()
-	SET(MOONSHINE_RUNTIME "${SRC}/runtime")
-	SET(MOONSHINE_MODULES "${BIN}/modules")
+	MESSAGE(STATUS "Irontrousers: enabled")
+	SET(MOONSHINE_RUNTIME "${SRC}/runtime/?.lua")
+	SET(MOONSHINE_MODULES "${BIN}/modules/?.so")
 ENDIF()
 
 INCLUDE_DIRECTORIES(${MOONSHINE_BINARY_DIR})

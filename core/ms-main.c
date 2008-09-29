@@ -39,14 +39,8 @@ int main(int argc, char *argv[])
 
 static void init_paths(LuaState *L)
 {
-	const char *runtime = g_getenv("MOONSHINE_RUNTIME");
-	const char *modules = g_getenv("MOONSHINE_MODULES");
-
-	if (!runtime)
-		runtime = MOONSHINE_RUNTIME;
-
-	if (!modules)
-		modules = MOONSHINE_MODULES;
+	const char *runtime = MOONSHINE_RUNTIME;
+	const char *modules = MOONSHINE_MODULES;
 
 	/* push the global package onto the stack */
 	lua_getglobal(L, "package");
