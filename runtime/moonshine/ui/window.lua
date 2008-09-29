@@ -6,7 +6,6 @@ local object    = require "moonshine.object"
 local Window = object:clone ()
 
 function Window:init(...)
-	print "init window..."
 	object.init(self, ...)
 
 	self.topic  = statusbar:new("")

@@ -108,7 +108,7 @@ static const struct token *get_lookahead(struct parsectx *pc, size_t offset) {
 	return &pc->lookahead[offset];
 }
 
-const char *ms_parseopt_run(void *baton, const char *argstr, const MSParseOptCallbacks *cb) {
+const char *ms_parseopt_parse(void *baton, const char *argstr, const MSParseOptCallbacks *cb) {
 	struct parsectx pc;
 	initctx(argstr, &pc);
 

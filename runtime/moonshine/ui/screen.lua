@@ -17,7 +17,6 @@ term.defcolor("statusimportant", "brightmagenta", "blue")
 term.defcolor("self", "white", "default")
 
 function Screen:init(...)
-	print "init screen..."
 	Object.init(self, ...)
 
 	self.entry   = Entry:new()
@@ -122,7 +121,6 @@ function Screen:remove(win)
 end
 
 function Screen:view(x)
-	print ("view", x)
 	if self.windows[x] then
 		self.window = self.windows[x]
 		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
@@ -135,18 +133,23 @@ function Screen:view(x)
 end
 
 function Screen:resize()
-	print ("self", self)
 	self:render()
 end
 
 function Screen:render()
 	local rows, cols = term.dimensions()
-	self.window:render(0, rows - 3)
+	local window = self.window
+	local status = self.status
+	local entry  = self.entry
+
 	self:updatestatus()
-	self.status:render(rows - 2)
-	self.entry:render()
+	
+	status:render(rows - 2)
+	window.bufferdirty = true
+	window:render(0, rows - 3)
+	entry:render()
+
 	term.refresh()
-	term.status(self.window.topic_text or 'O.o')
 end
 
 function Screen:keypress(key)
@@ -214,7 +217,10 @@ function Screen:send_line(f)
 		self.history:scroll_to(0)
 		self.sb_at_end = true
 		self.entry:clear()
-		f(line)
+		local rv = f(line)
+		if type(rv) == 'string' then
+			self:debug("%1", tostring(rv))
+		end
 		self:render()
 	end
 end

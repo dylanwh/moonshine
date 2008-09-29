@@ -42,18 +42,18 @@ static MSParseOptCallbacks parseopt_cb = {
 	.literalopt = literal_option
 };
 
-static int parseopt_run(LuaState *L)
+static int parseopt_parse(LuaState *L)
 {
 	const char *argstr = luaL_checkstring(L, 1);
 	MSLuaRef *R        = ms_lua_ref(L, 2);
-	const char *result = ms_parseopt_run(R, argstr, &parseopt_cb);
+	const char *result = ms_parseopt_parse(R, argstr, &parseopt_cb);
 	ms_lua_unref(R);
 	lua_pushstring(L, result);
 	return 1;
 }
 
 static LuaLReg functions[] = {
-	{"run",  parseopt_run },
+	{"parse",  parseopt_parse },
 	{ 0, 0 },
 };
 

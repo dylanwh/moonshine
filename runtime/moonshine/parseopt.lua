@@ -27,24 +27,28 @@ function Parseopt:init(...)--{{{
 	local hints = {}
 	local alias = {}
 
-	for i, spec in ipairs { ... } do
-		if type(spec) == 'number' then
-			hints[spec] = true
+	for _, spec in ipairs { ... } do
+		if type(spec) == 'number' or spec:match("^%d$") then
+			hints[tonumber(spec)] = true
 		else
 			local names, hint = parse_spec(spec)
 			local primary     = table.remove(names, 1)
 			hints[primary]    = hint
 			alias[primary]    = primary
-			for i, name in ipairs (names) do
+			for _, name in ipairs (names) do
 				alias[name] = primary
 			end
 		end
 	end
+	assert(hints)
+	assert(alias)
 	self.hints = hints
 	self.alias = alias
 end--}}}
 
-function Parseopt:run(text)--{{{
+function Parseopt:parse(text)--{{{
+    assert(self.alias)
+    assert(self.hints)
 	local options = {}
 	local args    = {}
 	for name, value in pairs (self.hints) do
@@ -53,7 +57,7 @@ function Parseopt:run(text)--{{{
 		end
 	end
 
-	local rest = parseopt_core.run(text, self:callback("on_option", options, args))
+	local rest = parseopt_core.parse(text, self:callback("on_option", options, args))
 	table.insert(args, rest)
 	return options, unpack(args)
 end--}}}
@@ -103,5 +107,7 @@ function Parseopt:on_option_list(options, primary, value)--{{{
 	table.insert(options[primary], value)
 	return parseopt_core.EATARG
 end--}}}
+
+assert(getmetatable(Parseopt).__index == Object, "Parseopt's __index is Object")
 
 return Parseopt

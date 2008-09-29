@@ -1,12 +1,11 @@
 local Object = {}
 
 function Object:clone (...)
+	local t = {}
 	local mt  = { __index = self }
-	local thing = {}
-	setmetatable(thing, mt)
-	print "running init on thing..."
-	thing:init(...)
-	return thing
+	setmetatable(t, mt)
+	t:init(...)
+	return t
 end
 
 function Object:init(table)

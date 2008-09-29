@@ -1,11 +1,13 @@
-local term    = require "moonshine.ui.term"
-local KeyMap  = require "moonshine.ui.keymap"
-local Screen  = require "moonshine.ui.screen"
-local Client  = require "moonshine.net.client"
+local shell  = require "moonshine.shell" 
+local term   = require "moonshine.ui.term"
+local KeyMap = require "moonshine.ui.keymap"
+local Screen = require "moonshine.ui.screen"
 
 keymap = KeyMap:clone()
 screen = Screen:clone()
-bind = keymap:callback "bind"
+bind   = keymap:callback "bind"
+
+shell.require("help")
 
 term.setup {
 	input  = keymap:callback "process",
@@ -30,18 +32,9 @@ bind("^?",      screen:callback "backspace")
 bind("^H",      screen:callback "backspace")
 bind("^C",      screen:callback "quit")
 bind("^L",      screen:callback "redraw")
---bind("^M",      screen:callback("send_line", command:callback "eval") )
-bind("^M",     function () end) 
+bind("^M",      screen:callback ("send_line", shell.eval))
 
 for i = 1, 9 do
 	bind("^[" .. i, "view " .. i)
 end
 
-screen:print("Hello, world!")
-client = Client:new(
-	"irc.example.com", 6666,
-	function (client, event, msg)
-		screen:debug("event: %1", event)
-	end
-)
-client:connect()

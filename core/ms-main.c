@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	}
 	lua_setglobal(L, "argv");
 
+	ms_lua_require(L, "moonshine.prelude");
 	ms_lua_require(L, "moonshine");
 	ms_lua_call_hook(L, "startup_hook");
 	g_main_loop_run(loop);

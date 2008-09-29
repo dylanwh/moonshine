@@ -31,6 +31,6 @@ typedef struct {
 	MSParseOptStatus (*literalopt)(void *baton, const char *literal, const char *start);
 } MSParseOptCallbacks;
 
-const char *ms_parseopt_run(void *baton, const char *argstr, const MSParseOptCallbacks *cb);
+const char *ms_parseopt_parse(void *baton, const char *argstr, const MSParseOptCallbacks *cb);
 
 #endif

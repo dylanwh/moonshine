@@ -133,8 +133,8 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer R) 
 			LuaState *L = ms_lua_pushref( (MSLuaRef *) R );
 			lua_pushstring(L, buf);
 			if (lua_pcall(L, 1, 0, 0) != 0) {
-				g_warning("error in input function: %s", lua_tostring(L, -1));
-				return FALSE;
+				g_warning("error in moonshine.ui.term input function: %s", lua_tostring(L, -1));
+				return TRUE;
 			}
 		} while (ms_term_input_pending(-1));
 		//moon_call(L, "input_reset_hook", "");
