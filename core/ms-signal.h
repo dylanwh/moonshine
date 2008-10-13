@@ -5,6 +5,7 @@
 
 typedef void (*MSSignalFunc)(int sig, gpointer data);
 void ms_signal_init(void);
+void ms_signal_reset(void);
 void ms_signal_catch(int sig, MSSignalFunc func, gpointer data, GDestroyNotify destroy);
 void ms_signal_clear(int signum);
 

@@ -1,4 +1,4 @@
-/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
+/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
 #include "moonshine/config.h"
 #include "moonshine/ms-signal.h"
 
@@ -7,9 +7,10 @@
 #include <glib.h>
 #include <signal.h>
 
-static int sigin, sigout;
-static GIOChannel *channel;
+static GIOChannel *input_chan;
+static int output_fd;
 static GHashTable *signals;
+static guint tag;
 
 typedef struct {
 	MSSignalFunc func;
@@ -17,35 +18,62 @@ typedef struct {
 	GDestroyNotify destroy;
 } MSSignalCallback;
 
-static gboolean on_input(UNUSED GIOChannel *i, GIOCondition c, UNUSED gpointer p)/*{{{*/
+static gboolean on_input(GIOChannel *chan, GIOCondition c, UNUSED gpointer p)/*{{{*/
 {
-	int sig;
-	read(sigin, &sig, sizeof(sig));
-	MSSignalCallback *cb = g_hash_table_lookup(signals, GINT_TO_POINTER(sig));
-	if (cb)
-		cb->func(sig, cb->data);
+	int       sig    = 0;
+	gsize     bytes  = 0;
+	GIOStatus status = 0;
+
+	status = g_io_channel_read_chars(chan, (char *)&sig, sizeof(sig), &bytes, NULL);
+	if (status == G_IO_STATUS_NORMAL) {
+		MSSignalCallback *cb = g_hash_table_lookup(signals, GINT_TO_POINTER(sig));
+		if (cb) cb->func(sig, cb->data);
+	} 
 	return TRUE;
 }/*}}}*/
 
 static void on_signal(int sig)/*{{{*/
 {
-	write(sigout, &sig, sizeof(sig));
+	write(output_fd, &sig, sizeof(sig));
+}/*}}}*/
+
+static GIOChannel *channel_from_fd(int fd)/*{{{*/
+{
+	GIOChannel *channel = g_io_channel_unix_new(fd);
+	g_io_channel_set_encoding(channel, NULL, NULL);
+	g_io_channel_set_buffered(channel, FALSE);
+	g_io_channel_set_flags(channel, G_IO_FLAG_NONBLOCK, NULL);
+	g_io_channel_set_close_on_unref(channel, TRUE);
+	return channel;
 }/*}}}*/
 
 void ms_signal_init(void)/*{{{*/
 {
 	int fildes[2];
-	if (pipe(fildes) != 0)
-		perror("pipe");
-	sigin     = fildes[0];
-	sigout    = fildes[1];
-	channel   = g_io_channel_unix_new(sigin);
-	g_io_channel_set_encoding(channel, NULL, NULL);
-	g_io_channel_set_buffered(channel, FALSE);
-	g_io_channel_set_flags(channel, G_IO_FLAG_NONBLOCK, NULL);
-	signals   = g_hash_table_new(NULL, NULL);
-	g_io_add_watch(channel, G_IO_IN, on_input, NULL);
+	if (pipe(fildes) != 0) perror("pipe");
+
+	input_chan = channel_from_fd(fildes[0]);
+	output_fd  = fildes[1];
+	signals    = g_hash_table_new(NULL, NULL);
+	tag        = g_io_add_watch(input_chan, G_IO_IN, on_input, NULL);
 }/*}}}*/
+
+static void clear_each(gpointer key, UNUSED gpointer value, UNUSED gpointer data)/*{{{*/
+{
+	ms_signal_clear(GPOINTER_TO_INT(key));
+}/*}}}*/
+
+void ms_signal_reset(void)
+{
+	g_hash_table_foreach(signals, clear_each, NULL);
+
+	g_source_remove(tag);
+	g_io_channel_unref(input_chan);
+	close(output_fd);
+	output_fd = 0;
+
+	g_hash_table_destroy(signals);
+}
 
 void ms_signal_catch(int sig, MSSignalFunc func, gpointer data, GDestroyNotify destroy)/*{{{*/
 {

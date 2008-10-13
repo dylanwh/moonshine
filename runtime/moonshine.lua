@@ -30,7 +30,7 @@ bind("^[[1;5C", screen:callback "word_right")
 bind("^W",      screen:callback "word_delete")
 bind("^?",      screen:callback "backspace")
 bind("^H",      screen:callback "backspace")
-bind("^C",      screen:callback "quit")
+bind("^C",      os.exit)
 bind("^L",      screen:callback "redraw")
 bind("^M",      screen:callback ("send_line", shell.eval))
 
