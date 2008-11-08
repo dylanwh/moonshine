@@ -154,6 +154,8 @@ static void on_resize (int signal, gpointer R)/*{{{*/
 
 static int term_setup(LuaState *L)/*{{{*/
 {
+	ms_term_init();
+
 	luaL_checktype(L, 1, LUA_TTABLE);
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 
@@ -208,7 +210,6 @@ static LuaLReg functions[] = {/*{{{*/
 
 int luaopen_moonshine_ui_term(LuaState *L)/*{{{*/
 {
-	ms_term_init();
 	luaL_register(L, "moonshine.ui.term", functions);
 	return 1;
 }/*}}}*/

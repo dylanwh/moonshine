@@ -26,4 +26,7 @@ api-docs:
 posthook:
 	-perl /srv/darcs/changes | perl /srv/darcs/subbotclient.pl
 
-.PHONY: all posthook purge install test configure compile 
+clean:
+	rm -rf build
+
+.PHONY: all posthook purge install test configure compile clean

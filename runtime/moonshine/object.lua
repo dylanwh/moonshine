@@ -31,6 +31,8 @@ function Object:callback(name, ...)
 		return function (...) return self[name](self, args[1], ...) end
 	elseif #args == 2 then
 		return function (...) return self[name](self, args[1], args[2], ...) end
+	elseif #args == 3 then
+		return function (...) return self[name](self, args[1], args[2], args[3], ...) end
 	else
 		return function (...)
 			local xs = { unpack(args) }

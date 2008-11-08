@@ -1,3 +1,4 @@
+--[==[
 local shell  = require "moonshine.shell" 
 local term   = require "moonshine.ui.term"
 local KeyMap = require "moonshine.ui.keymap"
@@ -37,4 +38,4 @@ bind("^M",      screen:callback ("send_line", shell.eval))
 for i = 1, 9 do
 	bind("^[" .. i, "view " .. i)
 end
-
+]==]
