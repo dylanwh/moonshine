@@ -1,9 +1,15 @@
-local command = require "moonshine.command"
-local string  = string
-local require = require
-module "moonshine.shell"
+-- this module provides an evaluator for moonshine commands.
+-- Moonshine commands are the /foo bar baz strings that you 
+-- type in the entry area.
+--
+-- Commands are functions in the global namespace.
+-- For instance, /msg  --target=bob
 
-function eval(line)
+local signal   = require "moonshine.signal"
+local parseopt = require "moonshine.parseopt"
+local M        = {}
+
+function M.eval(line)
 	local name, pos = string.match(line, "^/([%w_]+)()")
 	local arg
 	if name then
@@ -11,15 +17,35 @@ function eval(line)
 		arg  = string.sub(line, pos+1)
 	else
 		name = "say"
-		arg = line
+		arg  = line
 	end
 
-	if command[name] then
-		local cmd = command[name]
-		cmd.run( cmd.parse(arg) )
+	signal.emit("command " .. name, arg)
+end
+
+function M.define(def)
+	local name   = def.name
+	local action = def.action
+	local spec   = def.spec
+
+	assert(name,   "name field required")
+	assert(action, "action field required")
+
+	if spec then
+		local parser = parseopt.build_parser( unpack(spec) )
+		signal.add("command " .. name, function(text)
+			action( parser(text) )
+		end)
 	end
 end
 
-function bind(name, cmd)
-	command[name] = cmd
+function M.require(name)
+	local mod = require("moonshine.shell." .. name)
+	mod.name = name
+	M.define(mod)
 end
+
+
+
+
+return M

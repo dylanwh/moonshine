@@ -1,8 +1,7 @@
 -- vim: set et:
-local lpeg          = require "lpeg"
-local parseopt_core = require "moonshine.parseopt.core"
-local Object        = require "moonshine.object"
-local Parseopt      = Object:clone()
+local core  = require "moonshine.parseopt.core"
+local lpeg  = require "lpeg"
+local M     = {} 
 
 -- {{{ spec parsing stuff
 local HINTS = { s = 'string', n = 'number', t = 'table', l = 'list', b = 'boolean', i = 'counter' }
@@ -23,11 +22,11 @@ local function parse_spec (s)
 end
 -- }}}
 
-function Parseopt:init(...)--{{{
+function M.build_parser(...)--{{{
 	local hints = {}
 	local alias = {}
 
-	for _, spec in ipairs { ... } do
+	for _, spec in ipairs { ... } do--{{{
 		if type(spec) == 'number' or spec:match("^%d$") then
 			hints[tonumber(spec)] = true
 		else
@@ -39,75 +38,43 @@ function Parseopt:init(...)--{{{
 				alias[name] = primary
 			end
 		end
-	end
-	assert(hints)
-	assert(alias)
-	self.hints = hints
-	self.alias = alias
+	end--}}}
+
+    return function(text)--{{{
+	    local options = {}
+	    local args    = {}
+	    local function callback(name, value)--{{{
+	        local primary = alias[name or '']
+	        local hint    = hints[primary]
+	        if primary == nil then
+	            if hints[ #args + 1 ] then
+	                table.insert(args, value)
+	                return core.NOARG
+	            else
+	                return core.STOP
+	            end
+	        elseif hint == 'boolean' then
+	            options[primary] = true
+	            return core.NOARG
+	        elseif hint == 'string' then
+	            options[primary] = value
+	            return core.EATARG
+	        elseif hint == 'number' then
+	            options[primary] = tonumber(value) 
+	            return core.EATARG
+	        elseif hint == 'list' then
+	            if not options[primary] then
+	                options[primary] = {}
+	            end
+	            table.insert(options[primary], value)
+	            return core.EATARG
+	        end
+	    end--}}}
+	    
+	    local rest = core.parse(text, callback)
+	    table.insert(args, rest)
+	    return options, unpack(args)
+	end--}}}
 end--}}}
 
-function Parseopt:parse(text)--{{{
-    assert(self.alias)
-    assert(self.hints)
-	local options = {}
-	local args    = {}
-	for name, value in pairs (self.hints) do
-		if value == 'list' or value == 'table' then
-			options[name] = {}
-		end
-	end
-
-	local rest = parseopt_core.parse(text, self:callback("on_option", options, args))
-	table.insert(args, rest)
-	return options, unpack(args)
-end--}}}
-
-function Parseopt:on_option(options, args, name, value)--{{{
-	local hints = self.hints
-	local alias = self.alias
-	if name == nil then
-		if hints[ #args + 1] then
-			table.insert(args, value)
-			return parseopt_core.NOARG
-		else
-			return parseopt_core.STOP
-		end
-	elseif alias[name] then
-		local primary = alias[name]
-		local hint    = hints[primary]
-		local method  = self["on_option_" .. hint]
-		local val = method(self, options, primary, value)
-		local ret
-		for k, v in pairs(parseopt_core) do
-			if v == val then
-				ret = k
-				break
-			end
-		end
-		return val
-	end
-end--}}}
-
-function Parseopt:on_option_boolean(options, primary)--{{{
-	options[primary] = true
-	return parseopt_core.NOARG
-end--}}}
-
-function Parseopt:on_option_string(options, primary, value)--{{{
-	options[primary] = value
-	return parseopt_core.EATARG
-end--}}}
-
-function Parseopt:on_option_number(options, primary, value)--{{{
-	options[primary] = tonumber(value)
-	return parseopt_core.EATARG
-end--}}}
-
-function Parseopt:on_option_list(options, primary, value)--{{{
-	table.insert(options[primary], value)
-	return parseopt_core.EATARG
-end--}}}
-
-assert(getmetatable(Parseopt).__index == Object, "Parseopt's __index is Object")
-
-return Parseopt
+return M

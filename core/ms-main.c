@@ -6,6 +6,7 @@
 
 static void init_paths(LuaState *L);
 static int os_exit(LuaState *L);
+static int main_loop(LuaState *L);
 
 int main(int argc, char *argv[])
 {
@@ -33,12 +34,12 @@ int main(int argc, char *argv[])
 	lua_pushcclosure(L, os_exit, 1);
 	lua_setfield(L, -2, "exit");
 	lua_pop(L, 1);
+
+	lua_pushlightuserdata(L, loop);
+	lua_pushcclosure(L, main_loop, 1);
+	lua_setglobal(L, "main_loop");
 	
-	ms_lua_require(L, "moonshine.prelude");
 	ms_lua_require(L, "moonshine");
-	ms_lua_call_hook(L, "startup_hook");
-	g_main_loop_run(loop);
-	ms_lua_call_hook(L, "shutdown_hook");
 
 	/* The next three function calls are terribly order-dependent. */
 	ms_signal_reset();
@@ -54,6 +55,16 @@ static int os_exit(LuaState *L)
 	g_assert(loop != NULL);
 
 	g_main_loop_quit(loop);
+
+	return 0;
+}
+
+static int main_loop(LuaState *L)
+{
+	GMainLoop *loop = lua_touserdata(L, lua_upvalueindex(1));
+	g_assert(loop != NULL);
+
+	g_main_loop_run(loop);
 
 	return 0;
 }

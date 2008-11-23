@@ -48,7 +48,7 @@ end
 function M:new()
 	local object = { trie = {} }
 
-	function object:find(key)
+	function object:find(key) 
 		return M.find(self.trie, key) 
 	end
 

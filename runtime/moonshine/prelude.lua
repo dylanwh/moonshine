@@ -32,3 +32,10 @@ end--}}}
 function split(pat, str)--{{{
 	return collect(string.split, str, pat)
 end--}}}
+
+do
+	local signal = require "moonshine.signal"
+	function print(...)
+		signal.emit("print", ...)
+	end
+end

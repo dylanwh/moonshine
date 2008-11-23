@@ -1,38 +1,26 @@
--- imports
-local require = require
-local ipairs  = ipairs
-local table   = table
 local signals = {}
+local M       = {}
 
-module "moonshine.signal"
+local function _emit(name, ...)
+    local list = signals[name]
+    if list then
+        for _, f in ipairs(list) do
+            f(...)
+        end
+    end
+end
 
-function emit(name, ...)
+function M.emit(name, ...)
 	if signals[name] then
-		for i, f in ipairs(signals[name]) do
-			if f(...) == false then
-				return false
-			end
-		end
-	end
-	return true
+	    _emit("before " .. name, ...)
+    	_emit(name, ...)
+    	_emit("after " .. name, ...)
+    end
 end
 
-function add(name, f)
-	if not signals[name] then
-		signals[name] = {}
-	end
-
-	table.insert(signals[name], f)
+function M.add(name, func)
+    signals[name] = signals[name] or {}
+    table.insert(signals[name], func)
 end
 
-function add_first(name, f)
-	if not signals[name] then
-		signals[name] = {}
-	end
-
-	table.insert(signals[name], 1, f)
-end
-
-function clear(name)
-	signals[name] = nil
-end
+return M

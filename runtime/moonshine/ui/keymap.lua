@@ -1,57 +1,34 @@
-local Object = require "moonshine.object"
+local signal = require "moonshine.signal"
 local term   = require "moonshine.ui.term"
+local trie   = require "moonshine.trie"
 
-local KeyMap = Object:clone()
+local keymap = trie.new()
+local keybuf = ""
+local M      = {}
 
-local function index(s, i) return s:sub(i+1, i+1) end
+function M.bind(spec_, name, ...)--{{{
+	assert(spec_, "keyspec is required")
+	assert(name, "event name is required")
 
-function KeyMap:init(...)--{{{
-	self.keys = {}
-	self.key = nil
-	Object.init(self, ...)
-	return self
+	local spec  = term.make_keyspec(spec_)
+	local event = { name = name, ... }
+
+	keymap:insert(spec, event)
 end--}}}
 
-function KeyMap:bind(spec, f)--{{{
-	if spec ~= '' then
-		local k = self.keys
-		local spec = term.make_keyspec(spec)
-		local last = spec:len() - 1
-		for i = 0, last, 1 do
-			local x = index(spec, i)
-			if i == last then
-				k[x] = f
-			else
-				if k[x] == nil then
-					k[x] = {}
-				end
-				k = k[x]
-			end
-		end
-	else
-		self.keys[""] = f
+local function process(key)--{{{
+	keybuf = keybuf .. key
+	
+	local found, event = keymap:find(keybuf)
+	if found then
+		signal.emit(event.name, unpack(event))
+		keybuf = ""
+	elseif found == nil then
+		signal.emit("keypress", key)
+		keybuf = ""
 	end
 end--}}}
 
-function KeyMap:process(k)--{{{
-	local key = self.key
-	local keys = self.keys
+signal.add("input", process)
 
-	if type(key) == 'table' then
-		key = key[k]
-	else
-		key = keys[k]
-		if not key and keys[""] then
-			keys[""](k)
-		end
-	end
-
-	if type(key) == 'function' then
-		key()
-		key = nil
-	end
-
-	self.key = key
-end--}}}
-
-return KeyMap
+return M

@@ -76,21 +76,6 @@ void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods
 
 /*}}}*/
 
-void ms_lua_call_hook(LuaState *L, const char *name)/*{{{*/
-{
-	g_return_if_fail(L != NULL);
-	g_return_if_fail(name != NULL);
-
-	lua_getglobal(L, name);
-	if (lua_isfunction(L, -1)) {
-		if (lua_pcall(L, 0, 0, 0) != 0) {
-			g_error("moonshine error in %s(): %s", name, lua_tostring(L, -1));
-		}
-	} else {
-		lua_pop(L, 1);
-	}
-}/*}}}*/
-
 void ms_lua_require(LuaState *L, const char *name)/*{{{*/
 {
 	g_return_if_fail(L != NULL);
