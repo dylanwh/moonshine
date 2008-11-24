@@ -3,7 +3,7 @@ local term   = require "moonshine.ui.term"
 
 term.setup {
 	input  = function(key) signal.emit("input", key) end,
-	resize = function() signal.emit("render") end,
+	resize = function() signal.emit("screen refresh") end,
 }
 
 term.defcolor("blue", "brightblue", "default")

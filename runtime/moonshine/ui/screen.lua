@@ -108,7 +108,7 @@ function M.remove(win)--{{{
 	end
 end--}}}
 
-function M.view(n)--{{{
+function M.goto(n)--{{{
 	n = tonumber(n)
 	if M.windows[n] then
 		M.window = M.windows[n]
@@ -130,7 +130,7 @@ function M.render()--{{{
 	M.update_status()
 	
 	status:render(rows - 2)
-	window.bufferdirty = true
+	window.buffer_dirty = true
 	window:render(0, rows - 3)
 	entry:render()
 
@@ -250,23 +250,23 @@ end--}}}
 -- }}}
 
 signal.add("startup",  startup)
-signal.add("render",   M.render)
 signal.add("keypress", M.keypress)
 signal.add("print",    function(...) M.debug("%1", table.concat({...}, " ")) end)
 
-signal.add("key return",    M.submit)
-signal.add("key backspace", M.backspace)
-signal.add("key up",        M.scroll_up)
-signal.add("key down",      M.scroll_down)
-signal.add("key left",      M.move_left)
-signal.add("key right",     M.move_right)
-signal.add("key home",      M.move_home)
-signal.add("key end",       M.move_end)
-signal.add("key page_up",   M.history_backward)
-signal.add("key page_down", M.history_forward)
-signal.add("key word_delete", M.word_delete)
-signal.add("key word_left",   M.word_left)
-signal.add("key word_right",  M.word_right)
-signal.add("view", M.view)
+signal.add("screen refresh",     M.render)
+signal.add("window goto",        M.goto)
+signal.add("entry submit",       M.submit)
+signal.add("entry backspace",    M.backspace)
+signal.add("buffer scroll up",   M.scroll_up)
+signal.add("buffer scroll down", M.scroll_down)
+signal.add("entry move left",    M.move_left)
+signal.add("entry move right",   M.move_right)
+signal.add("entry move home",    M.move_home)
+signal.add("entry move end",     M.move_end)
+signal.add("entry history prev", M.history_backward)
+signal.add("entry history next", M.history_forward)
+signal.add("entry delete word",  M.word_delete)
+signal.add("entry move left by word",  M.word_left)
+signal.add("entry move right by word", M.word_right)
 
 return M

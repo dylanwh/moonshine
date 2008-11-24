@@ -1,58 +1,6 @@
-Moonshine Design Choices
-========================
+Moonshine has many protocols.
 
-This document is sort of a history of design decisions, more than a formal
-design document.
+to connect:
 
+signal.emit("irc connect", host, port)
 
-Why I am not using C++ and Swig
--------------------------------
-
-I considered using C++ and Swig, especially for the UI widgets that bd_ wrote.
-Rewriting the code to be valid C++ is not hard, so I did that.
-However, while swig is really good at wrapping code, wrapping code that uses
-function pointers is difficult. It requires complicated type maps and I did not
-feel like doing that. So I am not going to use C++ or swig.
-
-
-Why I am not using coroutines
------------------------------
-
-Coroutines would greatly simplify things. I could pretend that net.connect() and
-friends block. However, it seems non-trivial to use coroutines as I want to.
-
-However, I will continue using coroutines in the future, especially if someone
-else does it.
-A good article on the matter: http://lua-users.org/wiki/CoroutinesAsEventHandlers
-
-
-
-Wrapping around object oriented C code is evil
-----------------------------------------------
-
-Code that is only going to be used from lua should be defined as a lua-style
-library. Wrappers for code in my source tree is not sane.
-
-
-Code generation should not be used
-----------------------------------
-
-Because Syrra said so.
-
-
-
-I will use an irssi-like signal system
---------------------------------------
-
-Because aftran said so.
-
-
-I will not adhere to the XDG Base Directory Specification
----------------------------------------------------------
-
-Because it is broken. If $XDG_CONFIG_HOME == $HOME (my preference),
-that would produce a config location of ~/moonshine. I prefer ~/.moonshine.
-The default $XDG_CONFIG_HOME location would yield $HOME/.config/moonshine.
-
-Moonshine will adhere to the specification once vim, mutt, and
-zsh do the same.

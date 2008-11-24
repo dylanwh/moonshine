@@ -6,7 +6,6 @@ local M = {}
 M.spec = { 1, 2, 3 }
 
 function M.action(_, cmd, ...)
-	print(cmd)
 	if M[cmd] then
 		M[cmd](...)
 	end
@@ -16,13 +15,12 @@ function M.new(mode)
 	local win = Window:new("new")
 	local n = screen.add(win)
 	if mode ~= 'hidden' then
-		screen.view(n)
+		screen.goto(n)
 	end
 end
 
 function M.goto(n)
-	print("goto", n)
-	screen.view(n)
+	screen.goto(n)
 end
 
 return M

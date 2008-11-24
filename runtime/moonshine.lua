@@ -14,8 +14,8 @@ shell.define {
 }
 
 shell.require("window")
+shell.require("connect")
 
 signal.emit("startup")
 main_loop()
 signal.emit("shutdown")
-

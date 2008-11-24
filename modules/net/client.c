@@ -5,7 +5,7 @@
 #define CLASS "moonshine.net.client"
 #define REFS  "moonshine.net._client"
 
-/* {{{ Utility functions */
+/* {{{ tility functions */
 inline static int push_event(LuaState *L, GConnEvent *event)/*{{{*/
 {
 	char *type;

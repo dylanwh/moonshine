@@ -5,8 +5,10 @@
 -- Commands are functions in the global namespace.
 -- For instance, /msg  --target=bob
 
+
 local signal   = require "moonshine.signal"
 local parseopt = require "moonshine.parseopt"
+local PREFIX   = "shell "
 local M        = {}
 
 function M.eval(line)
@@ -20,7 +22,7 @@ function M.eval(line)
 		arg  = line
 	end
 
-	signal.emit("command " .. name, arg)
+	signal.emit(PREFIX .. name, arg)
 end
 
 function M.define(def)
@@ -33,7 +35,7 @@ function M.define(def)
 
 	if spec then
 		local parser = parseopt.build_parser( unpack(spec) )
-		signal.add("command " .. name, function(text)
+		signal.add(PREFIX .. name, function(text)
 			action( parser(text) )
 		end)
 	end

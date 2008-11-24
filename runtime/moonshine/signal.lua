@@ -23,4 +23,10 @@ function M.add(name, func)
     table.insert(signals[name], func)
 end
 
+function M.bind(from, to)
+	M.add(from, function(...)
+		M.emit(to, ...)
+	end)
+end
+
 return M

@@ -210,7 +210,8 @@ static LuaLReg functions[] = {/*{{{*/
 
 int luaopen_moonshine_ui_term(LuaState *L)/*{{{*/
 {
-	luaL_register(L, "moonshine.ui.term", functions);
+	lua_newtable(L);
+	luaL_register(L, NULL, functions);
 	return 1;
 }/*}}}*/
 

@@ -1,10 +1,9 @@
 local M = {}
 
-
 -- returns (true, key) if the trie has a value associated with key,
 -- returns false if key is a valid prefix into the trie.
 -- returns nil if the key is not a valid prefix into the trie.
-local function find(node, key, i)
+local function find(node, key, i)--{{{
 	local c = key:sub(i, i)
 	if c == '' then
 		if node.value ~= nil then
@@ -20,18 +19,18 @@ local function find(node, key, i)
 			return find(child, key, i+1)
 		end
 	end
-end
+end--}}}
 
-function M.find(node, key)
+function M.find(node, key)--{{{
 	assert(type(node) == 'table', "trie must be a table")
 	assert(type(key) == 'string', "trie 'key' must be a string")
 
 	return find(node, key, 1)
-end
+end--}}}
 
 -- insert a key=value association into the trie (a table).
 -- Note: key must be a non-empty string, and value must not be nil.
-function M.insert(node, key, value)
+function M.insert(node, key, value)--{{{
 	assert(type(node) == 'table', "trie must be a table")
 	assert(type(key) == 'string', "trie 'key' must be a string")
 	assert(type(value) ~= 'nil', "cannot insert nil value into trie")
@@ -43,9 +42,9 @@ function M.insert(node, key, value)
 		node = node[c]
 	end
 	node.value = value or true
-end
+end--}}}
 
-function M:new()
+function M:new()--{{{
 	local object = { trie = {} }
 
 	function object:find(key) 
@@ -57,6 +56,6 @@ function M:new()
 	end
 
 	return object
-end
+end--}}}
 
 return M
