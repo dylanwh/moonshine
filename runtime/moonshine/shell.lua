@@ -2,9 +2,14 @@
 -- Moonshine commands are the /foo bar baz strings that you 
 -- type in the entry area.
 --
--- Commands are functions in the global namespace.
+-- Commands are signals.
 -- For instance, /msg  --target=bob
-
+-- is: signal.emit("command msg", "--target=bob")
+--
+-- moonshine.parseopt provides a way of parsing options in the argument 
+-- to command signals.
+--
+-- shell.define provides some sugar around all of this.
 
 local signal   = require "moonshine.signal"
 local parseopt = require "moonshine.parseopt"
@@ -22,7 +27,9 @@ function M.eval(line)
 		arg  = line
 	end
 
-	signal.emit(PREFIX .. name, arg)
+	if not signal.emit(PREFIX .. name, arg) then
+		signal.emit("unknown command", name, arg)
+	end
 end
 
 function M.define(def)
@@ -38,6 +45,8 @@ function M.define(def)
 		signal.add(PREFIX .. name, function(text)
 			action( parser(text) )
 		end)
+	else
+		signal.add(PREFIX .. name, action)
 	end
 end
 
@@ -47,7 +56,9 @@ function M.require(name)
 	M.define(mod)
 end
 
-
-
+M.define {
+	name = "quit",
+	action = os.exit,
+}
 
 return M

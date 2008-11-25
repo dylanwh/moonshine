@@ -15,6 +15,9 @@ function M.emit(name, ...)
 	    _emit("before " .. name, ...)
     	_emit(name, ...)
     	_emit("after " .. name, ...)
+    	return true
+    else
+    	return false
     end
 end
 

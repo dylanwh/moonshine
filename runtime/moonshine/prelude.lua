@@ -33,12 +33,12 @@ function split(pat, str)--{{{
 	return collect(string.split, str, pat)
 end--}}}
 
-do
+--[[do
 	local signal = require "moonshine.signal"
 	function print(...)
 		signal.emit("print", ...)
 	end
-end
+end]]
 
 function each(x)
 	if type(x) == 'table' then
@@ -61,4 +61,29 @@ function each(x)
 			error("cannot each() over this object.")
 		end
 	end
+end
+
+function magic_table(canonize)
+	local t  = {}
+	local mt = {}
+	setmetatable(t, mt)
+
+	assert(canonize, "magic_table needs canonize function!")
+
+	function mt.__index(t, key)
+		return rawget(t, canonize(key))
+	end
+
+	function mt.__newindex(t, key, val)
+		return rawset(t, canonize(key), val)
+	end
+
+	return t
+end
+
+
+local t = magic_table(string.lower)
+t.NaME = "foo"
+for k, v in pairs(t) do
+	print (k, v)
 end
