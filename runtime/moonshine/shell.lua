@@ -58,7 +58,7 @@ end
 
 M.define {
 	name = "quit",
-	action = os.exit,
+	action = quit,
 }
 
 return M

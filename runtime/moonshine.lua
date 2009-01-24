@@ -1,6 +1,7 @@
 --local shell  = require "moonshine.shell" 
 require "moonshine.prelude"
 require "moonshine.ui"
+local irc = require "moonshine.irc"
 
 local signal = require "moonshine.signal"
 local shell  = require "moonshine.shell"
@@ -14,7 +15,6 @@ shell.define {
 }
 
 shell.require("window")
-shell.require("connect")
 
 signal.emit("startup")
 main_loop()

@@ -28,4 +28,4 @@ for i = 1, 9 do
 	keymap.bind("^[" .. i, "window goto", i)
 end
 
-signal.add("exit", os.exit)
+signal.add("exit", quit)

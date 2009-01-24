@@ -11,14 +11,13 @@ static int main_loop(LuaState *L);
 int main(int argc, char *argv[])
 {
 	GMainLoop *loop = g_main_loop_new(NULL, FALSE);
-	LuaState *L     = lua_open();
-	luaL_openlibs(L);
+	LuaState *L     = ms_lua_open();
 
 	g_thread_init(NULL);
 	ms_signal_init();
 	init_paths(L);
 
-	/* argv = { name = argv[0], argv[1], argv[n], ... } */
+	/* argv = { name = argv[0], argv[1], ... argv[n] } */
 	lua_createtable(L, argc, 1);
 	lua_pushstring(L, argv[0]);
 	lua_setfield(L, -2, "name");
@@ -30,13 +29,11 @@ int main(int argc, char *argv[])
 
 	/* os.exit = os_exit */
 	lua_getglobal(L, "os");
-	lua_pushlightuserdata(L, loop);
-	lua_pushcclosure(L, os_exit, 1);
+	lua_pushcfunction(L, os_exit);
 	lua_setfield(L, -2, "exit");
 	lua_pop(L, 1);
 
-	lua_pushlightuserdata(L, loop);
-	lua_pushcclosure(L, main_loop, 1);
+	lua_pushcfunction(L, main_loop);
 	lua_setglobal(L, "main_loop");
 	
 	ms_lua_require(L, "moonshine");

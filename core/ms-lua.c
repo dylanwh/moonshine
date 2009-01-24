@@ -87,3 +87,13 @@ void ms_lua_require(LuaState *L, const char *name)/*{{{*/
 	}
 }/*}}}*/
 
+LuaState *ms_lua_open(int argc, char *argv[])
+{
+	LuaState *L  = lua_open();
+	luaL_openlibs(L);
+
+	lua_newtable(L);
+	lua_pushstring(L, MOONSHINE_VERSION);
+
+  	return L;
+}

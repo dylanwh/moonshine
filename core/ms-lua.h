@@ -6,9 +6,11 @@
 #include <glib.h>
 #include <string.h>
 
-typedef lua_State LuaState;
-typedef luaL_reg LuaLReg;
+typedef lua_State     LuaState;
+typedef luaL_reg      LuaLReg;
 typedef lua_CFunction LuaFunction;
+
+LuaState *ms_lua_open(void);
 
 typedef struct MSLuaRef {
 	LuaState *L;
@@ -25,6 +27,5 @@ gpointer ms_lua_checkclass(LuaState *L, const char *class, int index);
 gpointer ms_lua_newclass(LuaState *L, const char *class, gsize size);
 
 void ms_lua_require(LuaState *L, const char *name);
-
 
 #endif

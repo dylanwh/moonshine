@@ -1,6 +1,4 @@
 Moonshine has many protocols.
 
-to connect:
-
-signal.emit("irc connect", host, port)
-
+local irc = protocol.find("irc")
+irc:connect(
