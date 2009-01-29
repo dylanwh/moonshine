@@ -10,7 +10,7 @@ typedef lua_State     LuaState;
 typedef luaL_reg      LuaLReg;
 typedef lua_CFunction LuaFunction;
 
-LuaState *ms_lua_open(void);
+LuaState *ms_lua_open(int argc, char *argv[]);
 
 typedef struct MSLuaRef {
 	LuaState *L;

@@ -25,11 +25,11 @@ LuaState *ms_lua_pushref(MSLuaRef *R)/*{{{*/
 void ms_lua_unref(MSLuaRef *R)/*{{{*/
 {
 	luaL_unref(R->L, LUA_REGISTRYINDEX, R->ref);
+	g_free(R);
 }/*}}}*/
 /* }}} */
 
 /* Class-related functions {{{ */
-
 gpointer ms_lua_toclass(LuaState *L, const char *class, int index)/*{{{*/
 {
   	gpointer p = lua_touserdata(L, index);
@@ -72,7 +72,6 @@ void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods
  
  	lua_remove(L, -1);
 }/*}}}*/
-
 /*}}}*/
 
 void ms_lua_require(LuaState *L, const char *name)/*{{{*/
@@ -87,7 +86,27 @@ void ms_lua_require(LuaState *L, const char *name)/*{{{*/
 	}
 }/*}}}*/
 
-LuaState *ms_lua_open(int argc, char *argv[])
+static void init_paths(LuaState *L)/*{{{*/
+{
+	const char *runtime = MOONSHINE_RUNTIME;
+	const char *modules = MOONSHINE_MODULES;
+
+	/* push the global package onto the stack */
+	lua_getglobal(L, "package");
+
+	/* Assign package.path = runtime */
+	lua_pushstring(L, runtime);
+	lua_setfield(L, -2, "path");
+
+	/* Assign package.cpath = modules */
+	lua_pushstring(L, modules);
+	lua_setfield(L, -2, "cpath");
+
+	/* remove package from the stack. */
+	lua_pop(L, 1);
+}/*}}}*/
+
+LuaState *ms_lua_open(int argc, char *argv[])/*{{{*/
 {
 	LuaState *L  = lua_open();
 	luaL_openlibs(L);
@@ -95,5 +114,17 @@ LuaState *ms_lua_open(int argc, char *argv[])
 	lua_newtable(L);
 	lua_pushstring(L, MOONSHINE_VERSION);
 
+	/* argv = { name = argv[0], argv[1], ... argv[n] } */
+	lua_createtable(L, argc, 1);
+	lua_pushstring(L, argv[0]);
+	lua_setfield(L, -2, "name");
+	for (int i = 1; i < argc; i++) {
+		lua_pushstring(L, argv[i]);
+		lua_rawseti(L, -2, i);
+	}
+	lua_setglobal(L, "argv");
+
+	init_paths(L);
+
   	return L;
-}
+}/*}}}*/

@@ -17,5 +17,6 @@ shell.define {
 shell.require("window")
 
 signal.emit("startup")
-main_loop()
+loop = loop:new()
+loop:run()
 signal.emit("shutdown")
