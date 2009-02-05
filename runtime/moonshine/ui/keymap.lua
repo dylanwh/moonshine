@@ -1,4 +1,4 @@
-local signal = require "moonshine.signal"
+local event = require "moonshine.event"
 local term   = require "moonshine.ui.term"
 local trie   = require "moonshine.trie"
 
@@ -21,14 +21,14 @@ local function process(key)--{{{
 	
 	local found, event = keymap:find(keybuf)
 	if found then
-		signal.emit(event.name, unpack(event))
+		event.emit(event.name, unpack(event))
 		keybuf = ""
 	elseif found == nil then
-		signal.emit("keypress", key)
+		event.emit("keypress", key)
 		keybuf = ""
 	end
 end--}}}
 
-signal.add("input", process)
+event.add("input", process)
 
 return M

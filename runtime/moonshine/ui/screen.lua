@@ -1,4 +1,4 @@
-local signal = require "moonshine.signal"
+local event = require "moonshine.event"
 local shell  = require "moonshine.shell"
 local term   = require "moonshine.ui.term"
 
@@ -249,24 +249,24 @@ function M.history_forward()--{{{
 end--}}}
 -- }}}
 
-signal.add("startup",  startup)
-signal.add("keypress", M.keypress)
-signal.add("print",    function(...) M.debug("%1", table.concat({...}, " ")) end)
+event.add("startup",  startup)
+event.add("keypress", M.keypress)
+event.add("print",    function(...) M.debug("%1", table.concat({...}, " ")) end)
 
-signal.add("screen refresh",     M.render)
-signal.add("window goto",        M.goto)
-signal.add("entry submit",       M.submit)
-signal.add("entry backspace",    M.backspace)
-signal.add("buffer scroll up",   M.scroll_up)
-signal.add("buffer scroll down", M.scroll_down)
-signal.add("entry move left",    M.move_left)
-signal.add("entry move right",   M.move_right)
-signal.add("entry move home",    M.move_home)
-signal.add("entry move end",     M.move_end)
-signal.add("entry history prev", M.history_backward)
-signal.add("entry history next", M.history_forward)
-signal.add("entry delete word",  M.word_delete)
-signal.add("entry move left by word",  M.word_left)
-signal.add("entry move right by word", M.word_right)
+event.add("screen refresh",     M.render)
+event.add("window goto",        M.goto)
+event.add("entry submit",       M.submit)
+event.add("entry backspace",    M.backspace)
+event.add("buffer scroll up",   M.scroll_up)
+event.add("buffer scroll down", M.scroll_down)
+event.add("entry move left",    M.move_left)
+event.add("entry move right",   M.move_right)
+event.add("entry move home",    M.move_home)
+event.add("entry move end",     M.move_end)
+event.add("entry history prev", M.history_backward)
+event.add("entry history next", M.history_forward)
+event.add("entry delete word",  M.word_delete)
+event.add("entry move left by word",  M.word_left)
+event.add("entry move right by word", M.word_right)
 
 return M

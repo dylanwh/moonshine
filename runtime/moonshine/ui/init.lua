@@ -1,9 +1,9 @@
-local signal = require "moonshine.signal"
+local event = require "moonshine.event"
 local term   = require "moonshine.ui.term"
 
 term.setup {
-	input  = function(key) signal.emit("input", key) end,
-	resize = function() signal.emit("screen refresh") end,
+	input  = function(key) event.emit("input", key) end,
+	resize = function() event.emit("screen refresh") end,
 }
 
 term.defcolor("blue", "brightblue", "default")

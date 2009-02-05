@@ -1,4 +1,4 @@
-local signal = require "moonshine.signal"
+local event = require "moonshine.event"
 local keymap = require "moonshine.ui.keymap"
 require "moonshine.ui.init"
 require "moonshine.ui.screen"
@@ -28,4 +28,3 @@ for i = 1, 9 do
 	keymap.bind("^[" .. i, "window goto", i)
 end
 
-signal.add("exit", quit)

@@ -1,4 +1,4 @@
-local signal = require "moonshine.signal"
+local event = require "moonshine.event"
 local client = require "moonshine.net.client"
 
 local M = {}
@@ -7,7 +7,7 @@ local S = {}
 function M:new(host, port)
 	local irc   = { host = host, port = port }
 	local agent = client:new(host, port, function (event, ...)
-		signal.emit("irc " .. event, irc, ...)
+		event.emit("irc " .. event, irc, ...)
 	end)
 	agent:connect()
 
@@ -43,5 +43,5 @@ end
 
 
 for k, f in pairs(S) do
-	signal.add("irc " .. k, f)
+	event.add("irc " .. k, f)
 end

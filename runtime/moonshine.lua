@@ -10,13 +10,14 @@ shell.define {
 	name = "say",
 	spec = {"window|win|w=n"},
 	action = function(opt, line)
-		print(line)
 	end,
 }
 
 shell.require("window")
 
+local ml = require "moonshine.loop"
+loop = ml:new()
+
 signal.emit("startup")
-loop = loop:new()
 loop:run()
 signal.emit("shutdown")

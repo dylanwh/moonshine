@@ -108,7 +108,7 @@ static void init_paths(LuaState *L)/*{{{*/
 
 LuaState *ms_lua_open(int argc, char *argv[])/*{{{*/
 {
-	LuaState *L  = lua_open();
+	LuaState *L  = luaL_newstate();
 	luaL_openlibs(L);
 
 	lua_newtable(L);

@@ -4,14 +4,14 @@
 --
 -- Commands are signals.
 -- For instance, /msg  --target=bob
--- is: signal.emit("command msg", "--target=bob")
+-- is: event.emit("command msg", "--target=bob")
 --
 -- moonshine.parseopt provides a way of parsing options in the argument 
 -- to command signals.
 --
 -- shell.define provides some sugar around all of this.
 
-local signal   = require "moonshine.signal"
+local event   = require "moonshine.event"
 local parseopt = require "moonshine.parseopt"
 local PREFIX   = "shell "
 local M        = {}
@@ -27,8 +27,8 @@ function M.eval(line)
 		arg  = line
 	end
 
-	if not signal.emit(PREFIX .. name, arg) then
-		signal.emit("unknown command", name, arg)
+	if not event.emit(PREFIX .. name, arg) then
+		event.emit("unknown command", name, arg)
 	end
 end
 
@@ -42,11 +42,11 @@ function M.define(def)
 
 	if spec then
 		local parser = parseopt.build_parser( unpack(spec) )
-		signal.add(PREFIX .. name, function(text)
+		event.add(PREFIX .. name, function(text)
 			action( parser(text) )
 		end)
 	else
-		signal.add(PREFIX .. name, action)
+		event.add(PREFIX .. name, action)
 	end
 end
 
@@ -58,7 +58,7 @@ end
 
 M.define {
 	name = "quit",
-	action = quit,
+	action = function() loop:quit() end,
 }
 
 return M

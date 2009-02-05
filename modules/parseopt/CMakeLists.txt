@@ -8,11 +8,11 @@ FIND_PROGRAM(RE2C re2c)
 FIND_PROGRAM(LUABIN lua lua51 lua5.1 lua50 lua5.0)
 
 IF (NOT LUABIN)
-	MESSAGE(FATAL_ERROR "moonshine requires the lua binary to build")
+	MESSAGE(FATAL_ERROR "moonshine.parseopt.core requires the lua binary to build")
 ENDIF()
 
 IF (NOT RE2C)
-	MESSAGE(FATAL_ERROR "moonshine requires re2c!")
+	MESSAGE(FATAL_ERROR "moonshine.parseopt.core requires re2c!")
 ENDIF()
 
 EXEC_PROGRAM(${LUABIN}
@@ -20,7 +20,7 @@ EXEC_PROGRAM(${LUABIN}
 	OUTPUT_VARIABLE LUA_LPEG)
 
 IF(NOT LUA_LPEG)
-	MESSAGE(FATAL_ERROR "moonshine requires the lpeg lua package.")
+	MESSAGE(FATAL_ERROR "moonshine.parseopt_core requires the lpeg lua package.")
 ENDIF()
 
 ADD_CUSTOM_COMMAND(

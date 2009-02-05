@@ -34,9 +34,9 @@ function split(pat, str)--{{{
 end--}}}
 
 --[[do
-	local signal = require "moonshine.signal"
+	local event = require "moonshine.event"
 	function print(...)
-		signal.emit("print", ...)
+		event.emit("print", ...)
 	end
 end]]
 
