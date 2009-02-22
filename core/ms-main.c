@@ -6,16 +6,14 @@
 
 int main(int argc, char *argv[])
 {
-	LuaState *L     = ms_lua_open(argc, argv);
+	GMainLoop *loop = g_main_loop_new(NULL, FALSE);
+	LuaState *L     = ms_lua_newstate();
+
+	ms_lua_preload(L, "moonshine.loop", luaopen_moonshine_loop);
 
 	g_thread_init(NULL);
 	ms_signal_init();
 
-	ms_lua_require(L, "moonshine");
-
-	/* The next three function calls are terribly order-dependent. */
 	ms_signal_reset();
-	lua_close(L);
-
 	exit(0);
 }

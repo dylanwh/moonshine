@@ -63,7 +63,7 @@ static void clear_each(gpointer key, UNUSED gpointer value, UNUSED gpointer data
 	ms_signal_clear(GPOINTER_TO_INT(key));
 }/*}}}*/
 
-void ms_signal_reset(void)
+void ms_signal_reset(void)/*{{{*/
 {
 	g_hash_table_foreach(signals, clear_each, NULL);
 
@@ -73,7 +73,7 @@ void ms_signal_reset(void)
 	output_fd = 0;
 
 	g_hash_table_destroy(signals);
-}
+}/*}}}*/
 
 void ms_signal_catch(int sig, MSSignalFunc func, gpointer data, GDestroyNotify destroy)/*{{{*/
 {

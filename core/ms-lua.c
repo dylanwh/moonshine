@@ -106,24 +106,14 @@ static void init_paths(LuaState *L)/*{{{*/
 	lua_pop(L, 1);
 }/*}}}*/
 
-LuaState *ms_lua_open(int argc, char *argv[])/*{{{*/
+LuaState *ms_lua_newstate(void)/*{{{*/
 {
 	LuaState *L  = luaL_newstate();
 	luaL_openlibs(L);
 
 	lua_newtable(L);
 	lua_pushstring(L, MOONSHINE_VERSION);
-
-	/* argv = { name = argv[0], argv[1], ... argv[n] } */
-	lua_createtable(L, argc, 1);
-	lua_pushstring(L, argv[0]);
-	lua_setfield(L, -2, "name");
-	for (int i = 1; i < argc; i++) {
-		lua_pushstring(L, argv[i]);
-		lua_rawseti(L, -2, i);
-	}
-	lua_setglobal(L, "argv");
-
+	lua_setglobal(L, "MOONSHINE_VERSION");
 	init_paths(L);
 
   	return L;
