@@ -1,4 +1,4 @@
-#include <moonshine/ms-async-queue-source.h>
+#include <moonshine/async-queue-source.h>
 #include <glib.h>
 #include <unistd.h>
 

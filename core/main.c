@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "moonshine/ms-lua.h"
-#include "moonshine/ms-signal.h"
+#include "moonshine/lua.h"
+#include "moonshine/signal.h"
 #include "moonshine/config.h"
 
 int main(int argc, char *argv[])

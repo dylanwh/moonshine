@@ -1,6 +1,9 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
 #ifndef __MOONSHINE_MS_TERM_H__
 #define __MOONSHINE_MS_TERM_H__
+
+#include "moonshine/config.h"
+
 #include <glib.h>
 #include <slang.h>
 #include <string.h>
@@ -18,6 +21,8 @@ void ms_term_color_use(const char *name);
 int ms_term_color_to_id(const char *name);
 const char *ms_term_color_to_utf8(const char *name);
 gunichar ms_term_getkey(void);
+
+PURE int ms_term_charwidth(gunichar ch);
 
 #define ms_term_color_use_id(id) SLsmg_set_color(id)
 #define ms_term_refresh    SLsmg_refresh

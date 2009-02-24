@@ -1,6 +1,6 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
 #include "moonshine/config.h"
-#include "moonshine/ms-signal.h"
+#include "moonshine/signal.h"
 
 #include <unistd.h>
 #include <stdio.h>

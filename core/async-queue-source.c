@@ -1,5 +1,5 @@
 /* vim: set ts=4 sw=4 noexpandtab cindent: */
-#include "moonshine/ms-async-queue-source.h"
+#include "moonshine/async-queue-source.h"
 #include <glib.h>
 
 typedef struct {
