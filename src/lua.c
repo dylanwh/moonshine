@@ -76,14 +76,27 @@ void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods
 
 void ms_lua_require(LuaState *L, const char *name)/*{{{*/
 {
-	g_return_if_fail(L != NULL);
-	g_return_if_fail(name != NULL);
+	g_assert(L != NULL);
+	g_assert(name != NULL);
 
 	lua_getglobal(L, "require");
 	lua_pushstring(L, name);
 	if(lua_pcall(L, 1, 0, 0) != 0) {
 		g_error("moonshine error in require '%s': %s", name, lua_tostring(L, -1));
 	}
+}/*}}}*/
+
+void ms_lua_preload(LuaState *L, const char *name, lua_CFunction func)/*{{{*/
+{
+	g_assert(L != NULL);
+	g_assert(name != NULL);
+	g_assert(func != NULL);
+
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "preload");
+	lua_pushcfunction(L, func);
+	lua_setfield(L, -2, name);
+	lua_pop(L, 2);
 }/*}}}*/
 
 static void init_paths(LuaState *L)/*{{{*/
