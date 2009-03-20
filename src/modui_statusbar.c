@@ -1,7 +1,6 @@
 #include <moonshine/config.h>
-#include <moonshine/ms-lua.h>
-#include <moonshine/ms-term.h>
-#include <moonshine/ms-util.h>
+#include <moonshine/lua.h>
+#include <moonshine/term.h>
 
 #define CLASS "moonshine.ui.statusbar"
 typedef struct {
@@ -41,7 +40,7 @@ static int statusbar_render(LuaState *L)
 		if (ch >= MS_TERM_COLOR_MIN_UCS && ch <= MS_TERM_COLOR_MAX_UCS) {
 			ms_term_color_use_id(ch - MS_TERM_COLOR_MIN_UCS);
 		} else {
-			width += ms_unicode_charwidth(ch);
+			width += ms_term_charwidth(ch);
 			if (width > cols)
 				break;
 			ms_term_write_gunichar(ch);

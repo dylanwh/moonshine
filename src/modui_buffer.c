@@ -1,8 +1,7 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
 #include <moonshine/config.h>
-#include <moonshine/ms-term.h>
-#include <moonshine/ms-lua.h>
-#include <moonshine/ms-util.h>
+#include <moonshine/term.h>
+#include <moonshine/lua.h>
 
 #include <glib.h>
 #include <stdlib.h>
@@ -119,7 +118,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 				next_line = g_utf8_next_char(seg_end);
 				break;
 			}
-			guint ch_len = ms_unicode_charwidth(ch);
+			guint ch_len = ms_term_charwidth(ch);
 			if (cur_width + ch_len > max_width) {
 				/* This word extends beyond the current b.
 				 * Try to wrap in a way which doesn't break off this word. If

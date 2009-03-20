@@ -1,7 +1,7 @@
 #include <moonshine/config.h>
-#include <moonshine/ms-lua.h>
-#include <moonshine/ms-term.h>
-#include <moonshine/ms-signal.h>
+#include <moonshine/lua.h>
+#include <moonshine/term.h>
+#include <moonshine/signal.h>
 
 static int term_format(LuaState *L)/*{{{*/
 {

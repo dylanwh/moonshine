@@ -1,5 +1,5 @@
 #include <moonshine/config.h>
-#include <moonshine/ms-lua.h>
+#include <moonshine/lua.h>
 
 #define CLASS "moonshine.loop"
 

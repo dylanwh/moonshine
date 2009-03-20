@@ -1,7 +1,6 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 */
-#include <moonshine/ms-term.h>
-#include <moonshine/ms-util.h>
-#include <moonshine/ms-lua.h>
+#include <moonshine/term.h>
+#include <moonshine/lua.h>
 #include <string.h>
 
 #define CLASS "moonshine.ui.entry"
@@ -195,7 +194,7 @@ static guint center_view(Entry *e, guint width) {
 
 		if (left_w < right_w || right_i == e->bufused) {
 			gunichar ch = e->buffer[left_i];
-			int cwidth = ms_unicode_charwidth(ch);
+			int cwidth = ms_term_charwidth(ch);
 			if (cwidth + total_width > width)
 				break;
 			left_i--;
@@ -204,7 +203,7 @@ static guint center_view(Entry *e, guint width) {
 				right_w += cwidth;
 		} else {
 			gunichar ch = e->buffer[right_i];
-			int cwidth = ms_unicode_charwidth(ch);
+			int cwidth = ms_term_charwidth(ch);
 			if (cwidth + total_width > width)
 				break;
 			right_i++;
@@ -230,7 +229,7 @@ static int try_render(Entry *e, guint lmargin) {
 		if (idx == e->curs_off)
 			curs_pos = width + lmargin;
 		gunichar ch = e->buffer[idx];
-		guint charwidth = ms_unicode_charwidth(ch);
+		guint charwidth = ms_term_charwidth(ch);
 		if (charwidth + width > max_width)
 			break;
 		width += charwidth;
