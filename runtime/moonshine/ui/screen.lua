@@ -7,45 +7,41 @@ local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
 
+function Screen:__init()--{{{
+	self.entry     = Entry:new()
+	self.status    = Statusbar:new()
+	self.history   = Buffer:new()
+	self.sb_at_end = true
 
-local M = {
-	entry     = Entry:new(),
-	status    = Statusbar:new(),
-	history   = Buffer:new(),
-	sb_at_end = true,
-	windows   = {},
-	window    = nil,
+	self.windows = {}
+
 	status_bits = {
 		"status_time",
 		"status_current_window",
 		"status_activity",
-	},
-}
-
-local function startup()--{{{
-	M.status:set( term.format("%{topic}Status bar goes here", {}))
-	M.add( Window:new("status") )
-	M.render()
+	}
+	self.status:set( term.format("%{topic}Status bar goes here", {}))
+	self:add( Window:new("status") )
 end--}}}
 
-function M.status_time()--{{{
+function Screen:status_time()--{{{
 	return os.date("%H:%M")
 end--}}}
 
-function M.status_current_window()--{{{
-	if M.window then
-		return (M.window.pos .. ":" .. (M.window.name or '???'))
+function Screen:status_current_window()--{{{
+	if self.window then
+		return (self.window.pos .. ":" .. (self.window.name or '???'))
 	else
 		return nil
 	end
 end--}}}
 
-function M.status_activity()--{{{
+function Screen:status_activity()--{{{
 	local actvals = { }
-	if M.window then
-		M.window.activity = 0
+	if self.window then
+		self.window.activity = 0
 	end
-	for i, window in pairs(M.windows) do
+	for i, window in pairs(self.windows) do
 		if (window.activity > 0) then
 			local code = "important"
 			if window.activity == 1 then
@@ -64,70 +60,70 @@ function M.status_activity()--{{{
 	return term.format(actString, {})
 end--}}}
 
-function M.update_status()--{{{
+function Screen:update_status()--{{{
 	local statusbuf = ""
-	for i, bit in ipairs(M.status_bits) do
-		local result = M[bit]()
+	for i, bit in ipairs(self.status_bits) do
+		local result = self[bit]()
 		if result then
 			statusbuf = statusbuf .. term.format("%{statusbracket} [%{statustext}%1%{statusbracket}]", {result})
 		end
 	end
-	M.status:set(statusbuf)
+	self.status:set(statusbuf)
 end--}}}
 
-function M.print(fmt, ...)--{{{
-	M.window:print(fmt, ...)
-	M.render()
+function Screen:print(fmt, ...)--{{{
+	self.window:print(fmt, ...)
+	self:render()
 end--}}}
 
-function M.debug(fmt, ...)--{{{
-	M.window:print("%{blue}-%{white}!%{blue}- %{default}%|"..fmt, ...)
-	M.render()
+function Screen:debug(fmt, ...)--{{{
+	self:window:print("%{blue}-%{white}!%{blue}- %{default}%|"..fmt, ...)
+	self:render()
 end--}}}
 
-function M.add(win)--{{{
-	table.insert(M.windows, win)
-	if M.window == nil then
-		M.window = win
+function Screen:add(win)--{{{
+	table.insert(self:windows, win)
+	if self.window == nil then
+		self.window = win
 	end
-	win.pos = #M.windows
+	win.pos = #self.windows
 	win:set_topic("Moonshine - " .. (win.name or '???'));
 	return win.pos
 end--}}}
 
-function M.remove(win)--{{{
+function Screen:remove(win)--{{{
 	assert(win.pos ~= nil, "window has position")
-	if M.window == win then
-		M.window = M.windows[win.pos - 1]
-		M.window:set_topic("Moonshine - " .. (win.name or '???'));
-		M.entry:set_prompt("[" .. (M.window.name or '???' ) .. "] ")
+	if self.window == win then
+		self.window = self.windows[win.pos - 1]
+		self.window:set_topic("Moonshine - " .. (win.name or '???'));
+		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
 	end
-	table.remove(M.windows, win.pos)
-	for i, w in ipairs(M.windows) do
+	table.remove(self.windows, win.pos)
+	for i, w in ipairs(self.windows) do
 		w.pos = i
 	end
 end--}}}
 
-function M.goto(n)--{{{
+function Screen:goto(n)--{{{
 	n = tonumber(n)
-	if M.windows[n] then
-		M.window = M.windows[n]
-		M.entry:set_prompt("[" .. (M.window.name or '???' ) .. "] ")
-		M.window:activate()
-		M.render()
+	if self.windows[n] then
+		self.window = self.windows[n]
+		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
+		self.window:activate()
+		self:render()
 		return true
 	else
 		return false, "invalid window index: " .. tostring(n)
 	end
 end--}}}
 
-function M.render()--{{{
+function Screen:render()--{{{
 	local rows, cols = term.dimensions()
-	local window = M.window
-	local status = M.status
-	local entry  = M.entry
+	local window = self.window
+	local status = self.status
+	local entry  = self.entry
 
-	M.update_status()
+	self:update_status()
 	
 	status:render(rows - 2)
 	window.buffer_dirty = true
@@ -138,119 +134,121 @@ function M.render()--{{{
 end--}}}
 
 -- {{{ functions for keybindings.
-function M.keypress(key)--{{{
-	M.entry:keypress(key)
-	M.render()
+function Screen:keypress(key)--{{{
+	screen.entry:keypress(key)
+	screen:render()
 end--}}}
 
-function M.move_left() --{{{
-	M.entry:move(-1)
-	M.render()
+function Screen:move_left() --{{{
+	self:entry:move(-1)
+	self:render()
 end--}}}
 
-function M.move_right()--{{{
-	M.entry:move(1)
-	M.render()
+function Screen:move_right()--{{{
+	self.entry:move(1)
+	self:render()
 end--}}}
 
-function M.move_home()--{{{
-	M.entry:move_to(0)
-	M.render()
+function Screen:move_home()--{{{
+	selfentry:move_to(0)
+	self:render()
 end--}}}
 
-function M.move_end()--{{{
-	M.entry:move_to(-1)
-	M.render()
+function Screen:move_end()--{{{
+	self.entry:move_to(-1)
+	self:render()
 end--}}}
 
-function M.scroll_up()--{{{
-	M.window:scroll(5)
-	M.render()
+function Screen:scroll_up()--{{{
+	self.window:scroll(5)
+	self:render()
 end--}}}
 
-function M.scroll_down()--{{{
-	M.window:scroll(-5)
-	M.render()
+function Screen:scroll_down()--{{{
+	self.window:scroll(-5)
+	self:render()
 end--}}}
 
-function M.backspace()--{{{
-	M.entry:erase(-1) 
-	M.render()
+function Screen:backspace()--{{{
+	self.entry:erase(-1) 
+	self:render()
 end--}}}
 
-function M.word_delete()--{{{
-	local wlback, wlfwd = M.entry:wordlen()
-	M.entry:erase(-wlback)
-	M.render()
+function Screen:word_delete()--{{{
+	local wlback, wlfwd = self.entry:wordlen()
+	self.entry:erase(-wlback)
+	self:render()
 end--}}}
 
-function M.word_left()--{{{
-	local wlback, wlfwd = M.entry:wordlen()
-	M.entry:move(-wlback)
-	M.render()
+function Screen:word_left()--{{{
+	local wlback, wlfwd = self.entry:wordlen()
+	self.entry:move(-wlback)
+	self:render()
 end--}}}
 
-function M.word_right()--{{{
-	local wlback, wlfwd = M.entry:wordlen()
-	M.entry:move(wlfwd)
-	M.render()
+function Screen:word_right()--{{{
+	local wlback, wlfwd = self.entry:wordlen()
+	self.entry:move(wlfwd)
+	self:render()
 end--}}}
 
 local function history_save()--{{{
-	if not M.entry:is_dirty() or M.entry:get() == "" then
+	if not self.entry:is_dirty() or self.entry:get() == "" then
 		return
 	end
 	-- Suppress repeated lines from going into history
-	if M.history:at_end() and M.entry:get() == M.history:get_current() then
+	if self.history:at_end() and self.entry:get() == self.history:get_current() then
 		return
 	end
-	M.history:print(M.entry:get())
+	self.history:print(self.entry:get())
 end--}}}
 
-function M.submit()--{{{
-	local line = M.entry:get()
+function Screen:submit()--{{{
+	local line = selfentry:get()
 	if #line > 0 then
 		history_save()
-		M.history:scroll_to(0)
-		M.sb_at_end = true
-		M.entry:clear()
-		M.render()
+		self.history:scroll_to(0)
+		self.sb_at_end = true
+		self.entry:clear()
+		self:render()
 		shell.eval(line)
 	end
 end--}}}
 
-function M.history_backward()--{{{
+function Screen:history_backward()--{{{
 	history_save()
 	-- Are we just starting to scroll back?
-	if not M.sb_at_end then
-		M.history:scroll(1)
+	if not self.sb_at_end then
+		self.history:scroll(1)
 	end
-	M.sb_at_end = false
-	local v = M.history:get_current()
+	self.sb_at_end = false
+	local v = self.history:get_current()
 	if v then
-		M.entry:set(v)
+		self.entry:set(v)
 	end
-	M.render()
+	self:render()
 end--}}}
 
-function M.history_forward()--{{{
+function Screen:history_forward()--{{{
 	history_save()
-	if M.history:at_end() then
-		M.entry:clear()
-		M.sb_at_end = true
+	if self.history:at_end() then
+		self.entry:clear()
+		self.sb_at_end = true
 	else
-		M.history:scroll(-1)
-		local v = M.history:get_current()
+		self.history:scroll(-1)
+		local v = self.history:get_current()
 		if v then
-			M.entry:set(v)
+			self.entry:set(v)
 		end
 	end
-	M.render()
+	self:render()
 end--}}}
+
 -- }}}
 
+--[[ {{{ event names, old
 event.add("startup",  startup)
-event.add("keypress", M.keypress)
+event.add("keypress", self.keypress)
 event.add("print",    function(...) M.debug("%1", table.concat({...}, " ")) end)
 
 event.add("screen refresh",     M.render)
@@ -268,5 +266,6 @@ event.add("entry history next", M.history_forward)
 event.add("entry delete word",  M.word_delete)
 event.add("entry move left by word",  M.word_left)
 event.add("entry move right by word", M.word_right)
+}}}]]
 
-return M
+return Screen

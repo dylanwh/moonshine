@@ -1,10 +1,12 @@
-local event = require "moonshine.event"
-local term   = require "moonshine.ui.term"
-local trie   = require "moonshine.trie"
+local make_keyspec  = require("moonshine.ui.term").make_keyspec
+local Object = require "moonshine.object"
+local Trie   = require "moonshine.trie"
 
-local keymap = trie.new()
-local keybuf = ""
-local M      = {}
+local KeyMap = Object:new()
+
+getmetatable(KeyMap).__init__ = 
+
+function KeyMap:bind(spec, func)
 
 function M.bind(spec_, name, ...)--{{{
 	assert(spec_, "keyspec is required")
@@ -30,5 +32,4 @@ local function process(key)--{{{
 end--}}}
 
 event.add("input", process)
-
 return M

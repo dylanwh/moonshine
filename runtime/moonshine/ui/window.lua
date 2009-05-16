@@ -1,20 +1,18 @@
-local Window = {}
+local term      = require "moonshine.ui.term"
+local Object    = require "moonshine.object"
+local Buffer    = require "moonshine.ui.buffer"
+local Statusbar = require "moonshine.ui.statusbar"
 
-function Window.new(class, name)
-	local buffer    = require "moonshine.ui.buffer"
-	local statusbar = require "moonshine.ui.statusbar"
-	local self      = {}
+local Window    = Object:new()
 
-	self.name     = name
-	self.topic    = statusbar:new("")
-	self.buffer   = buffer:new(1014)
-	self.activity = 0
-	self.buffer_dirty = true
+function Window:__init()
+	assert(self.name, "name slot initialized")
 
-	setmetatable(self, { __index = Window })
+	self._topic    = statusbar:new("")
+	self._buffer   = buffer:new(1014)
+	self._activity = 0
+
 	self:set_topic("Moonshine - A Haver Client")
-
-	return self
 end
 
 function Window:print(fmt, ...)
@@ -22,40 +20,31 @@ function Window:print(fmt, ...)
 end
 
 function Window:actprint(activity, fmt, ...)
-	local term = require "moonshine.ui.term"
-	local s    = term.format(os.date("%H:%M ")..tostring(fmt), { ... })
+	local str = term.format(os.date("%H:%M ")..tostring(fmt), { ... })
 
-	self.activity = math.max(self.activity, activity)
-	self.buffer:print(s)
-	self.buffer_dirty = true
+	self._activity = math.max(self.activity, activity)
+	self._buffer:print(str)
 end
 
 function Window:render(top, bottom)
-	local term       = require "moonshine.ui.term"
 	local rows, cols = term.dimensions()
 
-	self.topic:render(top)
-
-	if self.buffer_dirty then
-		self.buffer:render(top + 1, bottom)
+	self._topic:render(top)
+	if self._buffer:is_dirty() then
+		self._buffer:render(top + 1, bottom)
 	end
-	self.buffer_dirty = false
 end
 
 function Window:scroll(x)
-	self.buffer:scroll(x)
-	self.buffer_dirty = true
+	self._buffer:scroll(x)
 end
 
 function Window:set_topic(t)
-	local term = require "moonshine.ui.term"
-
-	self.topic_text = t
-	self.topic:set(term.format("%{topic}%1", { t }))
+	self._topic:set(term.format("%{topic}%1", { t }))
 end
 
 function Window:activate()
-	self.buffer_dirty = true
+	self._buffer:is_dirty(true)
 end
 
 return Window

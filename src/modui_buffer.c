@@ -25,14 +25,15 @@ typedef struct {
 	 * Note that all three pointers are NULL for an empty b.
 	 */
 	bufferline_t *head; ///< head of the list.
-	bufferline_t *view; ///< tail of the list.
-	bufferline_t *tail; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
+	bufferline_t *view; ///< view is the newest line visible on screen (which is != tail iff we're scrolled up).
+	bufferline_t *tail; ///< tail of the list.
 
 	/** Counters for list purging. histsize is the maximum amount of
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
 	 */
 	guint histsize, scrollback, scrollfwd, groupcount, curgroup;
+	gboolean is_dirty;
 } Buffer;
 /* }}} */
 
@@ -198,11 +199,14 @@ static void scroll_down(Buffer *b, guint offset) {
 static int buffer_new(LuaState *L)/*{{{*/
 {
 	guint histsize = luaL_optint(L, 2, 1024);
-	Buffer *b = ms_lua_newclass(L, CLASS, sizeof(Buffer));
-	b->head = b->view = b->tail = NULL;
-	b->histsize = histsize;
-	b->scrollback = b->scrollfwd = 0;
-	b->curgroup = 0;
+	Buffer *b      = ms_lua_newclass(L, CLASS, sizeof(Buffer));
+	b->head        = NULL;
+	b->view        = NULL;
+	b->tail        = NULL;
+	b->histsize    = histsize;
+	b->scrollback  = b->scrollfwd = 0;
+	b->curgroup    = 0;
+	b->is_dirty       = TRUE;
 	return 1;
 }/*}}}*/
 
@@ -212,6 +216,7 @@ static int buffer_set_histsize(LuaState *L)/*{{{*/
 	guint newsize = luaL_checkinteger(L, 2);
 	b->histsize = newsize;
 	purge(b);
+	b->is_dirty = TRUE;
 	return 0;
 }/*}}}*/
 
@@ -219,6 +224,18 @@ static int buffer_get_histsize(LuaState *L)/*{{{*/
 {
 	Buffer *b = ms_lua_checkclass(L, CLASS, 1);
 	lua_pushinteger(L, b->histsize);
+	return 1;
+}/*}}}*/
+
+static int buffer_is_dirty(LuaState *L)/*{{{*/
+{
+	Buffer *b = ms_lua_checkclass(L, CLASS, 1);
+	if (!lua_isnone(L, 2)) {
+		gboolean val = lua_toboolean(L, 2);
+		b->is_dirty = val;
+	}
+
+	lua_pushboolean(L, b->is_dirty);
 	return 1;
 }/*}}}*/
 
@@ -239,6 +256,7 @@ static int buffer_render(LuaState *L)/*{{{*/
 		bottom_row = line_render(ptr->text, bottom_row, top_row);
 		ptr = ptr->prev;
 	}
+	b->is_dirty = FALSE;
 	return 0;
 }/*}}}*/
 
@@ -275,6 +293,7 @@ static int buffer_print(LuaState *L)/*{{{*/
 		return luaL_error(L, CLASS ":print - UTF8 validation failed.");
 	}
 	do_print(b, text);
+	b->is_dirty = TRUE;
 	lua_pushboolean(L, 1);
 	return 1;
 }/*}}}*/
@@ -290,6 +309,7 @@ static int buffer_scroll(LuaState *L)/*{{{*/
 		scroll_down(b, -offset);
 		purge(b);
 	}
+	b->is_dirty = TRUE;
 	return 0;
 }/*}}}*/
 
@@ -306,6 +326,7 @@ static int buffer_scroll_to(LuaState *L)/*{{{*/
 	b->scrollfwd = 0;
 	scroll_up(b, abs_offset);
 	purge(b);
+	b->is_dirty = TRUE;
 	return 0;
 }/*}}}*/
 
@@ -448,6 +469,7 @@ static int buffer_reprint(LuaState *L)/*{{{*/
 	purge(b);
 
 	lua_pushinteger(L, count);
+	b->is_dirty = TRUE;
 	return 1;
 }/*}}}*/
 
@@ -478,6 +500,7 @@ static int buffer_clear_lines(LuaState *L)/*{{{*/
 		b->head = NULL;
 	}
 	lua_pushinteger(L, realcount);
+	b->is_dirty = TRUE;
 	return 1;
 }/*}}}*/
 /* }}} */
@@ -517,8 +540,10 @@ static const LuaLReg buffer_methods[] = {/*{{{*/
 	{"clear_group_id", buffer_clear_group_id},
 	{"reprint", buffer_reprint},
 	{"clear_lines", buffer_clear_lines},
+	{"is_dirty", buffer_is_dirty},
 	{0, 0}
 };/*}}}*/
+
 static const LuaLReg buffer_meta[] = {/*{{{*/
 	{"__gc", buffer_gc},
 	{"__tostring", buffer_tostring},
