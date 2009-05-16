@@ -1,10 +1,9 @@
---local shell  = require "moonshine.shell" 
---require "moonshine.prelude"
---require "moonshine.ui"
+require "moonshine.prelude"
+require "moonshine.ui"
+local shell  = require "moonshine.shell"
 --local irc = require "moonshine.irc"
 
 --local signal = require "moonshine.signal"
---local shell  = require "moonshine.shell"
 
 --[[shell.define {
 	name = "say",
