@@ -128,7 +128,7 @@ static void push_paths
 
 		segstr = lua_tostring(L, -1);
 		if (!strchr(segstr, '?')) {
-			lua_pushstring(L, "/?.");
+			lua_pushstring(L, "/?");
 			lua_pushstring(L, ext);
 			concat_ct += 2;
 		}
@@ -156,7 +156,7 @@ static void init_paths(LuaState *L)/*{{{*/
 
 	/* Assign package.cpath = modules */
 	push_paths(L, MOONSHINE_CPATH ";" LUA_CPATH_DEFAULT,
-			"MOONSHINE_RUNTIME_PATH", MOONSHINE_SO);
+			"MOONSHINE_MODULES_PATH", MOONSHINE_SO);
 	lua_setfield(L, -2, "cpath");
 
 	/* remove package from the stack. */
