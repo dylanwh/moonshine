@@ -21,9 +21,9 @@ end--}}}
 local function process(key)--{{{
 	keybuf = keybuf .. key
 	
-	local found, event = keymap:find(keybuf)
+	local found, keyevent = keymap:find(keybuf)
 	if found then
-		event.emit(event.name, unpack(event))
+		event.emit(keyevent.name, unpack(keyevent))
 		keybuf = ""
 	elseif found == nil then
 		event.emit("keypress", key)
