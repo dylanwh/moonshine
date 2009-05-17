@@ -31,7 +31,7 @@ MSLog *ms_log_new(void)
 	return log;
 }
 
-static void log_handler
+void ms_log_handler
 	(const gchar *log_domain,
 	 GLogLevelFlags log_level,
 	 const gchar *message,
@@ -42,21 +42,16 @@ static void log_handler
 	g_sequence_append(log->buffer, make_item(log_domain, log_level, message, NULL));
 }
 
-void ms_log_install(MSLog *log)
-{
-	g_log_set_default_handler(log_handler, (gpointer) log);
-}
-
-static void unwind_each_item(gpointer data, UNUSED gpointer ud)
+static void replay_each_item(gpointer data, UNUSED gpointer ud)
 {
 	MSLogItem *item = data;
-	g_log_default_handler(item->log_domain, item->log_level, item->message, NULL);
+	g_log(item->log_domain, item->log_level, "%s", item->message);
 }
 
-void ms_log_unwind(MSLog *log)
+void ms_log_replay(MSLog *log, GLogFunc func, gpointer user_data)
 {
-	g_log_set_default_handler(g_log_default_handler, NULL);
-	g_sequence_foreach(log->buffer, unwind_each_item, NULL);
+	g_log_set_default_handler(func, user_data);
+	g_sequence_foreach(log->buffer, replay_each_item, NULL);
 
 	// remove everything
 	g_sequence_remove_range( g_sequence_get_begin_iter(log->buffer), g_sequence_get_end_iter(log->buffer));
@@ -64,7 +59,8 @@ void ms_log_unwind(MSLog *log)
 
 void ms_log_free(MSLog *log)
 {
-	ms_log_unwind(log);
+	ms_log_replay(log, g_log_default_handler, NULL);
+
 	g_sequence_free(log->buffer);
 	g_free(log);
 }

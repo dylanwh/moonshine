@@ -14,8 +14,8 @@ typedef struct {
 } MSLog;
 
 MSLog *ms_log_new(void);
-void ms_log_install(MSLog *log);
-void ms_log_unwind(MSLog *log);
+void ms_log_handler(const gchar *log_domain, GLogLevelFlags log_level, const char *message, gpointer user_data);
+void ms_log_replay(MSLog *log, GLogFunc func, gpointer user_data);
 void ms_log_free(MSLog *log);
 
 #endif

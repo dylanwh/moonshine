@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 	ms_signal_init();
 
 	MSLog *log = ms_log_new();
-	ms_log_install(log);
+	g_log_set_default_handler(ms_log_handler, (gpointer)log);
 
 	ms_term_init();
 
@@ -44,8 +44,6 @@ int main(int argc, char *argv[])
 		g_warning("moonshine error in require 'moonshine': %s", lua_tostring(L, -1));
 
 	ms_term_reset();
-	ms_log_unwind(log);
-
 	ms_signal_reset();
 	ms_log_free(log);
 
