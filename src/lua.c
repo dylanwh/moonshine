@@ -8,10 +8,8 @@ MSLuaRef *ms_lua_ref(LuaState *L, int idx)/*{{{*/
 	MSLuaRef *R = NULL;
 	lua_pushvalue(L, idx);
 	int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-	g_return_val_if_fail(ref != LUA_REFNIL, NULL);
-
-	R = g_new0(MSLuaRef, 1);
-	R->L = L;
+	R      = g_new0(MSLuaRef, 1);
+	R->L   = L;
 	R->ref = ref;
 	return R;
 }/*}}}*/
@@ -76,21 +74,21 @@ void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods
 
 void ms_lua_require(LuaState *L, const char *name)/*{{{*/
 {
-	g_assert(L != NULL);
-	g_assert(name != NULL);
+	g_return_if_fail(L != NULL);
+	g_return_if_fail(name != NULL);
 
 	lua_getglobal(L, "require");
 	lua_pushstring(L, name);
-	if(lua_pcall(L, 1, 0, 0) != 0) {
+	if(lua_pcall(L, 1, 0, 0) != 0)
 		g_error("moonshine error in require '%s': %s", name, lua_tostring(L, -1));
-	}
+
 }/*}}}*/
 
 void ms_lua_preload(LuaState *L, const char *name, lua_CFunction func)/*{{{*/
 {
-	g_assert(L != NULL);
-	g_assert(name != NULL);
-	g_assert(func != NULL);
+	g_return_if_fail(L != NULL);
+	g_return_if_fail(name != NULL);
+	g_return_if_fail(func != NULL);
 
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "preload");
@@ -101,18 +99,15 @@ void ms_lua_preload(LuaState *L, const char *name, lua_CFunction func)/*{{{*/
 
 static void init_paths(LuaState *L)/*{{{*/
 {
-	const char *runtime = MOONSHINE_RUNTIME;
-	const char *modules = MOONSHINE_MODULES;
-
 	/* push the global package onto the stack */
 	lua_getglobal(L, "package");
 
 	/* Assign package.path = runtime */
-	lua_pushstring(L, runtime);
+	lua_pushstring(L, MOONSHINE_PATH  ";" LUA_PATH_DEFAULT);
 	lua_setfield(L, -2, "path");
 
 	/* Assign package.cpath = modules */
-	lua_pushstring(L, modules);
+	lua_pushstring(L, MOONSHINE_CPATH ";" LUA_CPATH_DEFAULT);
 	lua_setfield(L, -2, "cpath");
 
 	/* remove package from the stack. */
