@@ -8,8 +8,8 @@ local Window    = Object:new()
 function Window:__init()
 	assert(self.name, "name slot initialized")
 
-	self._topic    = statusbar:new("")
-	self._buffer   = buffer:new(1014)
+	self._topic    = Statusbar:new("")
+	self._buffer   = Buffer:new(1014)
 	self._activity = 0
 
 	self:set_topic("Moonshine - A Haver Client")
