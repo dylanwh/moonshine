@@ -77,12 +77,12 @@ function Screen:print(fmt, ...)--{{{
 end--}}}
 
 function Screen:debug(fmt, ...)--{{{
-	self:window:print("%{blue}-%{white}!%{blue}- %{default}%|"..fmt, ...)
+	self.window:print("%{blue}-%{white}!%{blue}- %{default}%|"..fmt, ...)
 	self:render()
 end--}}}
 
 function Screen:add(win)--{{{
-	table.insert(self:windows, win)
+	table.insert(self.windows, win)
 	if self.window == nil then
 		self.window = win
 	end
@@ -140,7 +140,7 @@ function Screen:keypress(key)--{{{
 end--}}}
 
 function Screen:move_left() --{{{
-	self:entry:move(-1)
+	self.entry:move(-1)
 	self:render()
 end--}}}
 
@@ -150,7 +150,7 @@ function Screen:move_right()--{{{
 end--}}}
 
 function Screen:move_home()--{{{
-	selfentry:move_to(0)
+	self.entry:move_to(0)
 	self:render()
 end--}}}
 
