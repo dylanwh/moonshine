@@ -19,6 +19,6 @@ local screen = require "moonshine.ui.screen"
 local ml = require "moonshine.loop"
 loop = ml:new()
 
-screen:startup()
+screen:__init()
 
 loop:run()
