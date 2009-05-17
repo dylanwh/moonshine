@@ -16,17 +16,17 @@ struct luaitem/*{{{*/
 	struct luatree *tree;
 };/*}}}*/
 
-static void free_item(void *vp_item) {
+static void free_item(void *vp_item)/*{{{*/
+{
 	struct luaitem *item = vp_item;
 
 	ms_lua_unref(item->key);
 	ms_lua_unref(item->value);
 
 	g_free(item);
-}
+}/*}}}*/
 
-static int compare_keys(const void *vp_b)
-/*{{{*/
+static int compare_keys(const void *vp_b)/*{{{*/
 {
 	const struct luaitem *b = vp_b;
 	struct luatree *tree = b->tree;
@@ -129,15 +129,12 @@ static int tree_new(LuaState *L)/*{{{*/
 {
 	MSLuaRef *keycmp = NULL;
 
-	if (lua_gettop(L) > 1)
-		return luaL_argerror(L, 2, "Too many arguments");
-
-	if (lua_gettop(L)) {
-		luaL_checktype(L, 1, LUA_TFUNCTION);
-		keycmp = ms_lua_ref(L, 1);
+	if (!lua_isnoneornil(L, 2)) {
+		luaL_checktype(L, 2, LUA_TFUNCTION);
+		keycmp = ms_lua_ref(L, 2);
 	}
 
-	struct luatree *tree = ms_lua_newclass(L, CLASS, sizeof(*tree));
+	struct luatree *tree = ms_lua_newclass(L, CLASS, sizeof(struct luatree));
 	tree->keycmp = keycmp;
 	tree->avltree = avl_alloc_tree(compare_keys, free_item);
 	
@@ -146,7 +143,7 @@ static int tree_new(LuaState *L)/*{{{*/
 
 static int tree_gc(LuaState *L)/*{{{*/
 {
-	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
+	struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
 	avl_free_tree(tree->avltree);
 	if (tree->keycmp)
 		ms_lua_unref(tree->keycmp);
@@ -176,7 +173,7 @@ static int tree_insert(LuaState *L)/*{{{*/
 
 static int tree_delete(LuaState *L)/*{{{*/
 {
-	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
+	struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
 	luaL_argcheck(L, lua_gettop(L) == 2, lua_gettop(L), "Wrong number of arguments (need 2)");
 
 	lua_pushvalue(L, 2); /* put key at -1 */
@@ -197,7 +194,7 @@ static int tree_delete(LuaState *L)/*{{{*/
 
 static int tree_clear(LuaState *L)/*{{{*/
 {
-	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
+	struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
 	luaL_argcheck(L, lua_gettop(L) == 1, lua_gettop(L), "Wrong number of arguments (need 1)");
 
 	avl_free_nodes(tree->avltree);
@@ -208,7 +205,7 @@ static int tree_clear(LuaState *L)/*{{{*/
 
 static int tree_find(LuaState *L)/*{{{*/
 {
-	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
+	struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
 	luaL_argcheck(L, lua_gettop(L) == 2, lua_gettop(L), "Wrong number of arguments (need 2)");
 
 	lua_pushvalue(L, 2); /* put key at -1 */
@@ -229,7 +226,7 @@ static int tree_find(LuaState *L)/*{{{*/
 
 static int tree_find_near(LuaState *L)/*{{{*/
 {
-	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
+	struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
 	luaL_argcheck(L, lua_gettop(L) == 2, lua_gettop(L), "Wrong number of arguments (need 2)");
 
 	lua_pushvalue(L, 2); /* put key at -1 */
@@ -254,7 +251,7 @@ static int tree_find_near(LuaState *L)/*{{{*/
 
 static int tree_lookup_index(LuaState *L)/*{{{*/
 {
-	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
+	struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
 	luaL_argcheck(L, lua_gettop(L) == 2, lua_gettop(L), "Wrong number of arguments (need 2)");
 	int v = luaL_checkinteger(L, 2);
 
@@ -272,7 +269,7 @@ static int tree_lookup_index(LuaState *L)/*{{{*/
 
 static int tree_size(LuaState *L)/*{{{*/
 {
-	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
+	struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
 	luaL_argcheck(L, lua_gettop(L) == 1, lua_gettop(L), "Wrong number of arguments (need 1)");
 
 	lua_pushinteger(L, avl_count(tree->avltree));
