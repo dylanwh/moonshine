@@ -1,0 +1,5 @@
+* Investigate terminal input edge cases
+  = Malformed UTF8 - we might hang
+  = Escape sequences that are unknown may result in later ones being lost eg:
+    ^[[, followed by left arrow sequence would consume all of ^[[^[[D
+  = Can the UTF8 grouping be moved into lua?
