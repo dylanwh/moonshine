@@ -87,3 +87,10 @@ t.NaME = "foo"
 for k, v in pairs(t) do
 	print (k, v)
 end
+
+function emit(name, ...)
+	local f = _G["on_" .. name]
+	if f then
+		f(...)
+	end
+end
