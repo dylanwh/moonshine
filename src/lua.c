@@ -102,7 +102,7 @@ static void push_paths
 	(LuaState *L, const char *defpath, const char *envname, const char *ext)
 /*{{{*/
 {
-	const char *envpath = getenv(envname);
+	const char *envpath = g_getenv(envname);
 	const char *endseg;
 	int concat_ct = 0;
 	if (!envpath || !*envpath)
@@ -156,7 +156,7 @@ static void init_paths(LuaState *L)/*{{{*/
 
 	/* Assign package.cpath = modules */
 	push_paths(L, MOONSHINE_CPATH ";" LUA_CPATH_DEFAULT,
-			"MOONSHINE_RUNTIME_PATH", "lua");
+			"MOONSHINE_RUNTIME_PATH", MOONSHINE_SO);
 	lua_setfield(L, -2, "cpath");
 
 	/* remove package from the stack. */

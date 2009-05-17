@@ -1,6 +1,7 @@
 #define MOONSHINE_VERSION "@MOONSHINE_VERSION@"
 #define MOONSHINE_PATH    "@MOONSHINE_PATH@"
 #define MOONSHINE_CPATH   "@MOONSHINE_CPATH@"
+#define MOONSHINE_SO      "@CMAKE_SHARED_MODULE_SUFFIX@"
 
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 
