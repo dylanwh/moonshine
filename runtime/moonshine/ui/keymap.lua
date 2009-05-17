@@ -1,35 +1,33 @@
-local make_keyspec  = require("moonshine.ui.term").make_keyspec
-local Object = require "moonshine.object"
-local Trie   = require "moonshine.trie"
+local M = {}
 
-local KeyMap = Object:new()
+local make_keyspec = require("moonshine.ui.term").make_keyspec
+local Tree         = require "moonshine.tree"
 
-getmetatable(KeyMap).__init__ = 
+local tree = Tree:new()
 
-function KeyMap:bind(spec, func)
+function M.bind(spec, name)
+	tree:insert( make_keyspec(spec), name)
+end
 
-function M.bind(spec_, name, ...)--{{{
-	assert(spec_, "keyspec is required")
-	assert(name, "event name is required")
+-- called by on_keypress_raw()
+function M.keypress(k)
+	-- FIXME
+	-- else
+	--     on_keypress(k)
+	-- end
+end
 
-	local spec  = term.make_keyspec(spec_)
-	local event = { name = name, ... }
 
-	keymap:insert(spec, event)
-end--}}}
+local function funcname(x)
+	return "kb_" .. x:gsub("[^a-zA-Z_]", "_")
+end
 
-local function process(key)--{{{
-	keybuf = keybuf .. key
-	
-	local found, keyevent = keymap:find(keybuf)
-	if found then
-		event.emit(keyevent.name, unpack(keyevent))
-		keybuf = ""
-	elseif found == nil then
-		event.emit("keypress", key)
-		keybuf = ""
-	end
-end--}}}
+function M.invoke(name)
+	_G[funcname(name)]()
+end
 
-event.add("input", process)
+function M.define(name, func)
+	_G[funcname(name)] = func
+end
+
 return M
