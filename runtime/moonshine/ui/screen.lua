@@ -23,7 +23,7 @@ function Screen:__init()--{{{
 		"status_activity",
 	}
 	self.status:set( term.format("%{topic}Status bar goes here", {}))
-	self:add( Window:new("status") )
+	self:add( Window:new{name = "status"} )
 end--}}}
 
 function Screen:status_time()--{{{
