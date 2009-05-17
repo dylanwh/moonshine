@@ -1,8 +1,6 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
 #include "avl/avl.h"
-#include <stdlib.h>
-#include <assert.h>
 
 #define CLASS "moonshine.tree"
 
@@ -24,7 +22,7 @@ static void free_item(void *vp_item) {
 	ms_lua_unref(item->key);
 	ms_lua_unref(item->value);
 
-	free(item);
+	g_free(item);
 }
 
 static int compare_keys(const void *vp_b)
@@ -39,7 +37,7 @@ static int compare_keys(const void *vp_b)
 		LuaState *L = ms_lua_pushref(tree->keycmp);
 		lua_pushvalue(L, -2); /* re-push key A */
 		LuaState *Lb = ms_lua_pushref(b->key);
-		assert(L == Lb);
+		g_assert(L == Lb);
 
 		lua_call(L, 2, 1);
 		
@@ -68,12 +66,12 @@ static int compare_keys(const void *vp_b)
 /* On entry: Key in -1, value in -2 */
 static avl_node_t *create_node(LuaState *L, struct luatree *tree)/*{{{*/
 {
-	struct luaitem *item = malloc(sizeof(*item));
+	struct luaitem *item = g_malloc(sizeof(*item));
 	item->tree = tree;
 	item->key = ms_lua_ref(L, -1);
 	item->value = ms_lua_ref(L, -2);
 	
-	avl_node_t *node = avl_init_node(malloc(sizeof(*node)), item);
+	avl_node_t *node = avl_init_node(g_malloc(sizeof(*node)), item);
 
 	return node;
 }/*}}}*/
