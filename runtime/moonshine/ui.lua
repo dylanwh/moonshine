@@ -1,7 +1,21 @@
-local event = require "moonshine.event"
+local term   = require "moonshine.ui.term"
 local keymap = require "moonshine.ui.keymap"
-require "moonshine.ui.init"
-require "moonshine.ui.screen"
+local screen = require "moonshine.ui.screen.main"
+
+term.setup {
+	input  = keymap.keypress,
+	resize = screen:callback "render",
+}
+
+term.defcolor("blue", "brightblue", "default")
+term.defcolor("white", "white", "default")
+term.defcolor("topic", "lightgray", "blue")
+term.defcolor("statusbracket", "cyan", "blue")
+term.defcolor("statustext", "lightgray", "blue")
+term.defcolor("statusboring", "cyan", "blue")
+term.defcolor("statusnormal", "white", "blue")
+term.defcolor("statusimportant", "brightmagenta", "blue")
+term.defcolor("self", "white", "default")
 
 keymap.bind("^[[A",     "entry history prev")
 keymap.bind("^[[B",     "entry history next")
