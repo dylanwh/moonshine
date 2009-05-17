@@ -7,6 +7,8 @@ local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
 
+local Screen    = {}
+
 function Screen:__init()--{{{
 	self.entry     = Entry:new()
 	self.status    = Statusbar:new()
@@ -21,7 +23,7 @@ function Screen:__init()--{{{
 		"status_activity",
 	}
 	self.status:set( term.format("%{topic}Status bar goes here", {}))
-	self:add( Window:new("status") )
+	self:add( Window:new{name = "status"} )
 end--}}}
 
 function Screen:status_time()--{{{
