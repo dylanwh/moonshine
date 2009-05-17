@@ -5,7 +5,7 @@
 #include "moonshine/config.h"
 
 
-int luaopen_moonshine_loop(LuaState *);
+int luaopen_moonshine_loop_core(LuaState *);
 int luaopen_moonshine_net_client(LuaState *);
 int luaopen_moonshine_parseopt_core(LuaState *);
 int luaopen_moonshine_tree(LuaState *);
