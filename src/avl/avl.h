@@ -4,6 +4,8 @@
 
     Copyright (C) 1998  Michael H. Buselli <cosine@cosine.org>
     Copyright (C) 2000-2002  Wessel Dankers <wsl@nl.linux.org>
+	Modifications for Lua interface:
+	Copyright (C) 2009  Bryan Donlan       <bdonlan@gmail.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -36,13 +38,14 @@
 #define AVL_COUNT
 #endif
 
-/* User supplied function to compare two items like strcmp() does.
- * For example: cmp(a,b) will return:
- *   -1  if a < b
- *    0  if a = b
- *    1  if a > b
+/* User supplied function to compare an item to the current contex
+ * like strcmp() does.
+ * For example: cmp(b) will return:
+ *   -1  if ctx < b
+ *    0  if ctx = b
+ *    1  if ctx > b
  */
-typedef int (*avl_compare_t)(const void *, const void *);
+typedef int (*avl_compare_t)(const void *);
 
 /* User supplied function to delete an item when a node is free()d.
  * If NULL, the item is not free()d.
@@ -146,7 +149,7 @@ extern void *avl_delete_node(avl_tree_t *, avl_node_t *);
  * If the tree's freeitem is not NULL, it is invoked on the item.
  * If it is, returns the item.
  * O(lg n) */
-extern void *avl_delete(avl_tree_t *, const void *item);
+extern void *avl_delete(avl_tree_t *);
 
 /* If exactly one node is moved in memory, this will fix the pointers
  * in the tree that refer to it. It must be an exact shallow copy.
@@ -161,12 +164,12 @@ extern avl_node_t *avl_fixup_node(avl_tree_t *, avl_node_t *new);
  *    0  if the returned node is equal or if the tree is empty
  *    1  if the returned node is greater
  * O(lg n) */
-extern int avl_search_closest(const avl_tree_t *, const void *item, avl_node_t **avlnode);
+extern int avl_search_closest(const avl_tree_t *, avl_node_t **avlnode);
 
 /* Searches for the item in the tree and returns a matching node if found
  * or NULL if not.
  * O(lg n) */
-extern avl_node_t *avl_search(const avl_tree_t *, const void *item);
+extern avl_node_t *avl_search(const avl_tree_t *);
 
 #ifdef AVL_COUNT
 /* Returns the number of nodes in the tree.

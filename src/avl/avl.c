@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "avl.h"
+#include "avl/avl.h"
 
 static void avl_rebalance(avl_tree_t *, avl_node_t *);
 
@@ -131,7 +131,7 @@ unsigned int avl_index(const avl_node_t *avlnode) {
 }
 #endif
 
-int avl_search_closest(const avl_tree_t *avltree, const void *item, avl_node_t **avlnode) {
+int avl_search_closest(const avl_tree_t *avltree, avl_node_t **avlnode) {
 	avl_node_t *node;
 	avl_compare_t cmp;
 	int c;
@@ -147,7 +147,7 @@ int avl_search_closest(const avl_tree_t *avltree, const void *item, avl_node_t *
 	cmp = avltree->cmp;
 
 	for(;;) {
-		c = cmp(item, node->item);
+		c = cmp(node->item);
 
 		if(c < 0) {
 			if(node->left)
@@ -167,12 +167,12 @@ int avl_search_closest(const avl_tree_t *avltree, const void *item, avl_node_t *
 
 /*
  * avl_search:
- * Return a pointer to a node with the given item in the tree.
+ * Return a pointer to a node with the in-context item in the tree.
  * If no such item is in the tree, then NULL is returned.
  */
-avl_node_t *avl_search(const avl_tree_t *avltree, const void *item) {
+avl_node_t *avl_search(const avl_tree_t *avltree) {
 	avl_node_t *node;
-	return avl_search_closest(avltree, item, &node) ? NULL : node;
+	return avl_search_closest(avltree, &node) ? NULL : node;
 }
 
 avl_tree_t *avl_init_tree(avl_tree_t *rc, avl_compare_t cmp, avl_freeitem_t freeitem) {
@@ -298,6 +298,7 @@ avl_node_t *avl_insert_after(avl_tree_t *avltree, avl_node_t *node, avl_node_t *
 	return newnode;
 }
 
+#if 0
 avl_node_t *avl_insert_node(avl_tree_t *avltree, avl_node_t *newnode) {
 	avl_node_t *node;
 
@@ -331,6 +332,7 @@ avl_node_t *avl_insert(avl_tree_t *avltree, void *item) {
 	}
 	return NULL;
 }
+#endif
 
 /*
  * avl_unlink_node:
@@ -404,8 +406,8 @@ void *avl_delete_node(avl_tree_t *avltree, avl_node_t *avlnode) {
 	return item;
 }
 
-void *avl_delete(avl_tree_t *avltree, const void *item) {
-	return avl_delete_node(avltree, avl_search(avltree, item));
+void *avl_delete(avl_tree_t *avltree) {
+	return avl_delete_node(avltree, avl_search(avltree));
 }
 
 avl_node_t *avl_fixup_node(avl_tree_t *avltree, avl_node_t *newnode) {

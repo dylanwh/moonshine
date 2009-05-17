@@ -15,6 +15,9 @@ ADD_EXECUTABLE(moonshine
 	modui_entry.c
 	modui_statusbar.c
 	modui_term.c
+
+	avl/avl.c
+	modtree.c
 )
 
 TARGET_LINK_LIBRARIES(moonshine
