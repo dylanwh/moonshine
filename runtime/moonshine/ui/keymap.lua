@@ -1,19 +1,16 @@
-local make_keyspec  = require("moonshine.ui.term").make_keyspec
-local Object = require "moonshine.object"
-local Tree   = require "moonshine.tree"
-local screen = require "moonshine.ui.screen"
-local term   = require "moonshine.ui.term"
-local event  = require "moonshine.event"
-
 local M = {}
 
-local mapping = Tree.new()
+local make_keyspec = require("moonshine.ui.term").make_keyspec
+local Tree         = require "moonshine.tree"
+local screen       = require "moonshine.ui.screen.main"
+
+local mapping = Tree:new()
 local keybuf  = ""
 
 local on_keypress = nil -- screen:callback "keypress"
 
-function M.bind(spec_, name, ...)
-	local spec = term.make_keyspec(spec_)
+function M.bind(spec_, name, ...)--{{{
+	local spec = make_keyspec(spec_)
 	local extra = { ... }
 	local cb = function()
 		M.invoke(name, unpack(extra))
@@ -22,7 +19,7 @@ function M.bind(spec_, name, ...)
 	mapping:insert(spec, cb)
 
 	local found_value = mapping:find(spec)
-end
+end--}}}
 
 function M.keypress(key)--{{{
 	keybuf = keybuf .. key
@@ -57,10 +54,16 @@ function M.keypress(key)--{{{
 	end
 end--}}}
 
-function M.invoke(name, ...)
-	local funcname = "kb_" .. name:gsub("[^a-zA-Z_]", "_")
---	_G[funcname](...)
+local function funcname(x)
+	return "kb_" .. x:gsub("[^a-zA-Z_]", "_")
 end
 
-event.add("input", M.keypress)
+function M.invoke(name)
+	--_G[funcname(name)]()
+end
+
+function M.define(name, func)
+	_G[funcname(name)] = func
+end
+
 return M
