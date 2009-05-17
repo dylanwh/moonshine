@@ -1,6 +1,8 @@
 #include "moonshine/config.h"
 #include "moonshine/lua.h"
 #include <glib.h>
+
+/* the following is for the bd_ code in push_paths() */
 #include <stdlib.h>
 
 /* MSLuaRef-related functions {{{ */
@@ -98,9 +100,8 @@ void ms_lua_preload(LuaState *L, const char *name, lua_CFunction func)/*{{{*/
 	lua_pop(L, 2);
 }/*}}}*/
 
-static void push_paths
+static void push_paths /*{{{*/
 	(LuaState *L, const char *defpath, const char *envname, const char *ext)
-/*{{{*/
 {
 	const char *envpath = g_getenv(envname);
 	const char *endseg;
