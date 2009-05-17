@@ -1,7 +1,7 @@
 local shell  = require "moonshine.shell"
 local term   = require "moonshine.ui.term"
 
-local Object     = require "moonshine.ui.object"
+local Object    = require "moonshine.object"
 local Entry     = require "moonshine.ui.entry"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
