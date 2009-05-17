@@ -152,10 +152,11 @@ static void on_resize (int signal, gpointer R)/*{{{*/
 	}
 }/*}}}*/
 
-static gboolean did_setup = FALSE;
 static int term_setup(LuaState *L)/*{{{*/
 {
+	static gboolean did_setup = FALSE;
 	g_assert(did_setup == FALSE);
+
 	ms_term_init();
 
 	luaL_checktype(L, 1, LUA_TTABLE);
