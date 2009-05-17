@@ -4,10 +4,14 @@ local Object = {}
 
 local OPS = { "__add", "__sub", "__div", "__mul", "__eq", "__call" }
 
-function Object.new(parent, ...)
+function Object.new(parent, attr)
 	local mt   = { parent = parent, __index = parent }
 	local self = setmetatable({}, mt)
 
+	if attr then
+		assert(type(attr) == 'table', "new(attr): attr is table")
+		for k, v in pairs(attr) do self[k] = v end
+	end
 	for i, name in ipairs(OPS) do
 		if self[name] then
 			mt[name] = self[name]
