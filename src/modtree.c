@@ -56,7 +56,7 @@ static int compare_keys(const void *vp_b)
 		strA = lua_tolstring(L, -2, &lenA);
 		strB = lua_tolstring(L, -1, &lenB);
 
-		result = memcmp(strA, strB, lenA > lenB ? lenB : lenA);
+		result = memcmp(strA, strB, (lenA > lenB ? lenB : lenA) + 1);
 		lua_pop(L, 1);
 	}
 
@@ -166,9 +166,9 @@ static int tree_insert(LuaState *L)/*{{{*/
 	struct luatree *tree = ms_lua_toclass(L, CLASS, 1);
 	luaL_argcheck(L, lua_gettop(L) == 3, lua_gettop(L), "Wrong number of arguments (need 3)");
 
-	/* key at 1, value at 2 */
-	lua_pushvalue(L, 2);
-	lua_pushvalue(L, 1);
+	/* key at -1, value at -2 */
+	lua_pushvalue(L, 3); /* value */
+	lua_pushvalue(L, 2); /* key */
 
 	do_insert_replace(L, tree);
 	return 1;
@@ -240,14 +240,16 @@ static int tree_find_near(LuaState *L)/*{{{*/
 	if (!node) {
 		lua_pushnil(L);
 		lua_pushnil(L);
+		lua_pushnil(L);
 	} else {
 		struct luaitem *item = node->item;
+		ms_lua_pushref(item->key);
 		ms_lua_pushref(item->value);
 		lua_pushinteger(L, avl_index(node));
 	}
 	lua_pushinteger(L, ret);
 
-	return 3;
+	return 4;
 }/*}}}*/
 
 static int tree_lookup_index(LuaState *L)/*{{{*/
@@ -259,11 +261,13 @@ static int tree_lookup_index(LuaState *L)/*{{{*/
 	avl_node_t *node = avl_at(tree->avltree, v);
 	if (!node) {
 		lua_pushnil(L);
+		lua_pushnil(L);
 	} else {
 		struct luaitem *item = node->item;
+		ms_lua_pushref(item->key);
 		ms_lua_pushref(item->value);
 	}
-	return 1;
+	return 2;
 }/*}}}*/
 
 static int tree_size(LuaState *L)/*{{{*/
