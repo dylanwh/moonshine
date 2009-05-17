@@ -1,7 +1,7 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
 
-#define CLASS "moonshine.loop"
+#define CLASS "moonshine.loop.core"
 
 static int loop_new(LuaState *L)/*{{{*/
 {
@@ -54,7 +54,7 @@ static const LuaLReg loop_meta[] = {/*{{{*/
 	{0, 0}
 };/*}}}*/
 
-int luaopen_moonshine_loop(LuaState *L)/*{{{*/
+int luaopen_moonshine_loop_core(LuaState *L)/*{{{*/
 {
 	ms_lua_class_register(L, CLASS, loop_methods, loop_meta);
 	return 1;

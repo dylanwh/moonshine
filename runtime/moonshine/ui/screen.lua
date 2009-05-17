@@ -1,4 +1,3 @@
-local event = require "moonshine.event"
 local shell  = require "moonshine.shell"
 local term   = require "moonshine.ui.term"
 
