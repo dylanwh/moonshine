@@ -151,7 +151,7 @@ static void init_paths(LuaState *L)/*{{{*/
 
 	/* Assign package.cpath = modules */
 	push_paths(L, MOONSHINE_PATH ";" LUA_PATH_DEFAULT,
-			"MOONSHINE_RUNTIME_PATH", "lua");
+			"MOONSHINE_RUNTIME_PATH", ".lua");
 	lua_setfield(L, -2, "path");
 
 	/* Assign package.cpath = modules */
