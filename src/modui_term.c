@@ -152,8 +152,10 @@ static void on_resize (int signal, gpointer R)/*{{{*/
 	}
 }/*}}}*/
 
+static gboolean did_setup = FALSE;
 static int term_setup(LuaState *L)/*{{{*/
 {
+	g_assert(did_setup == FALSE);
 	ms_term_init();
 
 	luaL_checktype(L, 1, LUA_TTABLE);
@@ -167,14 +169,15 @@ static int term_setup(LuaState *L)/*{{{*/
 
 	lua_pop(L, 2);
 
-	g_assert(input_ref != NULL);
-	g_assert(resize_ref != NULL);
+	g_assert(input_ref->ref != LUA_REFNIL);
+	g_assert(resize_ref->ref != LUA_REFNIL);
 
 	g_io_add_watch_full(input, G_PRIORITY_DEFAULT, G_IO_IN, on_input,
 			(gpointer) input_ref, (GDestroyNotify) ms_lua_unref);
 	ms_signal_catch(SIGWINCH, on_resize, (gpointer) resize_ref,
 			(GDestroyNotify) ms_lua_unref);
 
+	did_setup = TRUE;
 	return 0;
 }/*}}}*/
 
