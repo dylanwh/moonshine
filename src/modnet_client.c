@@ -65,8 +65,11 @@ typedef struct {
 /* {{{ Methods */
 static int client_new(LuaState *L)/*{{{*/
 {
+	luaL_checktype(L, 1, LUA_TTABLE);
 	const char *host = luaL_checkstring(L, 2);
 	guint port       = luaL_checkinteger(L, 3);
+	luaL_checktype(L, 4, LUA_TFUNCTION);
+
 	MSLuaRef *func   = ms_lua_ref(L, 4);
 	GConn  *conn     = gnet_conn_new(host, port, client_callback, func);
 	Client *client   = ms_lua_newclass(L, CLASS, sizeof(Client)); 
