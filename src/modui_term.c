@@ -157,8 +157,6 @@ static int term_setup(LuaState *L)/*{{{*/
 	static gboolean did_setup = FALSE;
 	g_assert(did_setup == FALSE);
 
-	ms_term_init();
-
 	luaL_checktype(L, 1, LUA_TTABLE);
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 

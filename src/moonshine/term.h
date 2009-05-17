@@ -14,6 +14,7 @@
 #define MS_TERM_COLOR_MAX_UCS   0xFCFFF
 
 void ms_term_init(void);
+void ms_term_reset(void);
 void ms_term_resize(void);
 
 void ms_term_color_set(const char *name, const char *fg, const char *bg);

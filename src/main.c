@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "moonshine/lua.h"
 #include "moonshine/signal.h"
+#include "moonshine/term.h"
 #include "moonshine/config.h"
 
 
@@ -29,9 +30,14 @@ int main(int argc, char *argv[])
 
 	g_thread_init(NULL);
 	ms_signal_init();
+	ms_term_init();
 
-	ms_lua_require(L, "moonshine");
+	lua_getglobal(L, "require");
+	lua_pushstring(L, "moonshine");
+	if(lua_pcall(L, 1, 0, 0) != 0)
+		g_warning("moonshine error in require 'moonshine': %s", lua_tostring(L, -1));
 
+	ms_term_reset();
 	ms_signal_reset();
 	exit(0);
 }

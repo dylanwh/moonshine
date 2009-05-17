@@ -1,7 +1,7 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 : */
 #include "moonshine/term.h"
 #include <string.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 
 static GHashTable *ms_term_colors = NULL;
 static int last_id = 0;
@@ -18,7 +18,7 @@ static unsigned char utf8_length[256] =/*{{{*/
   3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1   /* - 255 */
 };/*}}}*/
 
-static void ms_term_reset(void)/*{{{*/
+void ms_term_reset(void)/*{{{*/
 {
 	SLsmg_reset_smg ();
 	SLang_reset_tty ();
@@ -35,7 +35,6 @@ void ms_term_init(void)/*{{{*/
 	SLsmg_utf8_enable(-1);
 	SLsmg_refresh();
 	/* SLsmg_embedded_escape_mode(1); */
-	atexit(ms_term_reset);
 
 	ms_term_colors = g_hash_table_new(g_str_hash, g_str_equal);
 	g_hash_table_insert(ms_term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
@@ -78,7 +77,7 @@ void ms_term_resize(void)/*{{{*/
 }/*}}}*/
 
 /* Color related functions *//*{{{*/
-void ms_term_color_set(const char *name, const char *fg, const char *bg)
+void ms_term_color_set(const char *name, const char *fg, const char *bg)/*{{{*/
 {
 	g_return_if_fail(ms_term_colors);
 	int *color_idp = g_hash_table_lookup(ms_term_colors, name);
@@ -90,7 +89,8 @@ void ms_term_color_set(const char *name, const char *fg, const char *bg)
 		g_hash_table_insert(ms_term_colors, g_strdup(name), GINT_TO_POINTER(last_id));
 		SLtt_set_color( last_id, (char *)name, (char *) fg, (char *)bg);
 	}
-}/*}}}*/
+}
+/*}}}*/
 
 void ms_term_color_use(const char *name)/*{{{*/
 {
@@ -121,3 +121,4 @@ const char *ms_term_color_to_utf8(const char *name)/*{{{*/
 
 	return buf;
 }/*}}}*/
+/*}}}*/
