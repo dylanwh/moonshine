@@ -7,6 +7,8 @@ local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
 
+local Screen    = {}
+
 function Screen:__init()--{{{
 	self.entry     = Entry:new()
 	self.status    = Statusbar:new()
