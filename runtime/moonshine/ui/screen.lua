@@ -1,12 +1,13 @@
 local shell  = require "moonshine.shell"
 local term   = require "moonshine.ui.term"
 
+local Object     = require "moonshine.ui.object"
 local Entry     = require "moonshine.ui.entry"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
 
-local Screen    = {}
+local Screen    = Object:new()
 
 function Screen:__init()--{{{
 	self.entry     = Entry:new()
