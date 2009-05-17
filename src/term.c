@@ -1,7 +1,12 @@
 /* vim: set ft=c noexpandtab ts=4 sw=4 tw=80 : */
 #include "moonshine/term.h"
 #include <string.h>
-//#include <stdlib.h>
+
+/* for sig action: */
+#include <signal.h>
+
+/* for atexit() */
+#include <stdlib.h>
 
 static GHashTable *ms_term_colors = NULL;
 static int last_id = 0;
@@ -20,9 +25,19 @@ static unsigned char utf8_length[256] =/*{{{*/
 
 void ms_term_reset(void)/*{{{*/
 {
-	SLsmg_reset_smg ();
-	SLang_reset_tty ();
-	g_hash_table_destroy(ms_term_colors);
+	static gboolean did_reset = FALSE;
+	if (!did_reset) {
+		SLsmg_reset_smg ();
+		SLang_reset_tty ();
+		g_hash_table_destroy(ms_term_colors);
+	}
+	did_reset = TRUE;
+}/*}}}*/
+
+static void on_abort(UNUSED int sig)/*{{{*/
+{
+	ms_term_reset();
+	exit(1);
 }/*}}}*/
 
 void ms_term_init(void)/*{{{*/
@@ -39,6 +54,16 @@ void ms_term_init(void)/*{{{*/
 	ms_term_colors = g_hash_table_new(g_str_hash, g_str_equal);
 	g_hash_table_insert(ms_term_colors, g_strdup("default"), GINT_TO_POINTER(last_id++));
 	g_hash_table_insert(ms_term_colors, g_strdup("inverse"), GINT_TO_POINTER(last_id++));
+
+
+	/* we try very hard to leave your terminal as we found it! */
+	static struct sigaction sa;
+	sa.sa_handler = on_abort;
+	sigemptyset (&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGABRT, &sa, NULL);
+
+	atexit(ms_term_reset);
 }/*}}}*/
 
 gunichar ms_term_getkey(void)/*{{{*/
