@@ -4,6 +4,7 @@
 #include "moonshine/signal.h"
 #include "moonshine/term.h"
 #include "moonshine/config.h"
+#include "moonshine/log.h"
 
 
 int luaopen_moonshine_loop_core(LuaState *);
@@ -28,8 +29,13 @@ int main(int argc, char *argv[])
 	ms_lua_preload(L, "moonshine.ui.statusbar", luaopen_moonshine_ui_statusbar);
 	ms_lua_preload(L, "moonshine.ui.term",      luaopen_moonshine_ui_term);
 
+
 	g_thread_init(NULL);
 	ms_signal_init();
+
+	MSLog *log = ms_log_new();
+	ms_log_install(log);
+
 	ms_term_init();
 
 	lua_getglobal(L, "require");
@@ -38,6 +44,10 @@ int main(int argc, char *argv[])
 		g_warning("moonshine error in require 'moonshine': %s", lua_tostring(L, -1));
 
 	ms_term_reset();
+	ms_log_unwind(log);
+
 	ms_signal_reset();
+	ms_log_free(log);
+
 	exit(0);
 }

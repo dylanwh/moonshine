@@ -5,6 +5,7 @@ ADD_EXECUTABLE(moonshine
 	async-queue-source.c
 	signal.c
 	lua.c
+	log.c
 	main.c
 	parseopt.c
 	
