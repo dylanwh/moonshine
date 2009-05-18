@@ -11,6 +11,7 @@
 GMainLoop *ms_main_loop = NULL;
 
 /* {{{ preloaded modules */
+int luaopen_moonshine_idle(LuaState *);
 int luaopen_moonshine_loop(LuaState *);
 int luaopen_moonshine_net_client(LuaState *);
 int luaopen_moonshine_parseopt_core(LuaState *);
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
 {
 	LuaState *L     = ms_lua_newstate();
 
+	ms_lua_preload(L, "moonshine.idle",         luaopen_moonshine_idle);
 	ms_lua_preload(L, "moonshine.loop",         luaopen_moonshine_loop);
 	ms_lua_preload(L, "moonshine.net.client",   luaopen_moonshine_net_client);
 	ms_lua_preload(L, "moonshine.parseopt.core",luaopen_moonshine_parseopt_core);
