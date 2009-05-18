@@ -24,7 +24,7 @@ function M.eval(line)
 	if func then
 		func(arg)
 	else
-		unknown_command_hook(name, arg)
+		emit("unknown_command", name, arg)
 	end
 end
 

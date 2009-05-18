@@ -199,7 +199,7 @@ function Screen:word_right()--{{{
 	self:render()
 end--}}}
 
-local function history_save()--{{{
+function Screen:history_save()--{{{
 	if not self.entry:is_dirty() or self.entry:get() == "" then
 		return
 	end
@@ -211,9 +211,9 @@ local function history_save()--{{{
 end--}}}
 
 function Screen:submit()--{{{
-	local line = selfentry:get()
+	local line = self.entry:get()
 	if #line > 0 then
-		history_save()
+		self:history_save()
 		self.history:scroll_to(0)
 		self.sb_at_end = true
 		self.entry:clear()
@@ -223,7 +223,7 @@ function Screen:submit()--{{{
 end--}}}
 
 function Screen:history_backward()--{{{
-	history_save()
+	self:history_save()
 	-- Are we just starting to scroll back?
 	if not self.sb_at_end then
 		self.history:scroll(1)
@@ -237,7 +237,7 @@ function Screen:history_backward()--{{{
 end--}}}
 
 function Screen:history_forward()--{{{
-	history_save()
+	self:history_save()
 	if self.history:at_end() then
 		self.entry:clear()
 		self.sb_at_end = true
