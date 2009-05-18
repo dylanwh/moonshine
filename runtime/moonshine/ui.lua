@@ -56,6 +56,11 @@ for i = 1, 9 do
 	keymap.bind("^[" .. i, "window goto", i)
 end
 
+cmd_quit = loop.quit
+
+function on_unknown_command(name)
+	screen:debug("command " .. name .. " not found")
+end
 
 kb_quit = loop.quit
 on_input    = keymap.process
