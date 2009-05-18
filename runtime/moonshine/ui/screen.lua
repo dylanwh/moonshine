@@ -1,6 +1,7 @@
 local shell  = require "moonshine.shell"
 local term   = require "moonshine.ui.term"
 
+local Idle      = require "moonshine.idle"
 local Object    = require "moonshine.object"
 local Entry     = require "moonshine.ui.entry"
 local Buffer    = require "moonshine.ui.buffer"
@@ -119,20 +120,32 @@ function Screen:goto(n)--{{{
 	end
 end--}}}
 
+local render_pending = false
+
 function Screen:render()--{{{
-	local rows, cols = term.dimensions()
-	local window = self.window
-	local status = self.status
-	local entry  = self.entry
+	if render_pending then
+		return
+	end
 
-	self:update_status()
-	
-	status:render(rows - 2)
-	window.buffer_dirty = true
-	window:render(0, rows - 3)
-	entry:render()
+	render_pending = true
 
-	term.refresh()
+	Idle:call(function()
+		local rows, cols = term.dimensions()
+		local window = self.window
+		local status = self.status
+		local entry  = self.entry
+
+		self:update_status()
+		
+		status:render(rows - 2)
+		window.buffer_dirty = true
+		window:render(0, rows - 3)
+		entry:render()
+
+		term.refresh()
+
+		render_pending = false
+	end)
 end--}}}
 
 function Screen:resize()
