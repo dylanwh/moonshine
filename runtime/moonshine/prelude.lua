@@ -33,12 +33,9 @@ function split(pat, str)--{{{
 	return collect(string.split, str, pat)
 end--}}}
 
---[[do
-	local event = require "moonshine.event"
-	function print(...)
-		event.emit("print", ...)
-	end
-end]]
+function join(sep, table)
+	return table.concat(table, sep)
+end
 
 function each(x)
 	if type(x) == 'table' then

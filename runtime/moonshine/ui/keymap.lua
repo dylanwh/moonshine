@@ -7,8 +7,6 @@ local screen       = require "moonshine.ui.screen.main"
 local mapping = Tree:new()
 local keybuf  = ""
 
-local on_keypress = nil -- screen:callback "keypress"
-
 function M.bind(spec_, name, ...)--{{{
 	local spec = make_keyspec(spec_)
 	local extra = { ... }
@@ -21,7 +19,7 @@ function M.bind(spec_, name, ...)--{{{
 	local found_value = mapping:find(spec)
 end--}}}
 
-function M.keypress(key)--{{{
+function M.process(key)--{{{
 	keybuf = keybuf .. key
 
 	local found_key, func, index, dirn = mapping:find_near(keybuf)
@@ -48,6 +46,7 @@ function M.keypress(key)--{{{
 	if string.sub(found_key, 1, string.len(keybuf)) ~= keybuf then
 		-- not a prefix of anything
 		-- XXX: deliver this to screen somehow
+		emit("keypress", key)
 		keybuf = ""
 	else
 		-- prefix of something, keep going
@@ -59,7 +58,10 @@ local function funcname(x)
 end
 
 function M.invoke(name)
-	--_G[funcname(name)]()
+	local func = _G[funcname(name)]
+	if func then 
+		func()
+	end
 end
 
 function M.define(name, func)

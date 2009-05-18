@@ -9,7 +9,7 @@ ADD_EXECUTABLE(moonshine
 	main.c
 	parseopt.c
 	
-	modloop_core.c
+	modloop.c
 	modnet_client.c
 	modparseopt_core.c
 	modui_buffer.c

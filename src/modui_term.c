@@ -92,6 +92,12 @@ static int term_refresh(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
+static int term_resize(LuaState *L)/*{{{*/
+{
+	ms_term_resize();
+	return 0;
+}/*}}}*/
+
 static int term_dimensions(LuaState *L)/*{{{*/
 {
 	lua_pushinteger(L, MS_TERM_LINES);
@@ -113,12 +119,6 @@ static int term_status(LuaState *L)/*{{{*/
 	const char *msg = luaL_checkstring(L, 1);
 	printf("\e]2;%s\a", msg);
 	fflush(stdout);
-	return 0;
-}/*}}}*/
-
-static int term_resize(LuaState *L)/*{{{*/
-{
-	ms_term_resize();
 	return 0;
 }/*}}}*/
 
@@ -199,14 +199,13 @@ static int term_make_keyspec(LuaState *L)/* {{{ */
 
 static LuaLReg functions[] = {/*{{{*/
 	{"make_keyspec",  term_make_keyspec },
-	{"setup",         term_setup },
 	{"format",        term_format },
 	{"format_escape", term_format_escape },
 	{"refresh",       term_refresh },
+	{"resize",        term_resize  },
 	{"dimensions",    term_dimensions },
 	{"defcolor",      term_defcolor },
 	{"status",        term_status },
-	{"resize",        term_resize },
 	{ 0, 0 },
 };/*}}}*/
 

@@ -17,7 +17,7 @@ function Screen:__init()--{{{
 
 	self.windows = {}
 
-	status_bits = {
+	self.status_bits = {
 		"status_time",
 		"status_current_window",
 		"status_activity",
@@ -58,14 +58,14 @@ function Screen:status_activity()--{{{
 		return nil
 	end
 
-	local actString = "Act: "..join("%{statusboring},", actvals)
+	local actString = "Act: " .. join("%{statusboring},", actvals)
 	return term.format(actString, {})
 end--}}}
 
 function Screen:update_status()--{{{
 	local statusbuf = ""
 	for i, bit in ipairs(self.status_bits) do
-		local result = self[bit]()
+		local result = self[bit](self)
 		if result then
 			statusbuf = statusbuf .. term.format("%{statusbracket} [%{statustext}%1%{statusbracket}]", {result})
 		end
@@ -135,10 +135,15 @@ function Screen:render()--{{{
 	term.refresh()
 end--}}}
 
+function Screen:resize()
+	term.resize()
+	self:render()
+end
+
 -- {{{ functions for keybindings.
 function Screen:keypress(key)--{{{
-	screen.entry:keypress(key)
-	screen:render()
+	self.entry:keypress(key)
+	self:render()
 end--}}}
 
 function Screen:move_left() --{{{
