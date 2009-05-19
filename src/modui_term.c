@@ -122,27 +122,6 @@ static int term_status(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer R) /*{{{*/
-{
-	if (cond & G_IO_IN) {
-		do {
-			gunichar c = ms_term_getkey();
-			char buf[8];
-			memset(buf, 0, sizeof(buf));
-			g_unichar_to_utf8(c, buf);
-			LuaState *L = ms_lua_pushref( (MSLuaRef *) R );
-			lua_pushstring(L, buf);
-			if (lua_pcall(L, 1, 0, 0) != 0) {
-				g_warning("error in moonshine.ui.term input function: %s", lua_tostring(L, -1));
-				return TRUE;
-			}
-		} while (ms_term_input_pending(-1));
-		//moon_call(L, "input_reset_hook", "");
-		return TRUE;
-	}
-	return FALSE;
-}/* }}} */
-
 static void on_resize (UNUSED int signal, gpointer R)/*{{{*/
 {
 	LuaState *L = ms_lua_pushref( (MSLuaRef *) R);
