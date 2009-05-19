@@ -122,15 +122,6 @@ static int term_status(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static void on_resize (UNUSED int signal, gpointer R)/*{{{*/
-{
-	LuaState *L = ms_lua_pushref( (MSLuaRef *) R);
-	ms_term_resize();
-	if (lua_pcall(L, 0, 0, 0) != 0) {
-		g_warning("error in resize function: %s", lua_tostring(L, -1));
-	}
-}/*}}}*/
-
 static int term_make_keyspec(LuaState *L)/* {{{ */
 {
 	const char *str = luaL_checkstring(L, 1);
