@@ -48,7 +48,7 @@ static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)/*
 	lua_gettable(L, -2);                      // pop light ud, push value of REFS[ud]
 	g_assert(!lua_isnil(L, -1));    
 	lua_remove(L, -2);                        // pop REFS
-	argc += push_event(L, event);      // push 1 or 2 arguments onto the stack.
+	argc += push_event(L, event);             // push 1 or 2 arguments onto the stack.
 
 	// call func(client, event_type [, buffer ]). 
 	if (lua_pcall(L, argc, 0, 0)) 
@@ -59,7 +59,7 @@ static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)/*
 /* {{{ Client Structure */
 typedef struct {
 	GConn *conn;
-	MSLuaRef *ref;
+	MSLuaRef *callback;
 } Client; /* }}} */
 
 /* {{{ Methods */
@@ -68,14 +68,12 @@ static int client_new(LuaState *L)/*{{{*/
 	luaL_checktype(L, 1, LUA_TTABLE);
 	const char *host = luaL_checkstring(L, 2);
 	guint port       = luaL_checkinteger(L, 3);
-	luaL_checktype(L, 4, LUA_TFUNCTION);
-
-	MSLuaRef *func   = ms_lua_ref(L, 4);
+	MSLuaRef *func   = ms_lua_ref_checktype(L, 4, LUA_TFUNCTION);
 	GConn  *conn     = gnet_conn_new(host, port, client_callback, func);
 	Client *client   = ms_lua_newclass(L, CLASS, sizeof(Client)); 
 
-	client->conn = conn;
-	client->ref  = func;
+	client->conn     = conn;
+	client->callback = func;
 
 	lua_getfield(L, LUA_REGISTRYINDEX, REFS); // push REFS
 	lua_pushlightuserdata(L, conn);           // push conn
@@ -161,22 +159,22 @@ static int client_gc(LuaState *L)/*{{{*/
 {
 	Client *client = ms_lua_toclass(L, CLASS, 1);
 	gnet_conn_delete(client->conn);
-	ms_lua_unref(client->ref);
+	ms_lua_unref(client->callback);
 
 	return 0;
 }/*}}}*/
 /* }}} */
 
 static const LuaLReg client_methods[] = {/*{{{*/
-	{"new", client_new},
-	{"connect", client_connect},
-	{"disconnect", client_disconnect},
-	{"is_connected", client_is_connected},
-	{"read", client_read},
-	{"readn", client_readn},
-	{"readline", client_readline},
-	{"write", client_write},
-	{0, 0}
+	{ "new",          client_new          },
+	{ "connect",      client_connect      },
+	{ "disconnect",   client_disconnect   },
+	{ "is_connected", client_is_connected },
+	{ "read",         client_read         },
+	{ "readn",        client_readn        },
+	{ "readline",     client_readline     },
+	{ "write",        client_write        },
+	{ 0,              0                   }
 };/*}}}*/
 
 static const LuaLReg client_meta[] = {/*{{{*/
