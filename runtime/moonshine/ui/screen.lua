@@ -1,7 +1,7 @@
 local shell  = require "moonshine.shell"
 local term   = require "moonshine.ui.term"
+local idle   = require "moonshine.idle"
 
-local Idle      = require "moonshine.idle"
 local Object    = require "moonshine.object"
 local Entry     = require "moonshine.ui.entry"
 local Buffer    = require "moonshine.ui.buffer"
@@ -129,7 +129,7 @@ function Screen:render()--{{{
 
 	render_pending = true
 
-	Idle:call(function()
+	idle.call(function()
 		local rows, cols = term.dimensions()
 		local window = self.window
 		local status = self.status
