@@ -2,7 +2,7 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
 
-static MSParseOptStatus short_option(gpointer baton, const char opt, const char *argument, const char *start)/*{{{*/
+static MSParseOptStatus short_option(gpointer baton, const char opt, const char *argument, UNUSED const char *start)/*{{{*/
 {
 	char opt_str[2] = "-\0";
 	MSLuaRef *R = baton;
@@ -15,7 +15,7 @@ static MSParseOptStatus short_option(gpointer baton, const char opt, const char 
 	return lua_tointeger(L, -1);
 }/*}}}*/
 
-static MSParseOptStatus long_option(gpointer baton, const char *opt, const char *argument, const char *start)/*{{{*/
+static MSParseOptStatus long_option(gpointer baton, const char *opt, const char *argument, UNUSED const char *start)/*{{{*/
 {
 	MSLuaRef *R = baton;
 	LuaState *L = ms_lua_pushref(R);
@@ -25,7 +25,7 @@ static MSParseOptStatus long_option(gpointer baton, const char *opt, const char 
 	return lua_tointeger(L, -1);
 }/*}}}*/
 
-static MSParseOptStatus literal_option(gpointer baton, const char *literal, const char *start)/*{{{*/
+static MSParseOptStatus literal_option(gpointer baton, const char *literal, UNUSED const char *start)/*{{{*/
 {
 	MSLuaRef *R = baton;
 	LuaState *L = ms_lua_pushref(R);

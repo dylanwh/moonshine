@@ -40,6 +40,7 @@ CONFIGURE_FILE(config.h.in
 	${CMAKE_CURRENT_BINARY_DIR}/moonshine/config.h
 	@ONLY IMMEDIATE)
 
+ADD_DEFINITIONS("-W -Wall")
 
 #ADD_EXECUTABLE(async-queue-test
 #	ms-async-queue-source.c

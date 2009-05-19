@@ -80,7 +80,7 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud)
 }/* }}} */
 
 
-int main(int argc, char *argv[])
+int main(UNUSED int argc, UNUSED char *argv[])
 {
 	LuaState *L     = ms_lua_newstate();
 

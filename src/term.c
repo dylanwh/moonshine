@@ -141,7 +141,7 @@ const char *ms_term_color_to_utf8(const char *name)/*{{{*/
 	g_assert(ch <= MS_TERM_COLOR_MAX_UCS); /* XXX: handle this failure better... */
 
 	gint len = g_unichar_to_utf8(ch, buf);
-	g_assert(len < sizeof buf);
+	g_assert(len < (gint)(sizeof buf));
 	buf[len] = 0;
 
 	return buf;

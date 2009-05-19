@@ -8,7 +8,7 @@
 /* defined in main.c */
 extern GMainLoop *ms_main_loop;
 
-static int loop_run(LuaState *L)/*{{{*/
+static int loop_run(UNUSED LuaState *L)/*{{{*/
 {
 	g_assert(ms_main_loop != NULL);
 	g_main_loop_run(ms_main_loop);
@@ -16,7 +16,7 @@ static int loop_run(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static int loop_quit(LuaState *L)/*{{{*/
+static int loop_quit(UNUSED LuaState *L)/*{{{*/
 {
 	g_assert(ms_main_loop != NULL);
 	g_main_loop_quit(ms_main_loop);

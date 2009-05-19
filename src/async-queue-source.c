@@ -59,7 +59,9 @@ static GSourceFuncs ms_async_queue_source_functions = { /*{{{*/
 	ms_async_queue_source_prepare,
 	ms_async_queue_source_check, 
 	ms_async_queue_source_dispatch, 
-	ms_async_queue_source_finalize
+	ms_async_queue_source_finalize,
+	NULL,
+	NULL
 }; /*}}}*/
 
 guint ms_async_queue_add_watch(GAsyncQueue *queue, MSAsyncQueueSourceFunc func, gpointer userdata, GDestroyNotify notify) /*{{{*/
