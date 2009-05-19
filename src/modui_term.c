@@ -86,13 +86,13 @@ static int term_format_escape(LuaState *L)/*{{{*/
 	g_assert_not_reached();
 }/*}}}*/
 
-static int term_refresh(LuaState *L)/*{{{*/
+static int term_refresh(UNUSED LuaState *L)/*{{{*/
 {
 	ms_term_refresh();
 	return 0;
 }/*}}}*/
 
-static int term_resize(LuaState *L)/*{{{*/
+static int term_resize(UNUSED LuaState *L)/*{{{*/
 {
 	ms_term_resize();
 	return 0;
@@ -143,7 +143,7 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer R) 
 	return FALSE;
 }/* }}} */
 
-static void on_resize (int signal, gpointer R)/*{{{*/
+static void on_resize (UNUSED int signal, gpointer R)/*{{{*/
 {
 	LuaState *L = ms_lua_pushref( (MSLuaRef *) R);
 	ms_term_resize();
