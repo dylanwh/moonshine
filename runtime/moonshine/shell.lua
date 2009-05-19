@@ -22,9 +22,12 @@ function M.eval(line)
 
 	func = _G["cmd_" .. name]
 	if func then
-		func(arg)
+		ok, errmsg = pcall(func, arg)
+		if not ok then
+			emit('error', errmsg)
+		end
 	else
-		emit("unknown_command", name, arg)
+		emit("unknown command", name, arg)
 	end
 end
 

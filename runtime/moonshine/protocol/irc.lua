@@ -136,8 +136,6 @@ IRC['332'] = function (self, msg)
 	topic_hook(self, room, topic)
 end
 
-
-
 function IRC:PRIVMSG(msg)
 	local user = msg.prefix:match("(.+)!")
 	local kind = 'say'

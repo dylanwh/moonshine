@@ -56,6 +56,18 @@ for i = 1, 9 do
 	keymap.bind("^[" .. i, "window goto", i)
 end
 
+function on_unknown_hook(name)
+	screen:debug("unknown hook: " .. name)
+end
+
+function on_error(err)
+	screen:debug("ERROR: " .. err)
+end
+
+function on_unknown_protocol_command(info)
+	screen:debug("unknown protocol command -- name: %1, args: %2. %3", info.name, join(", ", info.args), info.detail)
+end
+
 cmd_quit = loop.quit
 
 function on_unknown_command(name)

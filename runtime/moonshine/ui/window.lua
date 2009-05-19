@@ -22,7 +22,7 @@ end
 function Window:actprint(activity, fmt, ...)
 	local str = term.format(os.date("%H:%M ")..tostring(fmt), { ... })
 
-	self._activity = math.max(self.activity, activity)
+	self._activity = math.max(self._activity, activity)
 	self._buffer:print(str)
 end
 

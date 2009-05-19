@@ -33,8 +33,8 @@ function split(pat, str)--{{{
 	return collect(string.split, str, pat)
 end--}}}
 
-function join(sep, table)
-	return table.concat(table, sep)
+function join(sep, list)
+	return table.concat(list, sep)
 end
 
 function each(x)
@@ -78,16 +78,17 @@ function magic_table(canonize)
 	return t
 end
 
-
-local t = magic_table(string.lower)
-t.NaME = "foo"
-for k, v in pairs(t) do
-	print (k, v)
+function ensure(cond, msg)
+	if not cond then error(msg, 3) end
 end
 
 function emit(name, ...)
-	local f = _G["on_" .. name]
+	local f = _G["on_" .. name:gsub(" ", "_")]
 	if f then
 		f(...)
+	else
+		if on_unknown_hook then
+			on_unknown_hook(name, ...)
+		end
 	end
 end
