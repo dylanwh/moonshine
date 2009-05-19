@@ -51,7 +51,7 @@ static void purge(Buffer *b) {/*{{{*/
 		 * list in one step.
 		 */
 		bufferline_t *ptr  = head;
-		for (int i = 0; i < reap; i++) {
+		for (guint i = 0; i < reap; i++) {
 			bufferline_t *cur = ptr;
 			g_assert(ptr);
 			ptr = ptr->next;

@@ -97,7 +97,7 @@ static int entry_move_to(LuaState *L)
 	if (!e->bufused) return 0;
 
 	if (absolute >= 0) {
-		e->curs_off = MIN(e->bufused, absolute);
+		e->curs_off = MIN(e->bufused, (guint)absolute);
 	} else { /* -1 is after the last char, -2 on the last, etc... */
 		/* Note: If absolute is too far negative, we'll get gsize wraparound here. */
 		e->curs_off = e->bufused + absolute + 1;
@@ -273,11 +273,11 @@ static int entry_render(LuaState *L)
 
 static void erase_region(Entry *e, int start, int end)
 {
-	g_assert(start <= end);
-	g_assert(start <= e->bufused);
-	g_assert(end   <= e->bufused);
 	g_assert(start >= 0);
 	g_assert(end   >= 0);
+	g_assert(start <= end);
+	g_assert((guint)start <= e->bufused);
+	g_assert((guint)end   <= e->bufused);
 
 	if (start == end)
 		return;
@@ -286,9 +286,9 @@ static void erase_region(Entry *e, int start, int end)
 			sizeof(e->buffer[0]) * (e->bufused - end));
 	e->bufused -= (end - start);
 
-	if (e->curs_off > end)
+	if (e->curs_off > (guint)end)
 		e->curs_off -= (end - start);
-	else if (e->curs_off > start) /* in-between */
+	else if (e->curs_off > (guint)start) /* in-between */
 		e->curs_off = start;
 	return;
 }
@@ -342,7 +342,7 @@ static inline int wordlen_dir(Entry *e, int direction) {
 	if (direction == -1)
 		i--;
 
-	for (; i >= 0 && i < e->bufused; i += direction) {
+	for (; i >= 0 && (guint)i < e->bufused; i += direction) {
 		if (expect_space) {
 			expect_space = g_unichar_isspace(e->buffer[i]);
 		} else {
