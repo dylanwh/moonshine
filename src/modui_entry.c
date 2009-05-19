@@ -307,10 +307,11 @@ static int entry_erase(LuaState *L)
 		erase_region(e, start, end);
 	} else {
 		/* Delete chars before the current cursor location */
-		int start = e->curs_off + count;
-		int end   = e->curs_off;
+		guint start = e->curs_off + count;
+		guint end   = e->curs_off;
 
-		/* Note: if count > e->curs_off, start will overflow and be > e->bufused */
+		/* Note: if (-count) > e->curs_off, start will overflow and
+		 * be > e->bufused */
 		if (start > e->bufused)
 			start = 0;
 		erase_region(e, start, end);
