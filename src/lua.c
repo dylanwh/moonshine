@@ -17,6 +17,13 @@ MSLuaRef *ms_lua_ref(LuaState *L, int idx)/*{{{*/
 	return R;
 }/*}}}*/
 
+MSLuaRef *ms_lua_ref_checktype(LuaState *L, int narg, int type)
+{
+	luaL_checktype(L, narg, type);
+	return ms_lua_ref(L, narg);
+}
+
+
 LuaState *ms_lua_pushref(MSLuaRef *R)/*{{{*/
 {
 	lua_rawgeti(R->L, LUA_REGISTRYINDEX, R->ref);

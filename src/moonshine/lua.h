@@ -18,8 +18,9 @@ typedef struct MSLuaRef {
 } MSLuaRef;
 
 MSLuaRef *ms_lua_ref(LuaState *L, int idx);
+MSLuaRef *ms_lua_ref_checktype(LuaState *L, int narg, int type);
 LuaState *ms_lua_pushref(MSLuaRef *R);
-void ms_lua_unref(MSLuaRef *R);
+void      ms_lua_unref(MSLuaRef *R);
 
 void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[]);
 gpointer ms_lua_toclass(LuaState *L, const char *class, int index);

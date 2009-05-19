@@ -3,76 +3,60 @@
 
 #include <glib.h>
 
-struct idle_thunk {/*{{{*/
+typedef struct {
 	MSLuaRef *callback;
-	guint idle_tag, timer_tag;
-};/*}}}*/
+	guint idle_tag;
+	guint timer_tag;
+} IdleCallContext;
 
-static gboolean cb_impl(struct idle_thunk *thunk, guint cancel_tag)/*{{{*/
+static gboolean on_call(IdleCallContext *ctx, guint other_tag)/*{{{*/
 {
-	LuaState *L = ms_lua_pushref(thunk->callback);
-	g_source_remove(cancel_tag);
+	LuaState *L = ms_lua_pushref(ctx->callback);
+
+	g_source_remove(other_tag);
 
 	if (lua_pcall(L, 0, 0, 0)) {
 		g_warning("moonshine error in idle callback: %s", lua_tostring(L, -1));
 		lua_pop(L, 1);
 	}
 
-	ms_lua_unref(thunk->callback);
-	g_free(thunk);
+	ms_lua_unref(ctx->callback);
+	g_free(ctx);
 
 	return FALSE;
 }/*}}}*/
 
-static gboolean cb_idle(gpointer p_thunk)/*{{{*/
+static gboolean on_idle(gpointer user_data)/*{{{*/
 {
-	struct idle_thunk *thunk = p_thunk;
-	return cb_impl(thunk, thunk->timer_tag);
+	IdleCallContext *ctx = user_data;
+	return on_call(ctx, ctx->timer_tag);
 }/*}}}*/
 
-static gboolean cb_timer(gpointer p_thunk)/*{{{*/
+static gboolean on_timeout(gpointer user_data)/*{{{*/
 {
-	struct idle_thunk *thunk = p_thunk;
-	return cb_impl(thunk, thunk->idle_tag);
+	IdleCallContext *ctx = user_data;
+	return on_call(ctx, ctx->idle_tag);
 }/*}}}*/
 
-/* moonshine.idle:call(func [, deadline])
+/* moonshine.idle.call(func [, deadline])
  *
  * Call func when the main loop is idle (or when deadline ms elapse)
  */
 static int idle_call(LuaState *L)/*{{{*/
 {
-	int deadline = 250; /* ms */
-	int argc = lua_gettop(L);
-	MSLuaRef *pFunc;
-	struct idle_thunk *thunk;
+	MSLuaRef *callback = ms_lua_ref_checktype(L, 1, LUA_TFUNCTION);
+	int deadline       = CLAMP(luaL_optinteger(L, 2, 250), 0, 10000);
 
-	if (argc < 2 || argc > 3) {
-		return luaL_error(L, "Wrong number of arguments to Idle:call (got %d)", argc);
-	}
-
-	deadline = luaL_optinteger(L, 3, 250);
-	if (deadline < 0)
-		return luaL_argerror(L, 3, "Deadline cannot be negative");
 	if (deadline == 0) {
 	   /* theoretically, no deadline, but just set it to something big to
 		* make the callback logic easier
 		*/
 		deadline = 2000; /* 2 seconds */
 	}
-	if (deadline > 10000) {
-		/* clamp the deadline to something reasonable */
-		deadline = 10000;
-	}
-
-	luaL_checktype(L, 2, LUA_TFUNCTION);
-
-	pFunc = ms_lua_ref(L, 2);
-	thunk = g_malloc(sizeof *thunk);
-
-	thunk->callback = pFunc;
-	thunk->idle_tag = g_idle_add(cb_idle, thunk);
-	thunk->timer_tag = g_timeout_add(deadline, cb_timer, thunk);
+	IdleCallContext *ctx = g_new(IdleCallContext, 1);
+	ctx->callback        = callback;
+	ctx->idle_tag        = g_idle_add(on_idle, ctx);
+	ctx->timer_tag       = g_timeout_add(deadline, on_timeout, ctx);
 
 	return 0;
 }/*}}}*/
