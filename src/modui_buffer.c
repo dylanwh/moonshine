@@ -12,7 +12,7 @@
 /* {{{ Buffer structure */
 typedef struct bufferline {
 	struct bufferline *prev, *next;
-	unsigned int group;
+	int group;
 	char text[0];
 } bufferline_t;
 
@@ -32,7 +32,8 @@ typedef struct {
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
 	 */
-	guint histsize, scrollback, scrollfwd, groupcount, curgroup;
+	guint histsize, scrollback, scrollfwd, groupcount;
+	int curgroup;
 	gboolean is_dirty;
 } Buffer;
 /* }}} */
