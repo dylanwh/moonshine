@@ -18,7 +18,7 @@ typedef struct {
 	GDestroyNotify destroy;
 } MSSignalCallback;
 
-static gboolean on_input(GIOChannel *chan, GIOCondition c, UNUSED gpointer p)/*{{{*/
+static gboolean on_input(GIOChannel *chan, UNUSED GIOCondition c, UNUSED gpointer p)/*{{{*/
 {
 	int       sig    = 0;
 	gsize     bytes  = 0;

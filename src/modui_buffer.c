@@ -12,7 +12,7 @@
 /* {{{ Buffer structure */
 typedef struct bufferline {
 	struct bufferline *prev, *next;
-	unsigned int group;
+	int group;
 	char text[0];
 } bufferline_t;
 
@@ -32,7 +32,8 @@ typedef struct {
 	 * scrollback to keep; scrollback the number of elements between head and
 	 * view; scrollfwd the number of elements between view and tail.
 	 */
-	guint histsize, scrollback, scrollfwd, groupcount, curgroup;
+	guint histsize, scrollback, scrollfwd, groupcount;
+	int curgroup;
 	gboolean is_dirty;
 } Buffer;
 /* }}} */
@@ -50,7 +51,7 @@ static void purge(Buffer *b) {/*{{{*/
 		 * list in one step.
 		 */
 		bufferline_t *ptr  = head;
-		for (int i = 0; i < reap; i++) {
+		for (guint i = 0; i < reap; i++) {
 			bufferline_t *cur = ptr;
 			g_assert(ptr);
 			ptr = ptr->next;
