@@ -152,34 +152,6 @@ static void on_resize (UNUSED int signal, gpointer R)/*{{{*/
 	}
 }/*}}}*/
 
-static int term_setup(LuaState *L)/*{{{*/
-{
-	static gboolean did_setup = FALSE;
-	g_assert(did_setup == FALSE);
-
-	luaL_checktype(L, 1, LUA_TTABLE);
-	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
-
-	lua_getfield(L, 1, "input");
-	MSLuaRef *input_ref  = ms_lua_ref(L, -1);
-
-	lua_getfield(L, 1, "resize");
-	MSLuaRef *resize_ref = ms_lua_ref(L, -1);
-
-	lua_pop(L, 2);
-
-	g_assert(input_ref->ref != LUA_REFNIL);
-	g_assert(resize_ref->ref != LUA_REFNIL);
-
-	g_io_add_watch_full(input, G_PRIORITY_DEFAULT, G_IO_IN, on_input,
-			(gpointer) input_ref, (GDestroyNotify) ms_lua_unref);
-	ms_signal_catch(SIGWINCH, on_resize, (gpointer) resize_ref,
-			(GDestroyNotify) ms_lua_unref);
-
-	did_setup = TRUE;
-	return 0;
-}/*}}}*/
-
 static int term_make_keyspec(LuaState *L)/* {{{ */
 {
 	const char *str = luaL_checkstring(L, 1);
