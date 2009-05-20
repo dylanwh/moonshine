@@ -19,7 +19,7 @@ struct luatimer {
 	 * and memory usage.
 	 */
 	gboolean *destroyed_flag;
-	/* gbooleans are 4 bytes, so save 12 bytes or so here with a bitfield */
+	/* gbooleans are 4 bytes, so save 4 bytes or so here with a bitfield */
 	gboolean enabled : 1, 
 			 /* Set to TRUE if the active timer has been recreated in glib
 			  * (but not GC'd), and so we should return FALSE from the timer
