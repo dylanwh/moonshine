@@ -4,9 +4,8 @@ require "moonshine.ui"
 local loop = require "moonshine.loop"
 
 function cmd_go()
-	local IRC = require "moonshine.irc"
-	irc = IRC:new()
-	irc:connect('irc.example.com', 6666)
+	protocol.connect('irc', { hostname = os.getenv('IRC_HOST'), port = tonumber(os.getenv('IRC_PORT')) })
+
 end
 
 function cmd_join()
