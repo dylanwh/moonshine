@@ -9,6 +9,7 @@
 local parseopt = require "moonshine.parseopt"
 local M        = {}
 
+
 function M.eval(line)
 	local name, pos = string.match(line, "^/([%w_]+)()")
 	local arg
@@ -20,11 +21,18 @@ function M.eval(line)
 		arg  = line
 	end
 
-	func = _G["cmd_" .. name]
+	local func = _G["cmd_" .. name]
+	if (not func) and pcall(M.require, name) then
+		func = _G["cmd_" .. name]
+	end
+
 	if func then
-		ok, errmsg = pcall(func, arg)
+		local ok, errmsg = pcall(func, arg)
 		if not ok then
 			emit('error', errmsg)
+			return false
+		else
+			return true
 		end
 	else
 		emit("unknown command", name, arg)
@@ -53,6 +61,7 @@ function M.require(name)
 	local mod = require("moonshine.shell." .. name)
 	mod.name = name
 	M.define(mod)
+	return mod
 end
 
 return M
