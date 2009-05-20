@@ -182,10 +182,10 @@ function Screen:render()--{{{
 	end)
 end--}}}
 
-function Screen:resize()
+function Screen:resize()--{{{
 	term.resize()
 	self:render()
-end
+end--}}}
 
 -- {{{ functions for keybindings.
 function Screen:keypress(key)--{{{
