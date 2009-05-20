@@ -7,6 +7,7 @@ local Entry     = require "moonshine.ui.entry"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
+local Timer     = require "moonshine.timer"
 
 local Screen    = Object:new()
 
@@ -18,6 +19,11 @@ function Screen:__init()--{{{
 
 	self.windows = {}
 
+	self.status_timer = Timer:new(function()
+		self:render()
+		return false
+	end)
+
 	self.status_bits = {
 		"status_time",
 		"status_current_window",
@@ -28,7 +34,35 @@ function Screen:__init()--{{{
 end--}}}
 
 function Screen:status_time()--{{{
-	return os.date("%H:%M")
+	local timestr = os.date("%H:%M")
+	local timetbl = os.date("*t")
+	local nextmintbl = {
+		year = timetbl["year"],
+		month = timetbl["month"],
+		day = timetbl["day"],
+		hour = timetbl["hour"],
+		min = timetbl["min"] + 1,
+		sec = 0,
+		isdst = timetbl["isdst"]
+	}
+
+	local tillnextmin = os.difftime(os.time(nextmintbl), os.time(timetbl))
+	tillnextmin = tillnextmin * 1000
+
+	-- Since lua's time is only accurate to the second, undershoot by 1s
+	-- to make sure we redraw closer to the actual minute rollover.
+	-- The edge case handling below will then have us poll every 100ms
+	-- until the minute rolls over.
+	tillnextmin = tillnextmin - 1000
+
+	if tillnextmin <= 0 or tillnextmin > 59 * 1000 then
+		-- We've hit some kind of weird edge case. Try again in 100ms
+		tillnextmin = 100
+	end
+
+	self.status_timer:schedule(tillnextmin)
+
+	return timestr
 end--}}}
 
 function Screen:status_current_window()--{{{
