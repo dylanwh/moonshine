@@ -7,9 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* global: defined here in main.c, used in modloop.c. */
-GMainLoop *ms_main_loop = NULL;
-
 /* {{{ preloaded modules */
 int luaopen_moonshine_idle(LuaState *);
 int luaopen_moonshine_loop(LuaState *);
@@ -48,7 +45,9 @@ static void on_shutdown(int sig, gpointer ud)
 		lua_pop(L, 1);
 	}
 
-	g_main_loop_quit(ms_main_loop);
+	GMainLoop *loop = ms_lua_stash_get(L, "loop");
+	g_return_if_fail(loop != NULL);
+	g_main_loop_quit(loop);
 }
 
 static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud) /*{{{*/
@@ -97,22 +96,26 @@ int main(UNUSED int argc, UNUSED char *argv[])
 	ms_lua_preload(L, "moonshine.ui.term",      luaopen_moonshine_ui_term);
 
 	g_thread_init(NULL);
-	ms_main_loop = g_main_loop_new(NULL, FALSE);
+
+	GMainLoop *loop = g_main_loop_new(NULL, FALSE);
 	ms_signal_init();
 
 	GIOChannel *input = g_io_channel_unix_new(fileno(stdin));
 	g_io_add_watch_full(input, G_PRIORITY_DEFAULT, G_IO_IN, on_input,
 			(gpointer) L, NULL);
-	//g_io_channel_unref(input); // XXX: I assume g_io_add_watch_full() refs input.
 
 	ms_signal_catch(SIGWINCH, on_resize, (gpointer) L, NULL);
-	ms_signal_catch(SIGTERM, on_shutdown, (gpointer) L, NULL);
-	ms_signal_catch(SIGINT, on_shutdown, (gpointer) L, NULL);
-	ms_signal_catch(SIGHUP, on_shutdown, (gpointer) L, NULL);
+	ms_signal_catch(SIGTERM,  on_shutdown, (gpointer) L, NULL);
+	ms_signal_catch(SIGINT,   on_shutdown, (gpointer) L, NULL);
+	ms_signal_catch(SIGHUP,   on_shutdown, (gpointer) L, NULL);
 
 	MSLog *log = ms_log_new();
 	g_log_set_default_handler(ms_log_handler, (gpointer)log);
 	ms_term_init();
+
+	/* stash a few pointers */
+	ms_lua_stash_set(L, "loop", loop);
+	ms_lua_stash_set(L, "log", log);
 
 	/* Start the show */
 	lua_getglobal(L, "require");
@@ -125,7 +128,7 @@ int main(UNUSED int argc, UNUSED char *argv[])
 	ms_signal_reset();
 
 	ms_log_free(log);
-	g_main_loop_unref(ms_main_loop);
+	g_main_loop_unref(loop);
 
 	exit(0);
 }

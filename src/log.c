@@ -2,6 +2,7 @@
 #include "moonshine/log.h"
 #include <glib.h>
 
+
 static MSLogItem *make_item
 	(const gchar *log_domain,
 	 GLogLevelFlags log_level,

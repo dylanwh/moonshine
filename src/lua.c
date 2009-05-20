@@ -37,6 +37,28 @@ void ms_lua_unref(MSLuaRef *R)/*{{{*/
 }/*}}}*/
 /* }}} */
 
+void ms_lua_stash_set(LuaState *L, const char *name, gpointer user_data)/*{{{*/
+{
+	char *key = g_strconcat("ms_stash_", name, NULL);
+	lua_pushlightuserdata(L, user_data);
+	lua_setfield(L, LUA_REGISTRYINDEX, key);
+	g_free(key);
+}/*}}}*/
+
+gpointer ms_lua_stash_get(LuaState *L, const char *name)/*{{{*/
+{
+	char *key = g_strconcat("ms_stash_", name, NULL);
+	lua_getfield(L, LUA_REGISTRYINDEX, key);
+
+	gpointer result = NULL;
+	if (lua_islightuserdata(L, -1)) {
+		result = lua_touserdata(L, -1);
+	}
+	lua_pop(L, 1);
+
+	return result;
+}/*}}}*/
+
 /* Class-related functions {{{ */
 gpointer ms_lua_toclass(LuaState *L, const char *class, int index)/*{{{*/
 {

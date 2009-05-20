@@ -5,21 +5,22 @@
 
 #include <glib.h>
 
-/* defined in main.c */
-extern GMainLoop *ms_main_loop;
-
-static int loop_run(UNUSED LuaState *L)/*{{{*/
+static int loop_run(LuaState *L)/*{{{*/
 {
-	g_assert(ms_main_loop != NULL);
-	g_main_loop_run(ms_main_loop);
+	GMainLoop *loop = ms_lua_stash_get(L, "loop");
+	g_return_val_if_fail(loop != NULL, 0);
+
+	g_main_loop_run(loop);
 
 	return 0;
 }/*}}}*/
 
 static int loop_quit(UNUSED LuaState *L)/*{{{*/
 {
-	g_assert(ms_main_loop != NULL);
-	g_main_loop_quit(ms_main_loop);
+	GMainLoop *loop = ms_lua_stash_get(L, "loop");
+	g_return_val_if_fail(loop != NULL, 0);
+
+	g_main_loop_quit(loop);
 
 	return 0;
 }/*}}}*/
@@ -32,7 +33,6 @@ static LuaLReg functions[] = {/*{{{*/
 
 int luaopen_moonshine_loop(LuaState *L)/*{{{*/
 {
-	g_assert(ms_main_loop != NULL);
 	lua_newtable(L);
 	luaL_register(L, NULL, functions);
 	return 1;
