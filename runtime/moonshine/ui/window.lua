@@ -47,4 +47,8 @@ function Window:activate()
 	self._buffer:is_dirty(true)
 end
 
+function Window:resize()
+	self._buffer:is_dirty(true)
+end
+
 return Window

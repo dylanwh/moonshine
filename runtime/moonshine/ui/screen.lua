@@ -184,6 +184,7 @@ end--}}}
 
 function Screen:resize()--{{{
 	term.resize()
+	self.window:resize()
 	self:render()
 end--}}}
 
