@@ -69,6 +69,9 @@ function on_unknown_protocol_command(info)
 end
 
 function on_log(domain, level, message)
+	local f = io.open("moonshine.log", "a")
+	f:write(string.format("[%s] %s\n", level, message))
+	f:close()
 	screen:debug("[%1] %2", level, message)
 end
 
