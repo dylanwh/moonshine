@@ -22,6 +22,7 @@ ADD_EXECUTABLE(moonshine
 	modtree.c
 
 	modtimer.c
+	modlog_core.c
 )
 SET_TARGET_PROPERTIES(moonshine PROPERTIES 
 	RUNTIME_OUTPUT_DIRECTORY ${MOONSHINE_BINARY_DIR})

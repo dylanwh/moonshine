@@ -9,6 +9,7 @@
 
 /* {{{ preloaded modules */
 int luaopen_moonshine_idle(LuaState *);
+int luaopen_moonshine_log_core(LuaState *L);
 int luaopen_moonshine_loop(LuaState *);
 int luaopen_moonshine_net_client(LuaState *);
 int luaopen_moonshine_parseopt_core(LuaState *);
@@ -33,7 +34,7 @@ static void on_resize(UNUSED int sig, gpointer ud)/*{{{*/
 	}
 }/*}}}*/
 
-static void on_shutdown(int sig, gpointer ud)
+static void on_shutdown(int sig, gpointer ud)/*{{{*/
 {
 	LuaState *L = ud;
 	lua_getglobal(L, "on_shutdown");
@@ -48,7 +49,7 @@ static void on_shutdown(int sig, gpointer ud)
 	GMainLoop *loop = ms_lua_stash_get(L, "loop");
 	g_return_if_fail(loop != NULL);
 	g_main_loop_quit(loop);
-}
+}/*}}}*/
 
 static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud) /*{{{*/
 {
@@ -79,12 +80,12 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud)
 	return FALSE;
 }/* }}} */
 
-
 int main(UNUSED int argc, UNUSED char *argv[])
 {
 	LuaState *L     = ms_lua_newstate();
 
 	ms_lua_preload(L, "moonshine.idle",         luaopen_moonshine_idle);
+	ms_lua_preload(L, "moonshine.log.core",     luaopen_moonshine_log_core);
 	ms_lua_preload(L, "moonshine.loop",         luaopen_moonshine_loop);
 	ms_lua_preload(L, "moonshine.net.client",   luaopen_moonshine_net_client);
 	ms_lua_preload(L, "moonshine.parseopt.core",luaopen_moonshine_parseopt_core);
