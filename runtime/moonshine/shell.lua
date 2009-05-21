@@ -22,14 +22,19 @@ function M.eval(line)
 	end
 
 	local func = _G["cmd_" .. name]
-	if (not func) and pcall(M.require, name) then
-		func = _G["cmd_" .. name]
+	if not func then
+		local ok, errmsg = pcall(M.require, name)
+		if ok then
+			func = _G["cmd_" .. name]
+		elseif not errmsg:match("module 'moonshine.shell." .. name .."' not found:") then
+			emit('command error', errmsg)
+		end
 	end
 
 	if func then
 		local ok, errmsg = pcall(func, arg)
 		if not ok then
-			emit('error', errmsg)
+			emit('command error', errmsg)
 			return false
 		else
 			return true
