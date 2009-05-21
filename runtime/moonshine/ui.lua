@@ -60,12 +60,16 @@ function on_unknown_hook(name)
 	screen:debug("unknown hook: " .. name)
 end
 
-function on_error(err)
-	screen:debug("ERROR: " .. err)
+function on_command_error(err)
+	screen:debug("COMMAND ERROR: " .. err)
 end
 
 function on_unknown_protocol_command(info)
 	screen:debug("unknown protocol command -- name: %1, args: %2. %3", info.name, join(", ", info.args), info.detail)
+end
+
+function on_log(domain, level, message)
+	screen:debug("[%1] %2", level, message)
 end
 
 cmd_quit = loop.quit
