@@ -34,18 +34,9 @@ static void on_resize(UNUSED int sig, gpointer ud)/*{{{*/
 	}
 }/*}}}*/
 
-static void on_shutdown(int sig, gpointer ud)/*{{{*/
+static void on_stopsig(int sig, gpointer ud)/*{{{*/
 {
 	LuaState *L = ud;
-	lua_getglobal(L, "on_shutdown");
-	if (!lua_isnil(L, -1)) {
-		if (lua_pcall(L, 0, 0, 0) != 0)
-			g_warning("lua error in on_shutdown(), signal %d: %s", sig, lua_tostring(L, -1));
-	}
-	else {
-		lua_pop(L, 1);
-	}
-
 	GMainLoop *loop = ms_lua_stash_get(L, "loop");
 	g_return_if_fail(loop != NULL);
 	g_main_loop_quit(loop);
@@ -106,9 +97,9 @@ int main(UNUSED int argc, UNUSED char *argv[])
 			(gpointer) L, NULL);
 
 	ms_signal_catch(SIGWINCH, on_resize, (gpointer) L, NULL);
-	ms_signal_catch(SIGTERM,  on_shutdown, (gpointer) L, NULL);
-	ms_signal_catch(SIGINT,   on_shutdown, (gpointer) L, NULL);
-	ms_signal_catch(SIGHUP,   on_shutdown, (gpointer) L, NULL);
+	ms_signal_catch(SIGTERM,  on_stopsig, (gpointer) L, NULL);
+	ms_signal_catch(SIGINT,   on_stopsig, (gpointer) L, NULL);
+	ms_signal_catch(SIGHUP,   on_stopsig, (gpointer) L, NULL);
 
 	MSLog *log = ms_log_new();
 	g_log_set_default_handler(ms_log_handler, (gpointer)log);
@@ -122,7 +113,7 @@ int main(UNUSED int argc, UNUSED char *argv[])
 	lua_getglobal(L, "require");
 	lua_pushstring(L, "moonshine");
 	if(lua_pcall(L, 1, 0, 0) != 0)
-		g_warning("lua error in require 'moonshine': %s", lua_tostring(L, -1));
+		g_critical("lua error in require 'moonshine': %s", lua_tostring(L, -1));
 
 	/* Cleanup time */
 	ms_term_reset(); 

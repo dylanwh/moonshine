@@ -33,11 +33,11 @@ function split(pat, str)--{{{
 	return collect(string.split, str, pat)
 end--}}}
 
-function join(sep, list)
+function join(sep, list)--{{{
 	return table.concat(list, sep)
-end
+end--}}}
 
-function each(x)
+function each(x)--{{{
 	if type(x) == 'table' then
 		return ipairs(x)
 	elseif type(x) == 'string' then
@@ -58,9 +58,9 @@ function each(x)
 			error("cannot each() over this object.")
 		end
 	end
-end
+end--}}}
 
-function magic_table(canonize)
+function magic_table(canonize)--{{{
 	local t  = {}
 	local mt = {}
 	setmetatable(t, mt)
@@ -76,19 +76,15 @@ function magic_table(canonize)
 	end
 
 	return t
-end
-
-function ensure(cond, msg)
-	if not cond then error(msg, 3) end
-end
+end--}}}
 
 function emit(name, ...)
-	local f = _G["on_" .. name:gsub(" ", "_")]
+	local f = _G["on_" .. name]
 	if f then
 		f(...)
 	else
-		if on_unknown_hook then
-			on_unknown_hook(name, ...)
+		if on_unknown_signal then
+			on_unknown_signal(name, ...)
 		end
 	end
 end

@@ -39,7 +39,7 @@ function IRC:on_read(line)
 	if self[cmd] and type(self[cmd]) == 'function' then
 		self[cmd](self, msg)
 	else
-		emit('unknown protocol command', { name = msg.cmd, args = msg, detail = "prefix: " .. msg.prefix })
+		emit('unknown_protocol_command', { name = msg.cmd, args = msg, detail = "prefix: " .. msg.prefix })
 	end
 
 	self:readline()
@@ -65,9 +65,9 @@ function IRC:message(target, kind, msg)
 		if not name:match("^[#&]") then
 			name = "#" .. name
 		end
-		emit("public message sent", self, name, kind, msg)
+		emit("public_message_sent", self, name, kind, msg)
 	elseif target.type == 'user' then
-		emit("private message sent", self, name, kind, msg)
+		emit("private_message_sent", self, name, kind, msg)
 	else
 		--screen:debug("Unknown target type: %1", target.type)
 	end
@@ -122,9 +122,9 @@ function IRC:PRIVMSG(msg)
     text = stripcolors(text)
 	if kind then
 		if string.sub(name, 1, 1) == '#' then
-			emit('public message', self, name, user, kind, text)
+			emit('public_message', self, name, user, kind, text)
 		else
-			emit('private message', self, user, kind, text)
+			emit('private_message', self, user, kind, text)
 			private_message_hook(self, user, kind, text)
 		end
 	end

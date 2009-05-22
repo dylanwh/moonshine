@@ -4,6 +4,4 @@ require "moonshine.log"
 
 local loop = require "moonshine.loop"
 
-emit "startup"
 loop.run()
-emit "shutdown"

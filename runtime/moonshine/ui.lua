@@ -52,13 +52,20 @@ keymap.bind("^H",      "backspace")
 keymap.bind("^M",      "submit")
 keymap.bind("^C",      "command", "/quit")
 keymap.bind("^L",      "redraw")
+--}}}
 
-function on_unknown_hook(name)
-	screen:debug("unknown hook: " .. name)
+local log = require "moonshine.log"
+
+function on_unknown_signal(name)
+	log('warning', "unknown signal: %s", name)
 end
 
-function on_command_error(err)
-	screen:debug("COMMAND ERROR: " .. err)
+function on_unknown_command(name)
+	log("warning", "unknown command: /%s", name)
+end
+
+function on_shell_error(err)
+	log("warning", "error in shell command: %s", err)
 end
 
 function on_log(domain, level, message)
@@ -66,10 +73,6 @@ function on_log(domain, level, message)
 	f:write(string.format("[%s] %s\n", level, message))
 	f:close()
 	screen:debug("[%1] %2", level, message)
-end
-
-function on_unknown_command(name)
-	screen:debug("command " .. name .. " not found")
 end
 
 on_input    = keymap.process
