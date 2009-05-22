@@ -1,0 +1,19 @@
+runtime deps:
+* liblua5.1
+* liblua5.1-bitop0
+!!!! NOTE !!!!
+	"bitop" provides the lua "bit"
+	"bit" provides this too. We do NOT use liblua5.1-bit!
+!!!! NOTE !!!!
+* liblua5.1-lpeg2
+* libglib2.0-0
+* libgnet2.0-0
+* libslang2
+ 
+build deps:
+* cmake       
+* pkg-config 
+* libgnet-dev
+* libglib2.0-dev
+* libslang2-dev
+* re2c
