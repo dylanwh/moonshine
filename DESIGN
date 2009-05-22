@@ -1,7 +1,1 @@
 Moonshine is a series of tubes. Or functions.
-
-/foo bar baz means cmd_foo("bar baz")
-
-bind("^A", "entry home") means when control-a is pressed, kb_entry_home() is called.
-
-on_pants() is called when the 'pants' hook is called.
