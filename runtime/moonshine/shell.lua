@@ -1,10 +1,6 @@
 -- this module provides an evaluator for moonshine commands.
 -- Moonshine commands are the /foo bar baz strings that you 
 -- type in the entry area.
---
--- Commands are function calls in the global namespace.
--- For instance, /msg  --target=bob
--- is: cmd_msg("--target=bob")
 
 local parseopt = require "moonshine.parseopt"
 local M        = {}
