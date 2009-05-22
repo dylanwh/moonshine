@@ -54,7 +54,7 @@ function M.eval(line)--{{{
 		arg  = line
 	end
 
-	return M.invoke(name, arg)
+	return M.call(name, arg)
 end--}}}
 
 function M.define(def)--{{{
