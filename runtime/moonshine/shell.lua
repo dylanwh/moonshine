@@ -1,7 +1,18 @@
--- this module provides an evaluator for moonshine commands.
+-- This module provides an evaluator for moonshine commands.
 -- Moonshine commands are the /foo bar baz strings that you 
 -- type in the entry area.
-
+--
+-- shell.eval('/foo bar baz')
+-- shell.call('foo', 'bar baz')
+--
+-- shell.define {
+--     name = "foo"
+--     func = function(text) assert(text == 'bar baz') end,
+-- }
+--
+-- shell.require(name): shortcut for shell.define(require('moonshine.shell.' .. name))
+--
+-- TODO: document spec argument to shell.define.
 local parseopt = require "moonshine.parseopt"
 local M        = {}
 local cmd      = {}
