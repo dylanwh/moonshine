@@ -8,26 +8,17 @@
 
 local parseopt = require "moonshine.parseopt"
 local M        = {}
+local cmd      = {}
 
-
-function M.eval(line)
-	local name, pos = string.match(line, "^/([%w_]+)()")
-	local arg
-	if name then
-		name = string.lower(name)
-		arg  = string.sub(line, pos+1)
-	else
-		name = "say"
-		arg  = line
-	end
-
-	local func = _G["cmd_" .. name]
+function M.call(name, arg)--{{{
+	local func = cmd[name]
 	if not func then
 		local ok, errmsg = pcall(M.require, name)
 		if ok then
-			func = _G["cmd_" .. name]
+			func = cmd["cmd_" .. name]
 		elseif not errmsg:match("module 'moonshine.shell." .. name .."' not found:") then
 			emit('command error', errmsg)
+			return false
 		end
 	end
 
@@ -41,32 +32,47 @@ function M.eval(line)
 		end
 	else
 		emit("unknown command", name, arg)
+		return nil
 	end
-end
+end--}}}
 
-function M.define(def)
-	local name   = def.name
-	local action = def.action
-	local spec   = def.spec
+function M.eval(line)--{{{
+	local name, pos = string.match(line, "^/([%w_]+)()")
+	local arg
+	if name then
+		name = string.lower(name)
+		arg  = string.sub(line, pos+1)
+	else
+		name = "say"
+		arg  = line
+	end
 
-	assert(name,   "name field required")
-	assert(action, "action field required")
+	return M.invoke(name, arg)
+end--}}}
+
+function M.define(def)--{{{
+	local name  = def.name
+	local func  = def.func
+	local spec  = def.spec
+
+	assert(name, "name field required")
+	assert(func, "func field required")
 
 	if spec then
 		local parser = parseopt.build_parser( unpack(spec) )
-		_G["cmd_" .. name] = function(text)
-			action( parser(text) )
+		cmd[name] = function(text)
+			func( parser(text) )
 		end
 	else
-		_G["cmd_" .. name] = action
+		cmd[name] = func
 	end
-end
+end--}}}
 
-function M.require(name)
+function M.require(name)--{{{
 	local mod = require("moonshine.shell." .. name)
 	mod.name = name
 	M.define(mod)
 	return mod
-end
+end--}}}
 
 return M
