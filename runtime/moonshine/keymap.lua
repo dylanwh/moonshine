@@ -1,8 +1,15 @@
+-- API
+-- keymap.bind('^[1', 'window_goto', 1)
+--
+-- keymap.process('^[')
+-- keymap.process('1')
+--
+-- Results of above two calls to process():
+-- kb_window_goto(1)
 local M = {}
 
 local make_keyspec = require("moonshine.ui.term").make_keyspec
 local Tree         = require "moonshine.tree"
-local screen       = require "moonshine.ui.screen.main"
 
 local mapping = Tree:new()
 local keybuf  = ""
@@ -45,7 +52,6 @@ function M.process(key)--{{{
 
 	if string.sub(found_key, 1, string.len(keybuf)) ~= keybuf then
 		-- not a prefix of anything
-		-- XXX: deliver this to screen somehow
 		emit("keypress", key)
 		keybuf = ""
 	else
@@ -53,19 +59,11 @@ function M.process(key)--{{{
 	end
 end--}}}
 
-local function funcname(x)
-	return "kb_" .. x:gsub("[^a-zA-Z_]", "_")
-end
-
-function M.invoke(name)
-	local func = _G[funcname(name)]
+function M.invoke(name, ...)--{{{
+	local func = cmd[name]
 	if func then 
-		func()
+		func(...)
 	end
-end
-
-function M.define(name, func)
-	_G[funcname(name)] = func
-end
+end--}}}
 
 return M
