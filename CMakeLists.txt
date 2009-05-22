@@ -9,26 +9,16 @@ INCLUDE(FindPkgConfig)
 PKG_CHECK_MODULES(GLIB REQUIRED glib-2.0 gthread-2.0)
 #PKG_CHECK_MODULES(DBUS REQUIRED dbus-1)
 PKG_SEARCH_MODULE(LUA REQUIRED lua lua5.1)
+PKG_CHECK_MODULES(LUABIT REQUIRED lua5.1-bitop)
+PKG_CHECK_MODULES(LUABIT REQUIRED lua5.1-lpeg)
 PKG_CHECK_MODULES(GNET REQUIRED gnet-2.0)
 
 FIND_PACKAGE(SLANG REQUIRED)
 FIND_PROGRAM(RE2C re2c)
 FIND_PROGRAM(LUABIN lua lua51 lua5.1 lua50 lua5.0)
 
-IF (NOT LUABIN)
-	MESSAGE(FATAL_ERROR "moonshine requires the lua binary to build")
-ENDIF()
-
 IF (NOT RE2C)
 	MESSAGE(FATAL_ERROR "moonshine requires re2c!")
-ENDIF()
-
-EXEC_PROGRAM(${LUABIN}
-	ARGS -e "'if pcall(require, \"lpeg\") then print \"YES\" else print \"NO\" end'"
-	OUTPUT_VARIABLE LUA_LPEG)
-
-IF(NOT LUA_LPEG)
-	MESSAGE(FATAL_ERROR "moonshine requires the lpeg lua package.")
 ENDIF()
 
 INCLUDE_DIRECTORIES(BEFORE

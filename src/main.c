@@ -8,17 +8,17 @@
 #include <stdlib.h>
 
 /* {{{ preloaded modules */
-int luaopen_moonshine_idle(LuaState *);
-int luaopen_moonshine_log_core(LuaState *L);
-int luaopen_moonshine_loop(LuaState *);
-int luaopen_moonshine_net_client(LuaState *);
-int luaopen_moonshine_parseopt_core(LuaState *);
-int luaopen_moonshine_timer(LuaState *);
-int luaopen_moonshine_tree(LuaState *);
-int luaopen_moonshine_ui_buffer(LuaState *);
-int luaopen_moonshine_ui_entry(LuaState *);
-int luaopen_moonshine_ui_statusbar(LuaState *);
-int luaopen_moonshine_ui_term(LuaState *);
+extern int luaopen_moonshine_idle(LuaState *);
+extern int luaopen_moonshine_log_core(LuaState *L);
+extern int luaopen_moonshine_loop(LuaState *);
+extern int luaopen_moonshine_net_client(LuaState *);
+extern int luaopen_moonshine_parseopt_core(LuaState *);
+extern int luaopen_moonshine_timer(LuaState *);
+extern int luaopen_moonshine_tree(LuaState *);
+extern int luaopen_moonshine_ui_buffer(LuaState *);
+extern int luaopen_moonshine_ui_entry(LuaState *);
+extern int luaopen_moonshine_ui_statusbar(LuaState *);
+extern int luaopen_moonshine_ui_term(LuaState *);
 /* }}} */
 
 static void on_resize(UNUSED int sig, gpointer ud)/*{{{*/

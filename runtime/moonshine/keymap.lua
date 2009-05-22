@@ -8,14 +8,21 @@
 -- kb_window_goto(1)
 local M = {}
 
-local make_keyspec = require("moonshine.ui.term").make_keyspec
 local Tree         = require "moonshine.tree"
 
 local mapping = Tree:new()
 local keybuf  = ""
 
+local function keyspec(spec)
+	local bit = require "bit"
+
+	return spec:gsub("%^(.)", function(c)
+		return string.char(bit.bxor(string.byte(string.upper(c)), 64))
+	end)
+end
+
 function M.bind(spec_, name, ...)--{{{
-	local spec = make_keyspec(spec_)
+	local spec = keyspec(spec_)
 	local extra = { ... }
 	local cb = function()
 		M.invoke(name, unpack(extra))

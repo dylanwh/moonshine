@@ -122,25 +122,7 @@ static int term_status(LuaState *L)/*{{{*/
 	return 0;
 }/*}}}*/
 
-static int term_make_keyspec(LuaState *L)/* {{{ */
-{
-	const char *str = luaL_checkstring(L, 1);
-	gsize len       = lua_objlen(L, 1); 
-	GString *buf    = g_string_sized_new(len);
-
-	for (gsize i = 0; i < len; i++) {
-		if (str[i] == '^')
-			g_string_append_c(buf, str[++i] ^ 64);
-		else
-			g_string_append_c(buf, str[i]);
-	}
-	lua_pushlstring(L, buf->str, buf->len);
-	g_string_free(buf, TRUE);
-	return 1;
-}/*}}}*/
-
 static LuaLReg functions[] = {/*{{{*/
-	{"make_keyspec",  term_make_keyspec },
 	{"format",        term_format },
 	{"format_escape", term_format_escape },
 	{"refresh",       term_refresh },
