@@ -22,7 +22,7 @@ function M.call(name, arg)--{{{
 	if not func then
 		local ok, errmsg = pcall(M.require, name)
 		if ok then
-			func = cmd["cmd_" .. name]
+			func = cmd[name]
 		elseif not errmsg:match("module 'moonshine.shell." .. name .."' not found:") then
 			emit('command error', errmsg)
 			return false
