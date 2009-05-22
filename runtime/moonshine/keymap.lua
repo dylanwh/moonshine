@@ -60,7 +60,7 @@ function M.process(key)--{{{
 end--}}}
 
 function M.invoke(name, ...)--{{{
-	local func = cmd[name]
+	local func = _G["kb_" .. name]
 	if func then 
 		func(...)
 	end
