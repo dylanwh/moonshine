@@ -13,7 +13,7 @@ end
 function IRC:on_connect()
 	self:send("NICK %s", self.username)
 	self:send('USER %s hostname servername :%s', self.username, 'Moonshine User')
-	emit('connected', self)
+	run_hook('connected', self)
 	self:readline()
 end
 
@@ -39,7 +39,7 @@ function IRC:on_read(line)
 	if self[cmd] and type(self[cmd]) == 'function' then
 		self[cmd](self, msg)
 	else
-		emit('unknown_protocol_command', { name = msg.cmd, args = msg, detail = "prefix: " .. msg.prefix })
+		run_hook('unknown protocol command', { name = msg.cmd, args = msg, detail = "prefix: " .. msg.prefix })
 	end
 
 	self:readline()
@@ -65,9 +65,9 @@ function IRC:message(target, kind, msg)
 		if not name:match("^[#&]") then
 			name = "#" .. name
 		end
-		emit("public_message_sent", self, name, kind, msg)
+		run_hook("public message sent", self, name, kind, msg)
 	elseif target.type == 'user' then
-		emit("private_message_sent", self, name, kind, msg)
+		run_hook("private message sent", self, name, kind, msg)
 	else
 		--screen:debug("Unknown target type: %1", target.type)
 	end
@@ -87,7 +87,7 @@ end
 -- topic response
 IRC['332'] = function (self, msg)
 	local room, topic = msg[2], msg[3]
-	emit('topic', self, topic)
+	run_hook('topic', self, topic)
 end
 
 -- Until we have real color support, this'll at least get the color codes
@@ -122,9 +122,9 @@ function IRC:PRIVMSG(msg)
     text = stripcolors(text)
 	if kind then
 		if string.sub(name, 1, 1) == '#' then
-			emit('public_message', self, name, user, kind, text)
+			run_hook('public message', self, name, user, kind, text)
 		else
-			emit('private_message', self, user, kind, text)
+			run_hook('private message', self, user, kind, text)
 			private_message_hook(self, user, kind, text)
 		end
 	end

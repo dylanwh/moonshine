@@ -1,14 +1,3 @@
-basetype = type
-
-function type(x)--{{{
-	local mt = getmetatable(x)
-	if mt and mt.__type then
-		return mt.__type
-	else
-		return basetype(x)
-	end
-end--}}}
-
 function string:split(pat)--{{{
   local st, g = 1, self:gmatch("()("..pat..")")
   local function getter(self, segs, seps, sep, cap1, ...)
@@ -78,13 +67,70 @@ function magic_table(canonize)--{{{
 	return t
 end--}}}
 
-function emit(name, ...)
-	local f = _G["on_" .. name]
-	if f then
-		f(...)
-	else
-		if on_unknown_signal then
-			on_unknown_signal(name, ...)
+local hook_mt = {
+	__call = function (hook, ...)
+		if hook.pred then
+			assert(hook.pred(...))
+		end
+
+		for _, func in ipairs(hook) do
+			func(...)
 		end
 	end
+}
+
+local function get_hook(name)
+	return _G[ "on_" .. name:gsub(" ", "_") ]
+end
+
+local function set_hook(name, hook)
+	_G[ "on_" .. name:gsub(" ", "_") ] = hook
+end
+
+function def_hook(name, check)
+	local old_hook = get_hook(name)
+	local new_hook = { check = check }
+
+	if not old_hook or type(old_hook) == 'function' then
+		table.insert(new_hook, old_hook)
+	else
+		return old_hook
+	end
+
+	set_hook(name, setmetatable(new_hook, hook_mt))
+	return new_hook
+end
+
+function add_hook(name, func)
+	local hook = get_hook(name)
+	if not hook or type(hook) == 'function' then
+		hook = def_hook(name)
+	end
+	table.insert(hook, 1, func)
+end
+
+function run_hook(name, ...)
+	local hook = get_hook(name)
+	if hook then
+		return hook(...)
+	elseif on_unknown_hook then
+		return on_unknown_hook(name, ...)
+	end
+end
+
+function include(file, env)
+	local f    = loadfile(file)
+	local vars = {}
+	local mt   = { __index = env or _G }
+
+	setmetatable(vars, mt)
+	setfenv(f, vars)
+	local ok, err = pcall(f)
+	setmetatable(vars, nil)
+
+	if err then
+		vars.ERROR = err
+	end
+
+	return vars
 end

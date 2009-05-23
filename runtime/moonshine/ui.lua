@@ -56,27 +56,27 @@ keymap.bind("^L",      "redraw")
 
 local log = require "moonshine.log"
 
-function on_unknown_signal(name)
+add_hook("unknown hook", function (name)
 	log('warning', "unknown signal: %s", name)
-end
+end)
 
-function on_unknown_command(name)
+add_hook("unknown command", function(name)
 	log("warning", "unknown command: /%s", name)
-end
+end)
 
-function on_shell_error(err)
-	log("warning", "error in shell command: %s", err)
-end
+add_hook("shell error", function(err)
+	log("critical", "error in shell command: %s", err)
+end)
 
-function on_log(domain, level, message)
+add_hook("log", function (domain, level, message)
 	local f = io.open("moonshine.log", "a")
 	f:write(string.format("[%s] %s\n", level, message))
 	f:close()
 	screen:debug("[%1] %2", level, message)
-end
+end)
 
-on_input    = keymap.process
-on_keypress = screen:callback "keypress"
-on_resize   = screen:callback "resize"
+add_hook("input",    keymap.process)
+add_hook("keypress", screen:callback "keypress")
+add_hook("resize",   screen:callback "resize")
 
 screen:render()

@@ -34,7 +34,7 @@ static void on_resize(UNUSED int sig, gpointer ud)/*{{{*/
 	}
 }/*}}}*/
 
-static void on_stopsig(int sig, gpointer ud)/*{{{*/
+static void on_stopsig(UNUSED int sig, gpointer ud)/*{{{*/
 {
 	LuaState *L = ud;
 	GMainLoop *loop = ms_lua_stash_get(L, "loop");

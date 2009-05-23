@@ -24,7 +24,7 @@ function M.call(name, arg)--{{{
 		if ok then
 			func = cmd[name]
 		elseif not errmsg:match("module 'moonshine.shell." .. name .."' not found:") then
-			emit('shell_error', errmsg)
+			run_hook('shell error', errmsg)
 			return false
 		end
 	end
@@ -32,13 +32,13 @@ function M.call(name, arg)--{{{
 	if func then
 		local ok, errmsg = pcall(func, arg)
 		if not ok then
-			emit('shell_error', errmsg)
+			run_hook('shell error', errmsg)
 			return false
 		else
 			return true
 		end
 	else
-		emit("unknown_command", name, arg)
+		run_hook("unknown command", name, arg)
 		return nil
 	end
 end--}}}

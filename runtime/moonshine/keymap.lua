@@ -59,7 +59,7 @@ function M.process(key)--{{{
 
 	if string.sub(found_key, 1, string.len(keybuf)) ~= keybuf then
 		-- not a prefix of anything
-		emit("keypress", key)
+		run_hook("keypress", key)
 		keybuf = ""
 	else
 		-- prefix of something, keep going
