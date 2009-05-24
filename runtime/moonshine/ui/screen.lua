@@ -30,7 +30,7 @@ function Screen:__init()--{{{
 		"status_activity",
 	}
 	self.status:set( term.format("%{topic}Status bar goes here", {}))
-	self:add( Window:new{name = "status"} )
+	self:add( Window:new {name = "status"} )
 end--}}}
 
 function Screen:status_time()--{{{
@@ -67,7 +67,7 @@ end--}}}
 
 function Screen:status_current_window()--{{{
 	if self.window then
-		return (self.window.pos .. ":" .. (self.window.name or '???'))
+		return (self.window.pos .. ":" .. (self.window:name()))
 	else
 		return nil
 	end
@@ -124,7 +124,7 @@ function Screen:add(win)--{{{
 		self.window = win
 	end
 	win.pos = #self.windows
-	win:set_topic("Moonshine - " .. (win.name or '???'));
+	win:set_topic("Moonshine - " .. (win:name()));
 	return win.pos
 end--}}}
 
@@ -132,8 +132,8 @@ function Screen:remove(win)--{{{
 	assert(win.pos ~= nil, "window has position")
 	if self.window == win then
 		self.window = self.windows[win.pos - 1]
-		self.window:set_topic("Moonshine - " .. (win.name or '???'));
-		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
+		self.window:set_topic("Moonshine - " .. (win:name()));
+		self.entry:set_prompt("[" .. (self.window:name() ) .. "] ")
 	end
 	table.remove(self.windows, win.pos)
 	for i, w in ipairs(self.windows) do
@@ -145,7 +145,7 @@ function Screen:goto(n)--{{{
 	n = tonumber(n)
 	if self.windows[n] then
 		self.window = self.windows[n]
-		self.entry:set_prompt("[" .. (self.window.name or '???' ) .. "] ")
+		self.entry:set_prompt("[" .. (self.window:name() ) .. "] ")
 		self.window:activate()
 		self:render()
 		return true

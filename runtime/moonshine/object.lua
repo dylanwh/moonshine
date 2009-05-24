@@ -1,46 +1,36 @@
---local util = require "moonshine.object.util"
+local api = require "moonshine.object.api"
 
 local Object = {}
 
-function Object.__index(self, key)--{{{
-	local mt = getmetatable(self)
-	if mt then
-		return mt[key]
-	end
-end--}}}
+api.init_class(Object)
 
-function Object.new(mt, attr)--{{{
-	if getmetatable(mt) then
-		error("metatables should not have metatables of their own.", 2)
+function Object.__index(self, key)
+	local class = api.getclass(self)
+	if class then
+		return class[key]
 	end
+end
 
-	local self = {}
-	if attr then
-		for k, v in pairs(attr) do
-			self[k] = v
-		end
-	end
+function Object.new(class, ...)
+	local self = api.new_object(class, ...)
 
-	setmetatable(self, mt)
 	if self.__init then
 		self:__init()
 	end
 
 	return self
-end--}}}
+end
 
-function Object.clone(old_mt)--{{{
-	if getmetatable(old_mt) then
-		error("metatables should not have metatables of their own.", 2)
+function Object.clone(class)
+	local new_class = {}
+	for k, v in pairs(class) do
+		new_class[k] = v
 	end
 
-	local new_mt = {}
-	for k, v in pairs(old_mt) do
-		new_mt[k] = v
-	end
-end--}}}
+	return api.init_class(new_class)
+end
 
-function Object:callback(name, ...)--{{{
+function Object:callback(name, ...)
 	local cb_args = { ... }
 	
 	return function(...)
@@ -50,6 +40,6 @@ function Object:callback(name, ...)--{{{
 		end
 		return self[name](self, unpack(args))
 	end
-end--}}}
+end
 
 return Object

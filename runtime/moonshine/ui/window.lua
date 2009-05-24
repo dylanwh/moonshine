@@ -3,11 +3,12 @@ local Object    = require "moonshine.object"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 
+local api       = require "moonshine.object.api"
 local Window    = Object:clone()
 
-function Window:__init()
-	assert(self.name, "name slot initialized")
+api.add_attribute(Window, "name", { required = true })
 
+function Window:__init()
 	self._topic    = Statusbar:new("")
 	self._buffer   = Buffer:new(1014)
 	self._activity = 0
