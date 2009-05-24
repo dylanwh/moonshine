@@ -60,6 +60,13 @@ function M.add_attribute(class, name, attr)
 			return self[slot]
 		end
 	end
+	if attr.handles then
+		for _, method in ipairs(attr.handles) do
+			class[method] = function (self, ...)
+				return self[slot][method](self[slot], ...)
+			end
+		end
+	end
 end
 
 return M
