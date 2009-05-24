@@ -2,29 +2,19 @@
 
 local Object = {}
 
-function Object.clone(old)
-	local new = {}
-	for k, v in pairs(old) do
-		new[k] = v
-	end
-
-	return setmetatable(new, getmetatable(old))
-end
-
-function Object.__index(self, key)
+function Object.__index(self, key)--{{{
 	local mt = getmetatable(self)
 	if mt then
 		return mt[key]
 	end
-end
+end--}}}
 
-function Object.new(mt, attr)
-	local self = {}
-
+function Object.new(mt, attr)--{{{
 	if getmetatable(mt) then
-		mt = getmetatable(mt)
+		error("metatables should not have metatables of their own.", 2)
 	end
 
+	local self = {}
 	if attr then
 		for k, v in pairs(attr) do
 			self[k] = v
@@ -37,9 +27,20 @@ function Object.new(mt, attr)
 	end
 
 	return self
-end
+end--}}}
 
-function Object:callback(name, ...)
+function Object.clone(old_mt)--{{{
+	if getmetatable(old_mt) then
+		error("metatables should not have metatables of their own.", 2)
+	end
+
+	local new_mt = {}
+	for k, v in pairs(old_mt) do
+		new_mt[k] = v
+	end
+end--}}}
+
+function Object:callback(name, ...)--{{{
 	local cb_args = { ... }
 	
 	return function(...)
@@ -49,6 +50,6 @@ function Object:callback(name, ...)
 		end
 		return self[name](self, unpack(args))
 	end
-end
+end--}}}
 
 return Object
