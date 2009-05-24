@@ -1,5 +1,7 @@
+local util     = require "moonshine.object.util"
 local Protocol = require "moonshine.protocol"
-local IRC = Protocol:new { username = os.getenv('USER') }
+
+local IRC = Protocol:clone()
 
 function IRC:write(msg)
 	assert(#msg <= 510)

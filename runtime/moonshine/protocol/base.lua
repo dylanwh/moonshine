@@ -1,6 +1,6 @@
 local Client = require "moonshine.net.client"
 local Object = require "moonshine.object"
-local Protocol = Object:new { }
+local Protocol = Object:clone { }
 
 function Protocol:connect()
 	assert(type(self.hostname)   == 'string',   'hostname parameter required')

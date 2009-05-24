@@ -3,7 +3,7 @@ local Object    = require "moonshine.object"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
 
-local Window    = Object:new()
+local Window    = Object:clone()
 
 function Window:__init()
 	assert(self.name, "name slot initialized")

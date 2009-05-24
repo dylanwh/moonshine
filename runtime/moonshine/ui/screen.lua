@@ -9,7 +9,7 @@ local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
 local Timer     = require "moonshine.timer"
 
-local Screen    = Object:new()
+local Screen    = Object:clone()
 
 function Screen:__init()--{{{
 	self.entry     = Entry:new()

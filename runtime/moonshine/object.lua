@@ -2,38 +2,37 @@
 
 local Object = {}
 
-local OPS = { "__add", "__sub", "__div", "__mul", "__eq", "__call" }
-
-function Object.new(parent, attr)
-	local mt   = { parent = parent, __index = parent }
-	local self = setmetatable({}, mt)
-
-	if attr then
-		assert(type(attr) == 'table', "new(attr): attr is table")
-		for k, v in pairs(attr) do self[k] = v end
+function Object.clone(old)
+	local new = {}
+	for k, v in pairs(old) do
+		new[k] = v
 	end
-	for i, name in ipairs(OPS) do
-		if self[name] then
-			mt[name] = self[name]
-		end
-	end
-	--[[if self.__index then
-		function mt.__index(self, key)
-			local val = mt.parent[key]
-			if val == nil then
-				return self:__index(key)
-			else
-				return val
-			end
-		end
-	end]]
 
-	self:__init()
-
-	return self
+	return new
 end
 
-function Object:__init()
+function Object.__index(self, key)
+	local mt = getmetatable(self)
+	if mt then
+		return mt[key]
+	end
+end
+
+function Object.new(proto, attr)
+	local self = {}
+
+	if attr then
+		for k, v in pairs(attr) do
+			self[k] = v
+		end
+	end
+
+	setmetatable(self, proto)
+	if self.__init then
+		self:__init()
+	end
+
+	return self
 end
 
 function Object:callback(name, ...)
