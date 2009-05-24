@@ -8,7 +8,7 @@ function Object.clone(old)
 		new[k] = v
 	end
 
-	return new
+	return setmetatable(new, getmetatable(old))
 end
 
 function Object.__index(self, key)
@@ -18,8 +18,12 @@ function Object.__index(self, key)
 	end
 end
 
-function Object.new(proto, attr)
+function Object.new(mt, attr)
 	local self = {}
+
+	if getmetatable(mt) then
+		mt = getmetatable(mt)
+	end
 
 	if attr then
 		for k, v in pairs(attr) do
@@ -27,7 +31,7 @@ function Object.new(proto, attr)
 		end
 	end
 
-	setmetatable(self, proto)
+	setmetatable(self, mt)
 	if self.__init then
 		self:__init()
 	end
