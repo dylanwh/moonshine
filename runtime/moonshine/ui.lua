@@ -57,7 +57,7 @@ keymap.bind("^L",      "redraw")
 local log = require "moonshine.log"
 
 add_hook("unknown hook", function (name)
-	log('warning', "unknown signal: %s", name)
+	log('warning', "unknown hook: %s", name)
 end)
 
 add_hook("unknown command", function(name)
@@ -66,6 +66,10 @@ end)
 
 add_hook("shell error", function(err)
 	log("critical", "error in shell command: %s", err)
+end)
+
+add_hook('unknown protocol command', function(info)
+	log('warning', "unknown protocol command: name=%s, args=%s, detail=%s", info.name, join(",", info.args), info.detail)
 end)
 
 add_hook("log", function (domain, level, message)

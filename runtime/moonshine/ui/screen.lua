@@ -9,7 +9,7 @@ local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
 local Timer     = require "moonshine.timer"
 
-local Screen    = Object:clone()
+local Screen    = Object:subclass()
 
 function Screen:__init()--{{{
 	self.entry     = Entry:new()
@@ -30,7 +30,7 @@ function Screen:__init()--{{{
 		"status_activity",
 	}
 	self.status:set( term.format("%{topic}Status bar goes here", {}))
-	self:add( Window:new {name = "status"} )
+	self:add( Window:new { name = "status" } )
 end--}}}
 
 function Screen:status_time()--{{{

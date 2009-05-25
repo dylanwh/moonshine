@@ -1,33 +1,10 @@
-local api = require "moonshine.object.api"
-
-local Object = {}
-
-api.init_class(Object)
+local Object = { __attributes = {} }
 
 function Object.__index(self, key)
-	local class = api.getclass(self)
+	local class = getmetatable(self)
 	if class then
 		return class[key]
 	end
-end
-
-function Object.new(class, ...)
-	local self = api.new_object(class, ...)
-
-	if self.__init then
-		self:__init()
-	end
-
-	return self
-end
-
-function Object.clone(class)
-	local new_class = {}
-	for k, v in pairs(class) do
-		new_class[k] = v
-	end
-
-	return api.init_class(new_class)
 end
 
 function Object:callback(name, ...)
@@ -41,5 +18,74 @@ function Object:callback(name, ...)
 		return self[name](self, unpack(args))
 	end
 end
+
+function Object.new(class, param)
+	assert(getmetatable(class) == nil, "is class")
+
+	local self = {}
+	local attributes = class.__attributes or {}
+
+	for name, option in pairs(attributes) do
+		local slot = '!' .. name
+
+		if param and param[name] then
+			self[ slot ] = param[name]
+		elseif option.default then
+			self[ slot ] = option.default
+		elseif option.required then
+			error("required parameter missing: " .. name, level or 2)
+		end
+	end
+
+	setmetatable(self, class)
+
+	if self.__init then
+		self:__init()
+	end
+
+	return self
+end
+
+function Object.add_attribute(class, name, option)
+	assert(getmetatable(class) == nil, "is class")
+
+	local slot = '!' .. name
+	class.__attributes[name] = option
+	class[name] = function(self, ...)
+		local n = select('#', ...)
+		if n == 0 then
+			return self[slot]
+		else
+			self[slot] = ...
+			return self[slot]
+		end
+	end
+
+	if option.handles then
+		for _, method in ipairs(option.handles) do
+			class[method] = function (self, ...)
+				return self[slot][method](self[slot], ...)
+			end
+		end
+	end
+end
+
+function Object.subclass(class)
+	assert(getmetatable(class) == nil, "is class")
+
+	local new_class = {}
+	for k, v in pairs(class) do
+		new_class[k] = v
+	end
+
+	new_class.__attributes = {}
+	for k, v in pairs(class.__attributes) do
+		new_class.__attributes[k] = v
+	end
+
+	return new_class
+end
+
+Object.clone = Object.subclass
 
 return Object

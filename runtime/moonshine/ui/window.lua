@@ -2,11 +2,9 @@ local term      = require "moonshine.ui.term"
 local Object    = require "moonshine.object"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
+local Window    = Object:subclass()
 
-local api       = require "moonshine.object.api"
-local Window    = Object:clone()
-
-api.add_attribute(Window, "name", { required = true })
+Window:add_attribute("name", { required = true })
 
 function Window:__init()
 	self._topic    = Statusbar:new("")

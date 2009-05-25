@@ -1,4 +1,3 @@
-local api = require "moonshine.object.api"
 local prefs = require "moonshine.prefs"
 
 local Client = require "moonshine.net.client"
@@ -7,10 +6,10 @@ local Protocol = Object:clone()
 
 -- later: local meta = Protocol:meta()
 -- meta:add_attribute("hostname", { required = true })
-api.add_attribute(Protocol, 'hostname', { required = true })
-api.add_attribute(Protocol, 'port',     { required = true })
-api.add_attribute(Protocol, 'username', { default = prefs.username })
-api.add_attribute(Protocol, "client",   {
+Protocol:add_attribute('hostname', { required = true })
+Protocol:add_attribute('port',     { required = true })
+Protocol:add_attribute('username', { default = prefs.username })
+Protocol:add_attribute("client",   {
 	handles = {
 		"read",
 		"readn",
@@ -23,7 +22,7 @@ api.add_attribute(Protocol, "client",   {
 })
 
 function Protocol:__init()
-	local client = Client:new(self.hostname, self.port, function(client, event, ...)
+	local client = Client:new(self:hostname(), self:port(), function(client, event, ...)
 		self[ "on_" .. event](self, ...)
 	end)
 	self:client(client)
