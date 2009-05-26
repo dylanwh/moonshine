@@ -1,5 +1,5 @@
 local Client   = require "moonshine.net.client"
-local Protocol = require "moonshine.protocol"
+local Protocol = require "moonshine.protocol.base"
 local Simple   = Protocol:subclass()
 
 -- later: local meta = Simple:meta()
