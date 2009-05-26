@@ -64,7 +64,10 @@ function Object.add_attribute(class, name, option)
 	if option.handles then
 		for _, method in ipairs(option.handles) do
 			class[method] = function (self, ...)
-				return self[slot][method](self[slot], ...)
+				local log  = require "moonshine.log"
+				local obj  = self[slot]
+				local func = obj[method]
+				return func(obj, ...)
 			end
 		end
 	end
@@ -85,7 +88,5 @@ function Object.subclass(class)
 
 	return new_class
 end
-
-Object.clone = Object.subclass
 
 return Object

@@ -14,21 +14,21 @@ local screen = require "moonshine.ui.screen.main"
 local shell  = require "moonshine.shell"
 
 --{{{ keymap stuff.
-kb_redraw        = screen:callback "render"
-kb_submit        = screen:callback "submit"
-kb_backspace     = screen:callback "backspace"
-kb_page_up       = screen:callback "scroll_up"
-kb_page_down     = screen:callback "scroll_down"
-kb_left          = screen:callback "move_left"
-kb_right         = screen:callback "move_right"
-kb_home          = screen:callback "move_home"
-kb_end           = screen:callback "move_end"
-kb_up            = screen:callback "history_backward"
-kb_down          = screen:callback "history_forward"
-kb_delete_word   = screen:callback "word_delete"
-kb_left_by_word  = screen:callback "word_left"
-kb_right_by_word = screen:callback "word_right"
-kb_command       = shell.eval
+keymap.register('redraw',        screen:callback "render")
+keymap.register('submit',        screen:callback "submit")
+keymap.register('backspace',     screen:callback "backspace")
+keymap.register('page_up',       screen:callback "scroll_up")
+keymap.register('page_down',     screen:callback "scroll_down")
+keymap.register('left',          screen:callback "move_left")
+keymap.register('right',         screen:callback "move_right")
+keymap.register('home',          screen:callback "move_home")
+keymap.register('end',           screen:callback "move_end")
+keymap.register('up',            screen:callback "history_backward")
+keymap.register('down',          screen:callback "history_forward")
+keymap.register('delete_word',   screen:callback "word_delete")
+keymap.register('left_by_word',  screen:callback "word_left")
+keymap.register('right_by_word', screen:callback "word_right")
+keymap.register('command',       shell.eval)
 
 keymap.bind("^[[A",    "up")
 keymap.bind("^[[B",    "down")

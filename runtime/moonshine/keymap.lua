@@ -6,11 +6,10 @@
 --
 -- Results of above two calls to process():
 -- kb_window_goto(1)
-local M = {}
-
-local Tree         = require "moonshine.tree"
-
+local M       = {}
+local Tree    = require "moonshine.tree"
 local mapping = Tree:new()
+local cmd     = {}
 local keybuf  = ""
 
 local function keyspec(spec)
@@ -66,8 +65,13 @@ function M.process(key)--{{{
 	end
 end--}}}
 
+function M.register(name, func)
+	assert(cmd[name] == nil)
+	cmd[name] = func
+end
+
 function M.invoke(name, ...)--{{{
-	local func = _G["kb_" .. name]
+	local func = cmd[name]
 	if func then 
 		func(...)
 	end

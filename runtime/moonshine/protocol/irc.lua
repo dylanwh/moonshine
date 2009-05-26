@@ -1,24 +1,8 @@
-local Protocol = require "moonshine.protocol.base"
+local numerics = require "moonshine.protocol.irc.numerics"
+local Protocol = require "moonshine.protocol.simple"
 
 local IRC = Protocol:subclass()
 
-function IRC:write(msg)
-	assert(#msg <= 510)
-	return Protocol.write(self, msg .. "\r\n")
-end
-
-function IRC:send(fmt, ...)
-	self:write(string.format(fmt, ...))
-end
-
-function IRC:on_connect()
-	self:send("NICK %s", self:username())
-	self:send('USER %s hostname servername :%s', self:username(), 'Moonshine User')
-	run_hook('connected', self)
-	self:readline()
-end
-
-local numerics = require "moonshine.protocol.irc.numerics"
 local function ircsplit(line)
   	local t = {}
   	for word, colon, start in line:split"%s+(:?)()" do
@@ -37,6 +21,23 @@ local function ircsplit(line)
 		t.name = numerics[num] or t.name
 	end
   	return t
+end
+
+
+function IRC:on_connect()
+	self:send("NICK %s", self:username())
+	self:send('USER %s hostname servername :%s', self:username(), 'Moonshine User')
+	run_hook('connected', self)
+	self:readline()
+end
+
+function IRC:write(msg)
+	assert(#msg <= 510)
+	return Protocol.write(self, msg .. "\r\n")
+end
+
+function IRC:send(fmt, ...)
+	self:write(string.format(fmt, ...))
 end
 
 function IRC:on_read(line)

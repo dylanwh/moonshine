@@ -17,7 +17,7 @@ local parseopt = require "moonshine.parseopt"
 local M        = {}
 local cmd      = {}
 
-function M.call(name, arg)--{{{
+function M.call(name, arg)
 	local func = cmd[name]
 	if not func then
 		local ok, errmsg = pcall(M.require, name)
@@ -41,9 +41,9 @@ function M.call(name, arg)--{{{
 		run_hook("unknown command", name, arg)
 		return nil
 	end
-end--}}}
+end
 
-function M.eval(line)--{{{
+function M.eval(line)
 	local name, pos = string.match(line, "^/([%w_]+)()")
 	local arg
 	if name then
@@ -55,9 +55,9 @@ function M.eval(line)--{{{
 	end
 
 	return M.call(name, arg)
-end--}}}
+end
 
-function M.define(def)--{{{
+function M.define(def)
 	local name  = def.name
 	local func  = def.func
 	local spec  = def.spec
@@ -73,13 +73,13 @@ function M.define(def)--{{{
 	else
 		cmd[name] = func
 	end
-end--}}}
+end
 
-function M.require(name)--{{{
+function M.require(name)
 	local mod = require("moonshine.shell." .. name)
 	mod.name = name
 	M.define(mod)
 	return mod
-end--}}}
+end
 
 return M
