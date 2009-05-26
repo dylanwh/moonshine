@@ -5,14 +5,13 @@
 -- shell.eval('/foo bar baz')
 -- shell.call('foo', 'bar baz')
 --
--- shell.define {
---     name = "foo"
+-- shell.register(name, {
 --     func = function(text) assert(text == 'bar baz') end,
 -- }
 --
--- shell.require(name): shortcut for shell.define(require('moonshine.shell.' .. name))
+-- shell.require(name): shortcut for shell.register(name, require('moonshine.shell.' .. name))
 --
--- TODO: document spec argument to shell.define.
+-- TODO: document spec argument to shell.register.
 local parseopt = require "moonshine.parseopt"
 local M        = {}
 local cmd      = {}
@@ -57,28 +56,26 @@ function M.eval(line)
 	return M.call(name, arg)
 end
 
-function M.define(def)
-	local name  = def.name
-	local func  = def.func
+function M.register(name, def)
 	local spec  = def.spec
+	local run   = def.run or def.func
 
-	assert(name, "name field required")
-	assert(func, "func field required")
+	assert(name, "name required")
+	assert(run,  "run field required")
 
 	if spec then
 		local parser = parseopt.build_parser( unpack(spec) )
 		cmd[name] = function(text)
-			func( parser(text) )
+			run( parser(text) )
 		end
 	else
-		cmd[name] = func
+		cmd[name] = run
 	end
 end
 
 function M.require(name)
 	local mod = require("moonshine.shell." .. name)
-	mod.name = name
-	M.define(mod)
+	M.register(name, mod)
 	return mod
 end
 

@@ -17,7 +17,7 @@ local METHODS = { "join", "part", "quit", "message", "disconnect" }
 for _, name in ipairs(METHODS) do
 	M[name] = function(tag, ...)
 		local obj  = TAGS[tag]
-		local func = self[name]
+		local func = obj[name]
 		return func(obj, ...)
 	end
 end

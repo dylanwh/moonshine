@@ -5,7 +5,7 @@ local Simple   = Protocol:subclass()
 -- later: local meta = Simple:meta()
 -- meta:add_attribute("hostname", { required = true })
 Simple:add_attribute('hostname', { required = true })
-Simple:add_attribute('port',     { required = true })
+Simple:add_attribute('port',     {})
 Simple:add_attribute("client",   {
 	handles = {
 		"read",
