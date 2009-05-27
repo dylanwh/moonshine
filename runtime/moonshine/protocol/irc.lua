@@ -47,7 +47,7 @@ end
 
 function IRC:on_read(line)
 	local msg  = ircsplit(line)
-	local name = string.upper(msg.name)
+	local name = msg.name:upper()
 	if self[name] and type(self[name]) == 'function' then
 		self[name](self, msg.prefix, unpack(msg))
 	else
@@ -144,17 +144,19 @@ end
 
 function IRC:PRIVMSG(prefix, target, text)
 	local user   = prefix:match("(.+)!")
-	local ctcp   = string.match(text, "\001(.+)\001")
+	local ctcp   = text:match("\001(.+)\001")
 
     text = stripcolors(text)
 	if ctcp then
-		local cmd, pos = string.match(ctcp, "^(%w+)()")
+		local cmd, pos = ctcp:match("^(%w+)()")
 		local func     = self['CTCP_' .. cmd]
+		local body     = ctcp:sub(pos + 1)
 		if func then
-			return func(self, prefix, target, string.sub(ctcp, pos + 1))
+			func(self, prefix, target, body)
 		else
-			self.trigger('irc ctcp ' .. cmd, prefix, target, string.sub(ctcp, pos + 1))
+			self:trigger('unknown protocol command', { name = 'CTCP_' .. cmd, args = { prefix, target, body } })
 		end
+		self:trigger('irc ctcp ' .. cmd:lower(), prefix, target, body)
 	else
 		if self:is_channel(target) then
 			self:trigger('public message', target, user, 'normal', text)
@@ -168,7 +170,7 @@ function IRC:NOTICE(prefix, target, text)
 	local user = prefix:match("(.+)!") or prefix
 
     text = stripcolors(text)
-	if string.sub(target, 1, 1) == '#' then
+	if self:is_channel(target) then
 		self:trigger('public message',  target, user, 'notice', text)
 	else
 		self:trigger('private message', user, 'notice', text)
