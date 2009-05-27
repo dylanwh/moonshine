@@ -68,8 +68,8 @@ add_hook("shell error", function(err)
 	log("critical", "error in shell command: %s", err)
 end)
 
-add_hook('unknown protocol command', function(info)
-	log('warning', "unknown protocol command: name=%s, args=%s, detail=%s", info.name, join(",", info.args), info.detail)
+add_hook('unknown protocol command', function(tag, info)
+	log('warning', "unknown protocol command: name=%s, args=%s, detail=%s", info.name, join(",", info.args or {}), info.detail)
 end)
 
 add_hook("log", function (domain, level, message)
@@ -78,6 +78,18 @@ add_hook("log", function (domain, level, message)
 	f:close()
 	screen:debug("[%1] %2", level, message)
 end)
+
+add_hook('private message', function(tag, user, kind, text)
+	local window = screen:window_for_user(tag, user)
+	window:print("<%1> %|%2", user, text)
+end)
+
+add_hook('public message', function(tag, room, user, kind, text)
+	local window = screen:window_for_room(tag, user)
+	window:print("[%1] <%2> %|%3", room, user, text)
+end)
+
+
 
 add_hook("input",    keymap.process)
 add_hook("keypress", screen:callback "keypress")

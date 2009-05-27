@@ -19,15 +19,11 @@ function Protocol:attach(env)
 	assert(getmetatable(self))
 
 	-- find unused tag, using self:make_tag()
-	local tag = self:tag()
-
-	if not tag or tag == NOTAG then
-		local i = 0
-		repeat
-			tag = self:make_tag(i)
-			i   = i + 1
-		until not env[tag]
-	end
+	local i = 0
+	repeat
+		tag = self:make_tag(i)
+		i   = i + 1
+	until not env[tag]
 
 	-- store protocol in the envrionment, using tag as key.
 	env[tag] = self
@@ -44,6 +40,11 @@ function Protocol:detach(env)
 
 	-- set tag to NOTAG, invalid tag constant.
 	self:tag(NOTAG)
+end
+
+-- trigger a hook, with tag context.
+function Protocol:trigger(name, ...)
+	run_hook(name, self:tag(), ...)
 end
 
 return Protocol

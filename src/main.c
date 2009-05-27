@@ -109,6 +109,9 @@ int main(UNUSED int argc, UNUSED char *argv[])
 	ms_lua_stash_set(L, "loop", loop);
 	ms_lua_stash_set(L, "log", log);
 
+	lua_pushstring(L, MOONSHINE_VERSION);
+	lua_setglobal(L, "VERSION");
+
 	/* Start the show */
 	lua_getglobal(L, "require");
 	lua_pushstring(L, "moonshine");

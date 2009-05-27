@@ -154,6 +154,14 @@ function Screen:goto(n)--{{{
 	end
 end--}}}
 
+function Screen:window_for_user(tag, name)
+	return self.window
+end
+
+function Screen:window_for_room(tag, name)
+	return self.window
+end
+
 local render_pending = false
 
 function Screen:render()--{{{

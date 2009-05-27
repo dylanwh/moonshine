@@ -9,12 +9,19 @@ function M.install()
 end
 
 function M.print(level, fmt, ...)
-	log_core.print(M.DOMAIN, alias[level:lower()] or level or 'debug', string.format(fmt, ...))
+	assert(level)
+	assert(fmt)
+	local ok, str = pcall(string.format, fmt, ...)
+	if not ok then
+		error(str, 3)
+	else
+		log_core.print(M.DOMAIN, alias[level:lower()] or level, str)
+	end
 end
 
 for i, level in ipairs(levels) do
 	M[level] = function(fmt, ...)
-		return M.log(level, fmt, ...)
+		return M.print(level, fmt, ...)
 	end
 end
 

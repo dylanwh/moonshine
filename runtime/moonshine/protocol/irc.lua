@@ -1,6 +1,6 @@
 local numerics = require "moonshine.protocol.irc.numerics"
 local Protocol = require "moonshine.protocol.simple"
-
+local log      = require "moonshine.log"
 local IRC = Protocol:subclass()
 
 local function ircsplit(line)
@@ -27,7 +27,7 @@ end
 function IRC:on_connect()
 	self:send("NICK %s", self:username())
 	self:send('USER %s hostname servername :%s', self:username(), 'Moonshine User')
-	run_hook('connected', self)
+	self:trigger('connected')
 	self:readline()
 end
 
@@ -46,7 +46,7 @@ function IRC:on_read(line)
 	if self[name] and type(self[name]) == 'function' then
 		self[name](self, msg)
 	else
-		run_hook('unknown protocol command', { name = msg.name, args = msg, detail = "prefix: " .. tostring(msg.prefix) })
+		self:trigger('unknown protocol command', { name = msg.name, args = msg, detail = "prefix: " .. tostring(msg.prefix) })
 	end
 
 	self:readline()
@@ -72,9 +72,9 @@ function IRC:message(target, kind, msg)
 		if not name:match("^[#&]") then
 			name = "#" .. name
 		end
-		run_hook("public message sent", self, name, kind, msg)
+		self:trigger("public message sent", name, kind, msg)
 	elseif target.type == 'user' then
-		run_hook("private message sent", self, name, kind, msg)
+		self:trigger("private message sent", name, kind, msg)
 	else
 		--screen:debug("Unknown target type: %1", target.type)
 	end
@@ -94,7 +94,7 @@ end
 -- topic response
 function IRC:RPL_TOPIC(msg)
 	local room, topic = msg[2], msg[3]
-	run_hook('topic', self, topic)
+	self:trigger('topic', topic)
 end
 
 function IRC:RPL_MOTDSTART(msg)
@@ -112,7 +112,7 @@ function IRC:RPL_ENDOFMOTD(msg)
 	local nick, text = msg[1], msg[2]
 	table.insert(self.motd, text)
 
-	run_hook('motd', self, self.motd)
+	self:trigger('motd', self.motd)
 	self.motd = nil
 end
 
@@ -130,11 +130,12 @@ end--}}}
 function IRC:PRIVMSG(msg)
 	local user = msg.prefix:match("(.+)!")
 	local name, text = msg[1], msg[2]
-	local ctcp = string.match(text, "^\001(.+)\001$")
+	local ctcp = string.match(text, "\001(.+)\001")
 	local kind = 'say'
 
 	if ctcp then
 		kind, text = string.match(ctcp, "^([A-Z]+) ?(.-)$")
+		log.debug("CTCP: %s", tostring(kind))
 		--screen:debug("CTCP: %1 (%2)", kind, text)
 	end
 
@@ -148,10 +149,22 @@ function IRC:PRIVMSG(msg)
     text = stripcolors(text)
 	if kind then
 		if string.sub(name, 1, 1) == '#' then
-			run_hook('public message', self, name, user, kind, text)
+			self:trigger('public message', name, user, kind, text)
 		else
-			run_hook('private message', self, user, kind, text)
+			self:trigger('private message', user, kind, text)
 		end
+	end
+end
+
+function IRC:NOTICE(msg)
+	local user = msg.prefix:match("(.+)!") or msg.prefix
+	local target, text = msg[1], msg[2]
+
+    text = stripcolors(text)
+	if string.sub(target, 1, 1) == '#' then
+		self:trigger('public message',  target, user, 'notice', text)
+	else
+		self:trigger('private message', user, 'notice', text)
 	end
 end
 
