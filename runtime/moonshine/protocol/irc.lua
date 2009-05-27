@@ -75,18 +75,24 @@ function IRC:part(room)
 	self:send('PART %s', room)
 end
 
-function IRC:_message(word, room, type, text)
+function IRC:_message(word, target, type, text)
 	assert(word, 'word')
-	assert(room, 'room')
+	assert(target, 'target')
 	assert(type, 'type')
 	assert(text, 'text')
 	
 	if type == 'action' then
-		msg = "\001ACTION "..msg.."\001"
+		text = "\001ACTION "..text.."\001"
 	end
 
-	self:send('PRIVMSG %s :%s', room, text)
-	self:trigger(word .. " message sent", name, kind, msg)
+	self:send('PRIVMSG %s :%s', target, text)
+	if word == 'public' then
+		-- from room, from user (= me), type, text
+		self:trigger('sent public message', target, self:username(), type, text)
+	elseif word == 'private' then
+		-- from user (= me), to user, type, text
+		self:trigger('sent private message', self:username(), target, type, text)
+	end
 end
 
 function IRC:public_message(...)
@@ -160,9 +166,11 @@ function IRC:PRIVMSG(prefix, target, text)
 		self:trigger('irc ctcp ' .. cmd:lower(), prefix, target, body)
 	else
 		if self:is_channel(target) then
+			-- (from room, from user, type, text)
 			self:trigger('public message', target, user, 'normal', text)
 		else
-			self:trigger('private message', user, 'normal', text)
+			-- (from user, to user, type, text)
+			self:trigger('private message', user, self:username() 'normal', text)
 		end
 	end
 end
