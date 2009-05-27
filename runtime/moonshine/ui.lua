@@ -56,8 +56,8 @@ keymap.bind("^L",      "redraw")
 
 local log = require "moonshine.log"
 
-add_hook("unknown hook", function (name)
-	log('warning', "unknown hook: %s", name)
+add_hook("unknown hook", function (name, args)
+	log('warning', "unknown hook: %s (%s)", name, join("|", args or {}))
 end)
 
 add_hook("unknown command", function(name)
@@ -82,14 +82,20 @@ end)
 add_hook('private message', function(tag, user, kind, text)
 	local window = screen:window_for_user(tag, user)
 	window:print("<%1> %|%2", user, text)
+	screen:render()
 end)
 
 add_hook('public message', function(tag, room, user, kind, text)
-	local window = screen:window_for_room(tag, user)
+	local window = screen:window_for_room(tag, room)
 	window:print("[%1] <%2> %|%3", room, user, text)
+	screen:render()
 end)
 
-
+add_hook('topic', function(tag, room, text)
+	local window = screen:window_for_room(tag, room)
+	window:set_topic(text)
+	screen:render()
+end)
 
 add_hook("input",    keymap.process)
 add_hook("keypress", screen:callback "keypress")

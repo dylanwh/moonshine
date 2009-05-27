@@ -22,9 +22,18 @@ function split(pat, str)--{{{
 	return collect(string.split, str, pat)
 end--}}}
 
-function join(sep, list)--{{{
-	return table.concat(list, sep)
-end--}}}
+function join(sep, list)
+	if #list == 0 then
+		return ''
+	elseif #list == 1 then
+		return tostring(list[1])
+	end
+
+	for i = 1, #list do
+		list[i] = tostring(list[i])
+	end
+	return table.concat(list, sep or '')
+end
 
 function each(x)--{{{
 	if type(x) == 'table' then
@@ -114,7 +123,7 @@ function run_hook(name, ...)
 	if hook then
 		return hook(...)
 	elseif on_unknown_hook then
-		return on_unknown_hook(name, ...)
+		return on_unknown_hook(name, { ... } )
 	end
 end
 

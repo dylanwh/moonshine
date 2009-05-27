@@ -104,8 +104,9 @@ function IRC:ERR_NICKNAMEINUSE(prefix, _, name)
 end
 
 -- topic response
-function IRC:RPL_TOPIC(prefix, room, topic)
-	self:trigger('topic', topic, room)
+-- RPL_TOPIC (Cosecant.aftran.com,dylan_,#basement,[dee-doo-doodoodoo, doo-doodeedoo~] It then slobbers on your leg.
+function IRC:RPL_TOPIC(prefix, me, room, topic)
+	self:trigger('topic', room, topic)
 end
 
 function IRC:RPL_MOTDSTART(prefix, nick, text)
