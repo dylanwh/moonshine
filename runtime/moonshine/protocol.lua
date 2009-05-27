@@ -12,7 +12,7 @@ function M.connect(name, ...)
 	return tag
 end
 
-local METHODS = { "join", "part", "quit", "message", "disconnect" }
+local METHODS = { "join", "part", "quit", "public_message", "private_message", "disconnect" }
 
 for _, name in ipairs(METHODS) do
 	M[name] = function(tag, ...)

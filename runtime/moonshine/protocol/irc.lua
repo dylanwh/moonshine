@@ -44,7 +44,7 @@ function IRC:on_read(line)
 	local msg  = ircsplit(line)
 	local name = string.upper(msg.name)
 	if self[name] and type(self[name]) == 'function' then
-		self[name](self, msg)
+		self[name](self, msg.prefix, unpack(msg))
 	else
 		self:trigger('unknown protocol command', { name = msg.name, args = msg, detail = "prefix: " .. tostring(msg.prefix) })
 	end
@@ -66,50 +66,44 @@ function IRC:part(room)
 	self:send('PART %s', room)
 end
 
-function IRC:message(target, kind, msg)
-	local name = target.name
-	if target.type == 'room' then
-		if not name:match("^[#&]") then
-			name = "#" .. name
-		end
-		self:trigger("public message sent", name, kind, msg)
-	elseif target.type == 'user' then
-		self:trigger("private message sent", name, kind, msg)
-	else
-		--screen:debug("Unknown target type: %1", target.type)
-	end
+function IRC:_message(word, room, type, text)
 	
-	if kind == 'do' then
+	if type == 'action' then
 		msg = "\001ACTION "..msg.."\001"
 	end
-	self:send('PRIVMSG %s :%s', name, msg)
+
+	self:send('PRIVMSG %s :%s', room, msg)
+	self:trigger(word .. " message sent", name, kind, msg)
+end
+
+function IRC:public_message(...)
+	return self:_message('public', ...)
+end
+
+function IRC:private_message(...)
+	return self:_message('private', ...)
 end
 
 -- NICK response
-function IRC:ERR_NICKNAMEINUSE(msg)
-	self:username(msg[2] .. "_")
+function IRC:ERR_NICKNAMEINUSE(prefix, _, name)
+	self:username(name .. "_")
 	self:send("NICK %s", self:username())
 end
 
 -- topic response
-function IRC:RPL_TOPIC(msg)
-	local room, topic = msg[2], msg[3]
-	self:trigger('topic', topic)
+function IRC:RPL_TOPIC(prefix, room, topic)
+	self:trigger('topic', topic, room)
 end
 
-function IRC:RPL_MOTDSTART(msg)
-	local nick, text = msg[1], msg[2]
+function IRC:RPL_MOTDSTART(prefix, nick, text)
 	self.motd = { text }
 end
 
-function IRC:RPL_MOTD(msg)
-	-- [WARNING] unknown protocol command: name=372, args=dylan_,-  , detail=prefix: Arcsecant.aftran.com
-	local nick, text = msg[1], msg[2]
+function IRC:RPL_MOTD(prefix, nick, text)
 	table.insert(self.motd, text)
 end
 
-function IRC:RPL_ENDOFMOTD(msg)
-	local nick, text = msg[1], msg[2]
+function IRC:RPL_ENDOFMOTD(prefix, nick, text)
 	table.insert(self.motd, text)
 
 	self:trigger('motd', self.motd)
@@ -127,38 +121,34 @@ local function stripcolors(line)--{{{
   return line
 end--}}}
 
-function IRC:PRIVMSG(msg)
-	local user = msg.prefix:match("(.+)!")
-	local name, text = msg[1], msg[2]
-	local ctcp = string.match(text, "\001(.+)\001")
-	local kind = 'say'
-
-	if ctcp then
-		kind, text = string.match(ctcp, "^([A-Z]+) ?(.-)$")
-		log.debug("CTCP: %s", tostring(kind))
-		--screen:debug("CTCP: %1 (%2)", kind, text)
+function IRC:is_channel(target)
+	if target:match('^[#&]') then
+		return true
+	else
+		return false
 	end
+end
 
-	if kind == "ACTION" then
-		kind = "do"
-	elseif kind == "VERSION" then
-		kind = nil
-		self:send('NOTICE %s :\001VERSION Moonshine %s\001', user, VERSION)
-	end
+function IRC:PRIVMSG(prefix, target, text)
+	local user   = prefix:match("(.+)!")
+	local ctcp   = string.match(text, "\001(.+)\001")
 
     text = stripcolors(text)
-	if kind then
-		if string.sub(name, 1, 1) == '#' then
-			self:trigger('public message', name, user, kind, text)
+	if ctcp then
+		local cmd, pos = string.match(ctcp, "^(%w+)()")
+		local func     = self['CTCP_' .. cmd]
+		return func(self, prefix, target, string.sub(ctcp, pos + 1))
+	else
+		if self:is_channel(target) then
+			self:trigger('public message', target, user, 'normal', text)
 		else
-			self:trigger('private message', user, kind, text)
+			self:trigger('private message', user, 'normal', text)
 		end
 	end
 end
 
-function IRC:NOTICE(msg)
-	local user = msg.prefix:match("(.+)!") or msg.prefix
-	local target, text = msg[1], msg[2]
+function IRC:NOTICE(prefix, target, text)
+	local user = prefix:match("(.+)!") or prefix
 
     text = stripcolors(text)
 	if string.sub(target, 1, 1) == '#' then
@@ -166,6 +156,25 @@ function IRC:NOTICE(msg)
 	else
 		self:trigger('private message', user, 'notice', text)
 	end
+end
+
+function IRC:CTCP_ACTION(prefix, target, text)
+	local user = prefix:match("(.+)!") or prefix
+
+	if self:is_channel(target) then
+		self:trigger('public message', target, user, 'action', text)
+	else
+		self:trigger('private message', user, 'action', text)
+	end
+end
+
+function IRC:CTCP_VERSION(prefix, target, text)
+	local user   = prefix:match("(.+)!")
+	self:send('NOTICE %s :\001VERSION Moonshine %s\001', user, VERSION)
+end
+
+function IRC:PING(_, server)
+	self:send('PONG %s', server)
 end
 
 return IRC
