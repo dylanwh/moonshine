@@ -91,7 +91,7 @@ function IRC:_message(word, target, type, text)
 		self:trigger('sent public message', target, self:username(), type, text)
 	elseif word == 'private' then
 		-- from user (= me), to user, type, text
-		self:trigger('sent private message', self:username(), target, type, text)
+		self:trigger('sent private message', target, type, text)
 	end
 end
 
@@ -169,8 +169,8 @@ function IRC:PRIVMSG(prefix, target, text)
 			-- (from room, from user, type, text)
 			self:trigger('public message', target, user, 'normal', text)
 		else
-			-- (from user, to user, type, text)
-			self:trigger('private message', user, self:username() 'normal', text)
+			-- (from user, type, text)
+			self:trigger('private message', user, 'normal', text)
 		end
 	end
 end
