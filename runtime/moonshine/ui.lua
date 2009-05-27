@@ -69,7 +69,7 @@ add_hook("shell error", function(err)
 end)
 
 add_hook('unknown protocol command', function(tag, info)
-	log('warning', "unknown protocol command: name=%s, args=%s, detail=%s", info.name, join(",", info.args or {}), info.detail)
+	log('warning', "unknown protocol command: %s (%s)", info.name, join(",", info.args or {}))
 end)
 
 add_hook("log", function (domain, level, message)

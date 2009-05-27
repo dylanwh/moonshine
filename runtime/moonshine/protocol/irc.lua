@@ -37,7 +37,12 @@ function IRC:write(msg)
 end
 
 function IRC:send(fmt, ...)
-	self:write(string.format(fmt, ...))
+	local ok, str = pcall(string.format, fmt, ...)
+	if ok then
+		self:write(str)
+	else
+		error(str, 2)
+	end
 end
 
 function IRC:on_read(line)
@@ -46,13 +51,15 @@ function IRC:on_read(line)
 	if self[name] and type(self[name]) == 'function' then
 		self[name](self, msg.prefix, unpack(msg))
 	else
-		self:trigger('unknown protocol command', { name = msg.name, args = msg, detail = "prefix: " .. tostring(msg.prefix) })
+		self:trigger('unknown protocol command', { name = msg.name, args = { msg.prefix, unpack(msg) } })
 	end
 
 	self:readline()
 end
 
 function IRC:join(room)
+	assert(room)
+
 	if not room:match("^[#&]") then
 		room = "#" .. room
 	end
@@ -60,6 +67,8 @@ function IRC:join(room)
 end
 
 function IRC:part(room)
+	assert(room)
+
 	if not room:match("^[#&]") then
 		room = "#" .. room
 	end
@@ -67,12 +76,16 @@ function IRC:part(room)
 end
 
 function IRC:_message(word, room, type, text)
+	assert(word, 'word')
+	assert(room, 'room')
+	assert(type, 'type')
+	assert(text, 'text')
 	
 	if type == 'action' then
 		msg = "\001ACTION "..msg.."\001"
 	end
 
-	self:send('PRIVMSG %s :%s', room, msg)
+	self:send('PRIVMSG %s :%s', room, text)
 	self:trigger(word .. " message sent", name, kind, msg)
 end
 
@@ -137,7 +150,11 @@ function IRC:PRIVMSG(prefix, target, text)
 	if ctcp then
 		local cmd, pos = string.match(ctcp, "^(%w+)()")
 		local func     = self['CTCP_' .. cmd]
-		return func(self, prefix, target, string.sub(ctcp, pos + 1))
+		if func then
+			return func(self, prefix, target, string.sub(ctcp, pos + 1))
+		else
+			self.trigger('irc ctcp ' .. cmd, prefix, target, string.sub(ctcp, pos + 1))
+		end
 	else
 		if self:is_channel(target) then
 			self:trigger('public message', target, user, 'normal', text)
@@ -173,8 +190,14 @@ function IRC:CTCP_VERSION(prefix, target, text)
 	self:send('NOTICE %s :\001VERSION Moonshine %s\001', user, VERSION)
 end
 
+function IRC:CTCP_PING(prefix, target, text)
+	local user   = prefix:match("(.+)!")
+	self:send('NOTICE %s :\001PING %s\001', user, text)
+end
+
 function IRC:PING(_, server)
 	self:send('PONG %s', server)
 end
+
 
 return IRC
