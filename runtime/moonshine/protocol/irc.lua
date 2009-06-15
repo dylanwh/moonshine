@@ -1,7 +1,7 @@
 local numerics = require "moonshine.protocol.irc.numerics"
 local Protocol = require "moonshine.protocol.simple"
 local log      = require "moonshine.log"
-local IRC = Protocol:subclass()
+local IRC = Protocol:clone()
 
 local function ircsplit(line)
   	local t = {}

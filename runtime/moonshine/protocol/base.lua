@@ -1,14 +1,16 @@
 local prefs    = require "moonshine.prefs"
 local Client   = require "moonshine.net.client"
 local Object   = require "moonshine.object"
-local Protocol = Object:subclass()
+local Protocol = Object:clone()
 
 local NOTAG = "-NOTAG-"
 
--- later: local meta = Protocol:meta()
--- meta:add_attribute("hostname", { required = true })
-Protocol:add_attribute('username', { is = "rw", default = prefs.username })
-Protocol:add_attribute('tag',      { is = "rw" })
+Protocol:add_attribute('username')
+Protocol:add_attribute('tag')
+
+function Protocol:__new()
+	assert(self:username(), "username required")
+end
 
 function Protocol:make_tag(i)
 	assert(getmetatable(self))

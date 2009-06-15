@@ -9,9 +9,9 @@ local Statusbar = require "moonshine.ui.statusbar"
 local Window    = require "moonshine.ui.window"
 local Timer     = require "moonshine.timer"
 
-local Screen    = Object:subclass()
+local Screen    = Object:clone()
 
-function Screen:__init()--{{{
+function Screen:__new()--{{{
 	self.entry     = Entry:new()
 	self.status    = Statusbar:new()
 	self.history   = Buffer:new()

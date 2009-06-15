@@ -1,13 +1,15 @@
 local Client   = require "moonshine.net.client"
 local Protocol = require "moonshine.protocol.base"
-local Simple   = Protocol:subclass()
+local Simple   = Protocol:clone()
 
 -- later: local meta = Simple:meta()
 -- meta:add_attribute("hostname", { required = true })
-Simple:add_attribute('hostname', { required = true })
-Simple:add_attribute('port',     {})
-Simple:add_attribute("client",   {
-	handles = {
+Simple:add_attribute('hostname')
+Simple:add_attribute('port')
+Simple:add_attribute('client')
+
+do
+	local names = {
 		"read",
 		"readn",
 		"readline",
@@ -16,7 +18,25 @@ Simple:add_attribute("client",   {
 		"is_connected",
 		"write"
 	}
-})
+
+	for i, name in ipairs(name) do
+		Simple[name] = function(self, ...)
+			local client = self:client()
+			return client[name](client, ...)
+		end
+	end
+end
+
+function Simple:__new()
+	Protocol.__new(self)
+	assert(self:hostname(), "hostname required")
+	assert(self:port(),     "port required")
+
+	local client = Client:new(self:hostname(), self:port(), function(client, event, ...)
+		self[ "on_" .. event](self, ...)
+	end)
+	self:client(client)
+end
 
 function Simple:make_tag(i)
 	local hostname = split("%.", self:hostname())
@@ -39,13 +59,6 @@ function Simple:make_tag(i)
 	else
 		return tag .. tostring(i+1)
 	end
-end
-
-function Simple:__init()
-	local client = Client:new(self:hostname(), self:port(), function(client, event, ...)
-		self[ "on_" .. event](self, ...)
-	end)
-	self:client(client)
 end
 
 function Simple:on_connect()

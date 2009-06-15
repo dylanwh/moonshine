@@ -2,11 +2,13 @@ local term      = require "moonshine.ui.term"
 local Object    = require "moonshine.object"
 local Buffer    = require "moonshine.ui.buffer"
 local Statusbar = require "moonshine.ui.statusbar"
-local Window    = Object:subclass()
+local Window    = Object:clone()
 
-Window:add_attribute("name", { required = true })
+Window:add_attribute("name")
 
-function Window:__init()
+function Window:__new()
+	assert(self:name(), "name required")
+
 	self._topic    = Statusbar:new("")
 	self._buffer   = Buffer:new(1014)
 	self._activity = 0

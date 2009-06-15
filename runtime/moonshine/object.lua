@@ -1,9 +1,9 @@
 local Object = { __attributes = {} }
 
-function Object.__index(self, key)
-	local class = getmetatable(self)
-	if class then
-		return class[key]
+function Object:__index(key)
+	local mt = getmetatable(self)
+	if mt then
+		return mt[key]
 	end
 end
 
@@ -19,74 +19,56 @@ function Object:callback(name, ...)
 	end
 end
 
-function Object.new(class, param)
-	assert(getmetatable(class) == nil, "is class")
+function Object.new(mt, param)
+	assert(getmetatable(mt) == nil, "is mt")
 
-	local self = {}
-	local attributes = class.__attributes or {}
+	local self = setmetatable({}, mt)
 
-	for name, option in pairs(attributes) do
-		local slot = '!' .. name
 
-		if param and param[name] then
-			self[ slot ] = param[name]
-		elseif option.default then
-			self[ slot ] = option.default
-		elseif option.required then
-			error("required parameter missing: " .. name, level or 2)
+	if param then
+		for k, v in pairs(param) do
+			if self[k] then
+				self[k](self, v)
+			end
 		end
 	end
 
-	setmetatable(self, class)
-
-	if self.__init then
-		self:__init()
+	if self.__new then
+		self:__new()
 	end
 
 	return self
 end
 
-function Object.add_attribute(class, name, option)
-	assert(getmetatable(class) == nil, "is class")
+function Object.clone(mt)
+	assert(getmetatable(mt) == nil, "is mt")
 
-	local slot = '!' .. name
-	class.__attributes[name] = option
-	class[name] = function(self, ...)
+	local new_mt = {}
+	for k, v in pairs(mt) do
+		new_mt[k] = v
+	end
+
+	if new_mt.__clone then
+		new_mt:__clone()
+	end
+	return new_mt
+end
+
+function Object.add_attribute(mt, name)
+	assert(getmetatable(mt) == nil, "is mt")
+
+	local slot = '_' .. name
+
+	mt[name] = function(self, ...)
 		local n = select('#', ...)
 		if n == 0 then
 			return self[slot]
 		else
-			self[slot] = ...
-			return self[slot]
+			local v = ...
+			self[slot] = v
+			return v
 		end
 	end
-
-	if option.handles then
-		for _, method in ipairs(option.handles) do
-			class[method] = function (self, ...)
-				local log  = require "moonshine.log"
-				local obj  = self[slot]
-				local func = obj[method]
-				return func(obj, ...)
-			end
-		end
-	end
-end
-
-function Object.subclass(class)
-	assert(getmetatable(class) == nil, "is class")
-
-	local new_class = {}
-	for k, v in pairs(class) do
-		new_class[k] = v
-	end
-
-	new_class.__attributes = {}
-	for k, v in pairs(class.__attributes) do
-		new_class.__attributes[k] = v
-	end
-
-	return new_class
 end
 
 return Object
