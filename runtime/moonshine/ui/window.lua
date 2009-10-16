@@ -7,49 +7,49 @@ local Window    = Object:clone()
 Window:add_attribute("name")
 
 function Window:__new()
-	assert(self:name(), "name required")
+    assert(self:name(), "name required")
 
-	self._topic    = Statusbar:new("")
-	self._buffer   = Buffer:new(1014)
-	self._activity = 0
+    self._topic    = Statusbar:new("")
+    self._buffer   = Buffer:new(1014)
+    self._activity = 0
 
-	self:set_topic("Moonshine - A Haver Client")
+    self:set_topic("Moonshine - A Haver Client")
 end
 
 function Window:print(fmt, ...)
-	self:actprint(1, fmt, ...)
+    self:actprint(1, fmt, ...)
 end
 
 function Window:actprint(activity, fmt, ...)
-	local str = term.format(os.date("%H:%M ")..tostring(fmt), { ... })
+    local str = term.format(os.date("%H:%M ")..tostring(fmt), { ... })
 
-	self._activity = math.max(self._activity, activity)
-	self._buffer:print(str)
+    self._activity = math.max(self._activity, activity)
+    self._buffer:print(str)
 end
 
 function Window:render(top, bottom)
-	local rows, cols = term.dimensions()
+    local rows, cols = term.dimensions()
 
-	self._topic:render(top)
-	if self._buffer:is_dirty() then
-		self._buffer:render(top + 1, bottom)
-	end
+    self._topic:render(top)
+    if self._buffer:is_dirty() then
+        self._buffer:render(top + 1, bottom)
+    end
 end
 
 function Window:scroll(x)
-	self._buffer:scroll(x)
+    self._buffer:scroll(x)
 end
 
 function Window:set_topic(t)
-	self._topic:set(term.format("%{topic}%1", { t }))
+    self._topic:set(term.format("%{topic}%1", { t }))
 end
 
 function Window:activate()
-	self._buffer:is_dirty(true)
+    self._buffer:is_dirty(true)
 end
 
 function Window:resize()
-	self._buffer:is_dirty(true)
+    self._buffer:is_dirty(true)
 end
 
 return Window

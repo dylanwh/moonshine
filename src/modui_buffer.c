@@ -521,9 +521,9 @@ static int buffer_gc(LuaState *L)/*{{{*/
 static int buffer_tostring(LuaState *L)/*{{{*/
 {
 	char buff[32];
-  	sprintf(buff, "%p", ms_lua_toclass(L, CLASS, 1));
-  	lua_pushfstring(L, "Buffer (%s)", buff);
-  	return 1;
+	sprintf(buff, "%p", ms_lua_toclass(L, CLASS, 1));
+	lua_pushfstring(L, "Buffer (%s)", buff);
+	return 1;
 }/*}}}*/
 /* }}} */
 

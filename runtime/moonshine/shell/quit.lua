@@ -4,7 +4,7 @@ local loop = require "moonshine.loop"
 M.spec = {}
 
 function M.func()
-	loop.quit()
+    loop.quit()
 end
 
 return M

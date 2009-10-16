@@ -4,8 +4,8 @@
 
     Copyright (C) 1998  Michael H. Buselli <cosine@cosine.org>
     Copyright (C) 2000-2002  Wessel Dankers <wsl@nl.linux.org>
-	Modifications for Lua interface:
-	Copyright (C) 2009  Bryan Donlan       <bdonlan@gmail.com>
+    Modifications for Lua interface:
+    Copyright (C) 2009  Bryan Donlan       <bdonlan@gmail.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -53,26 +53,26 @@ typedef int (*avl_compare_t)(const void *);
 typedef void (*avl_freeitem_t)(void *);
 
 typedef struct avl_node_t {
-	struct avl_node_t *next;
-	struct avl_node_t *prev;
-	struct avl_node_t *parent;
-	struct avl_node_t *left;
-	struct avl_node_t *right;
-	void *item;
+    struct avl_node_t *next;
+    struct avl_node_t *prev;
+    struct avl_node_t *parent;
+    struct avl_node_t *left;
+    struct avl_node_t *right;
+    void *item;
 #ifdef AVL_COUNT
-	unsigned int count;
+    unsigned int count;
 #endif
 #ifdef AVL_DEPTH
-	unsigned char depth;
+    unsigned char depth;
 #endif
 } avl_node_t;
 
 typedef struct avl_tree_t {
-	avl_node_t *head;
-	avl_node_t *tail;
-	avl_node_t *top;
-	avl_compare_t cmp;
-	avl_freeitem_t freeitem;
+    avl_node_t *head;
+    avl_node_t *tail;
+    avl_node_t *top;
+    avl_compare_t cmp;
+    avl_freeitem_t freeitem;
 } avl_tree_t;
 
 /* Initializes a new tree for elements that will be ordered using

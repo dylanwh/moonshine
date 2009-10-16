@@ -9,56 +9,56 @@ Simple:add_attribute('port')
 Simple:add_attribute('client')
 
 do
-	local names = {
-		"read",
-		"readn",
-		"readline",
-		"connect",
-		"disconnect",
-		"is_connected",
-		"write"
-	}
+    local names = {
+        "read",
+        "readn",
+        "readline",
+        "connect",
+        "disconnect",
+        "is_connected",
+        "write"
+    }
 
-	for i, name in ipairs(name) do
-		Simple[name] = function(self, ...)
-			local client = self:client()
-			return client[name](client, ...)
-		end
-	end
+    for i, name in ipairs(name) do
+        Simple[name] = function(self, ...)
+            local client = self:client()
+            return client[name](client, ...)
+        end
+    end
 end
 
 function Simple:__new()
-	Protocol.__new(self)
-	assert(self:hostname(), "hostname required")
-	assert(self:port(),     "port required")
+    Protocol.__new(self)
+    assert(self:hostname(), "hostname required")
+    assert(self:port(),     "port required")
 
-	local client = Client:new(self:hostname(), self:port(), function(client, event, ...)
-		self[ "on_" .. event](self, ...)
-	end)
-	self:client(client)
+    local client = Client:new(self:hostname(), self:port(), function(client, event, ...)
+        self[ "on_" .. event](self, ...)
+    end)
+    self:client(client)
 end
 
 function Simple:make_tag(i)
-	local hostname = split("%.", self:hostname())
-	local tag
+    local hostname = split("%.", self:hostname())
+    local tag
 
-	if #hostname == 0 then
-		tag = 'simple'
-	elseif #hostname == 1 then
-		tag = hostname[1]
-	elseif #hostname == 2 then
-		tag = hostname[1]
-	elseif #hostname == 3 then
-		tag = hostname[2]
-	elseif #hostname > 3 then
-		tag = hostname[1]
-	end
+    if #hostname == 0 then
+        tag = 'simple'
+    elseif #hostname == 1 then
+        tag = hostname[1]
+    elseif #hostname == 2 then
+        tag = hostname[1]
+    elseif #hostname == 3 then
+        tag = hostname[2]
+    elseif #hostname > 3 then
+        tag = hostname[1]
+    end
 
-	if i == 0 then
-		return tag
-	else
-		return tag .. tostring(i+1)
-	end
+    if i == 0 then
+        return tag
+    else
+        return tag .. tostring(i+1)
+    end
 end
 
 function Simple:on_connect()

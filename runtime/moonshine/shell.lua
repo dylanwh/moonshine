@@ -17,66 +17,66 @@ local M        = {}
 local cmd      = {}
 
 function M.call(name, arg)
-	local func = cmd[name]
-	if not func then
-		local ok, errmsg = pcall(M.require, name)
-		if ok then
-			func = cmd[name]
-		elseif not errmsg:match("module 'moonshine.shell." .. name .."' not found:") then
-			run_hook('shell error', errmsg)
-			return false
-		end
-	end
+    local func = cmd[name]
+    if not func then
+        local ok, errmsg = pcall(M.require, name)
+        if ok then
+            func = cmd[name]
+        elseif not errmsg:match("module 'moonshine.shell." .. name .."' not found:") then
+            run_hook('shell error', errmsg)
+            return false
+        end
+    end
 
-	if func then
-		local ok, errmsg = pcall(func, arg)
-		if not ok then
-			run_hook('shell error', errmsg)
-			return false
-		else
-			return true
-		end
-	else
-		run_hook("unknown command", name, arg)
-		return nil
-	end
+    if func then
+        local ok, errmsg = pcall(func, arg)
+        if not ok then
+            run_hook('shell error', errmsg)
+            return false
+        else
+            return true
+        end
+    else
+        run_hook("unknown command", name, arg)
+        return nil
+    end
 end
 
 function M.eval(line)
-	local name, pos = string.match(line, "^/([%w_]+)()")
-	local arg
-	if name then
-		name = string.lower(name)
-		arg  = string.sub(line, pos+1)
-	else
-		name = "say"
-		arg  = line
-	end
+    local name, pos = string.match(line, "^/([%w_]+)()")
+    local arg
+    if name then
+        name = string.lower(name)
+        arg  = string.sub(line, pos+1)
+    else
+        name = "say"
+        arg  = line
+    end
 
-	return M.call(name, arg)
+    return M.call(name, arg)
 end
 
 function M.register(name, def)
-	local spec  = def.spec
-	local run   = def.run or def.func
+    local spec  = def.spec
+    local run   = def.run or def.func
 
-	assert(name, "name required")
-	assert(run,  "run field required")
+    assert(name, "name required")
+    assert(run,  "run field required")
 
-	if spec then
-		local parser = parseopt.build_parser( unpack(spec) )
-		cmd[name] = function(text)
-			run( parser(text) )
-		end
-	else
-		cmd[name] = run
-	end
+    if spec then
+        local parser = parseopt.build_parser( unpack(spec) )
+        cmd[name] = function(text)
+            run( parser(text) )
+        end
+    else
+        cmd[name] = run
+    end
 end
 
 function M.require(name)
-	local mod = require("moonshine.shell." .. name)
-	M.register(name, mod)
-	return mod
+    local mod = require("moonshine.shell." .. name)
+    M.register(name, mod)
+    return mod
 end
 
 return M

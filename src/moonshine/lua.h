@@ -1,5 +1,5 @@
-#ifndef __MOONSHINE_MOON_H__
-#define __MOONSHINE_MOON_H__
+#ifndef __MOONSHINE_LUA_H__
+#define __MOONSHINE_LUA_H__
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
@@ -13,8 +13,8 @@ typedef lua_CFunction LuaFunction;
 LuaState *ms_lua_newstate(void);
 
 typedef struct MSLuaRef {
-	LuaState *L;
-	int ref;
+    LuaState *L;
+    int ref;
 } MSLuaRef;
 
 MSLuaRef *ms_lua_ref(LuaState *L, int idx);

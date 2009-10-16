@@ -2,9 +2,9 @@
 #define MS_PARSEOPT_H 1
 
 typedef enum {
-	MS_PARSEOPT_STOP,
-	MS_PARSEOPT_NOARG,
-	MS_PARSEOPT_EATARG
+    MS_PARSEOPT_STOP,
+    MS_PARSEOPT_NOARG,
+    MS_PARSEOPT_EATARG
 } MSParseOptStatus;
 
 /* General notes:
@@ -26,9 +26,9 @@ typedef enum {
  */
 
 typedef struct {
-	MSParseOptStatus (*shortopt)(void *baton, const char opt, const char *argument, const char *start);
-	MSParseOptStatus (*longopt)(void *baton, const char *opt, const char *argument, const char *start);
-	MSParseOptStatus (*literalopt)(void *baton, const char *literal, const char *start);
+    MSParseOptStatus (*shortopt)(void *baton, const char opt, const char *argument, const char *start);
+    MSParseOptStatus (*longopt)(void *baton, const char *opt, const char *argument, const char *start);
+    MSParseOptStatus (*literalopt)(void *baton, const char *literal, const char *start);
 } MSParseOptCallbacks;
 
 const char *ms_parseopt_parse(void *baton, const char *argstr, const MSParseOptCallbacks *cb);

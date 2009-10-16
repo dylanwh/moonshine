@@ -4,13 +4,13 @@
 #include <glib.h>
 
 typedef struct {
-	gchar *log_domain;
-	GLogLevelFlags log_level;
-	gchar *message;
+    gchar *log_domain;
+    GLogLevelFlags log_level;
+    gchar *message;
 } MSLogItem;
 
 typedef struct {
-	GSequence *buffer;
+    GSequence *buffer;
 } MSLog;
 
 MSLog *ms_log_new(void);

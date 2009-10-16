@@ -5,7 +5,7 @@ M.name = "log"
 M.spec = { "level|l=s" }
 
 function M.func(o, text)
-	log(o.level or 'DEBUG', text)
+    log(o.level or 'DEBUG', text)
 end
 
 return M
