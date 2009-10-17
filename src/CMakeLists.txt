@@ -54,13 +54,6 @@ CONFIGURE_FILE(config.h.in
 
 ADD_DEFINITIONS("-W -Wall")
 
-#ADD_EXECUTABLE(async-queue-test
-#   ms-async-queue-source.c
-#   async-queue-test.c)
-#
-#TARGET_LINK_LIBRARIES(async-queue-test
-#   ${GLIB_LIBRARIES})  
-
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} ${MOONSHINE_SRC_SOURCE_DIR} )
 
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)

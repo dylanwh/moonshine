@@ -127,4 +127,40 @@ function run_hook(name, ...)
     end
 end
 
+function reader(slot)
+    return function(self)
+        return self[slot]
+    end
+end
+
+function accessor(slot)
+    return function(self, ...)
+        if select('#', ...) == 0 then
+            return self[slot]
+        else
+            self[slot] = ...
+            return self[slot]
+        end
+    end
+end
+
+function delegate(slot, method)
+    return function(self, ...)
+        local object = self[slot]
+        return object[method](object, ...)
+    end
+end
+
+function callback(object, name, ...)
+    local cb_args = { ... }
+    
+    return function(...)
+        local args = { ... }
+        for i, arg in ipairs(cb_args) do
+            table.insert(args, i, arg)
+        end
+        return object[name](object, unpack(args))
+    end
+end
+
 

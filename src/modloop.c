@@ -37,4 +37,3 @@ int luaopen_moonshine_loop(LuaState *L)/*{{{*/
     luaL_register(L, NULL, functions);
     return 1;
 }/*}}}*/
-
