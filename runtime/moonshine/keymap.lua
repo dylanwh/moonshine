@@ -7,29 +7,32 @@
 -- Results of above two calls to process():
 -- kb_window_goto(1)
 local M       = {}
+
+local bit     = require "bit"
 local Tree    = require "moonshine.tree"
 local mapping = Tree:new()
 local cmd     = {}
 local keybuf  = ""
 
-local function keyspec(spec)
-    local bit = require "bit"
-
+local function keyspec(spec)--{{{
     return spec:gsub("%^(.)", function(c)
         return string.char(bit.bxor(string.byte(string.upper(c)), 64))
     end)
-end
+end--}}}
 
 function M.bind(spec_, name, ...)--{{{
     local spec = keyspec(spec_)
     local extra = { ... }
-    local cb = function()
+    mapping:insert(spec, function()
         M.invoke(name, unpack(extra))
-    end
+    end)
 
-    mapping:insert(spec, cb)
+    mapping:find(spec)
+end--}}}
 
-    local found_value = mapping:find(spec)
+function M.register(name, func)--{{{
+    assert(cmd[name] == nil)
+    cmd[name] = func
 end--}}}
 
 function M.process(key)--{{{
@@ -64,11 +67,6 @@ function M.process(key)--{{{
         -- prefix of something, keep going
     end
 end--}}}
-
-function M.register(name, func)
-    assert(cmd[name] == nil)
-    cmd[name] = func
-end
 
 function M.invoke(name, ...)--{{{
     local func = cmd[name]
