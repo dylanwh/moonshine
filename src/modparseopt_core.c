@@ -59,13 +59,14 @@ static LuaLReg functions[] = {
 
 int luaopen_moonshine_parseopt_core(LuaState *L)/*{{{*/
 {
-    lua_newtable(L);
+    ms_lua_module(L, functions);
+
     lua_pushinteger(L, MS_PARSEOPT_STOP);
     lua_setfield(L, -2, "STOP");
     lua_pushinteger(L, MS_PARSEOPT_NOARG);
     lua_setfield(L, -2, "NOARG");
     lua_pushinteger(L, MS_PARSEOPT_EATARG);
     lua_setfield(L, -2, "EATARG");
-    luaL_register(L, NULL, functions);
+
     return 1;
 }/*}}}*/

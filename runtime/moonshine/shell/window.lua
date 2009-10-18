@@ -5,7 +5,7 @@ local M = {}
 
 M.spec = { 1, 2, 3 }
 
-function M.action(_, cmd, ...)
+function M.run(_, cmd, ...)
     if M[cmd] then
         M[cmd](...)
     end

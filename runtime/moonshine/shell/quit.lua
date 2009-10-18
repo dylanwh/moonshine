@@ -3,7 +3,7 @@ local loop = require "moonshine.loop"
 
 M.spec = {}
 
-function M.func()
+function M.run()
     loop.quit()
 end
 

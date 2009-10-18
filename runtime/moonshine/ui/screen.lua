@@ -2,24 +2,17 @@ local shell  = require "moonshine.shell"
 local term   = require "moonshine.ui.term"
 local idle   = require "moonshine.idle"
 
-local Object    = require "moonshine.object"
-local Entry     = require "moonshine.ui.entry"
-local Buffer    = require "moonshine.ui.buffer"
-local Statusbar = require "moonshine.ui.statusbar"
-local Window    = require "moonshine.ui.window"
-local Timer     = require "moonshine.timer"
+local Screen = new "moonshine.object"
 
-local Screen    = Object:clone()
-
-function Screen:__new()--{{{
-    self.entry     = Entry:new()
-    self.status    = Statusbar:new()
-    self.history   = Buffer:new()
+function Screen:__init()--{{{
+    self.entry     = new "moonshine.ui.entry"
+    self.status    = new "moonshine.ui.statusbar"
+    self.history   = new "moonshine.ui.buffer"
     self.sb_at_end = true
 
     self.windows = {}
 
-    self.status_timer = Timer:new(function()
+    self.status_timer = new("moonshine.timer", function()
         self:render()
         return false
     end)
@@ -30,37 +23,36 @@ function Screen:__new()--{{{
         "status_activity",
     }
     self.status:set( term.format("%{topic}Status bar goes here", {}))
-    self:add( Window:new { name = "status" } )
+    self:add( new("moonshine.ui.window", { name = "status" }))
 end--}}}
 
 function Screen:status_time()--{{{
     local timestr = os.date("%H:%M")
-    local timetbl = os.date("*t")
-    local nextmintbl = {
-        year = timetbl["year"],
-        month = timetbl["month"],
-        day = timetbl["day"],
-        hour = timetbl["hour"],
-        min = timetbl["min"] + 1,
-        sec = 0,
-        isdst = timetbl["isdst"]
+    local now = os.date("*t")
+    local next = {
+        year  = now.year,
+        month = now.month,
+        day   = now.day,
+        hour  = now.hour,
+        min   = now.min + 1,
+        sec   = 0,
+        isdst = now.isdst
     }
 
-    local tillnextmin = os.difftime(os.time(nextmintbl), os.time(timetbl))
-    tillnextmin = tillnextmin * 1000
+    local wait = os.difftime(os.time(next), os.time(now)) * 1000
 
     -- Since lua's time is only accurate to the second, undershoot by 1s
     -- to make sure we redraw closer to the actual minute rollover.
     -- The edge case handling below will then have us poll every 100ms
     -- until the minute rolls over.
-    tillnextmin = tillnextmin - 1000
+    wait = wait - 1000
 
-    if tillnextmin <= 0 or tillnextmin > 59 * 1000 then
+    if wait <= 0 or wait > 59 * 1000 then
         -- We've hit some kind of weird edge case. Try again in 100ms
-        tillnextmin = 100
+        wait = 100
     end
 
-    self.status_timer:schedule(tillnextmin)
+    self.status_timer:schedule(wait)
 
     return timestr
 end--}}}

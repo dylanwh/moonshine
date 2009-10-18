@@ -26,7 +26,7 @@ function M.build_parser(...)--{{{
     local hints = {}
     local alias = {}
 
-    for _, spec in ipairs { ... } do--{{{
+    for _, spec in ipairs { ... } do
         if type(spec) == 'number' or spec:match("^%d$") then
             hints[tonumber(spec)] = true
         else
@@ -38,12 +38,12 @@ function M.build_parser(...)--{{{
                 alias[name] = primary
             end
         end
-    end--}}}
+    end
 
-    return function(text)--{{{
+    return function(text)
         local options = {}
         local args    = {}
-        local function callback(name, value)--{{{
+        local function callback(name, value)
             local primary = alias[name or '']
             local hint    = hints[primary]
             if primary == nil then
@@ -69,12 +69,12 @@ function M.build_parser(...)--{{{
                 table.insert(options[primary], value)
                 return core.EATARG
             end
-        end--}}}
+        end
         
         local rest = core.parse(text, callback)
         table.insert(args, rest)
         return options, unpack(args)
-    end--}}}
+    end
 end--}}}
 
 return M

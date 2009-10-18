@@ -4,7 +4,7 @@ local log = require "moonshine.log"
 M.name = "log"
 M.spec = { "level|l=s" }
 
-function M.func(o, text)
+function M.run(o, text)
     log(o.level or 'DEBUG', text)
 end
 

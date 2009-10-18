@@ -53,7 +53,6 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud)
                 lua_pop(L, 1);
             }
         } while (ms_term_input_pending(-1));
-        //moon_call(L, "input_reset_hook", "");
         return TRUE;
     }
     return FALSE;

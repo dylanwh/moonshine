@@ -1,10 +1,31 @@
-local Object = { __attributes = {} }
+local Object = { }
+local mt     = { }
 
-function Object:__index(key)
-    local mt = getmetatable(self)
-    if mt then
-        return mt[key]
+function mt.__index(self, slot)
+    local proto = rawget(self, '__proto')
+    if proto then
+        return proto[slot]
     end
+end
+
+function Object.new(proto, attr)
+    local self = setmetatable( { __proto = proto }, mt)
+   
+    if attr then
+        for k, v in pairs(attr) do
+            local f = self[k]
+            if f then
+                f(self, v)
+            end
+        end
+    end
+
+    local init = self.__init
+    if init then
+        init(self)
+    end
+
+    return self
 end
 
 function Object:callback(name, ...)
@@ -19,56 +40,7 @@ function Object:callback(name, ...)
     end
 end
 
-function Object.new(mt, param)
-    assert(getmetatable(mt) == nil, "is mt")
-
-    local self = setmetatable({}, mt)
 
 
-    if param then
-        for k, v in pairs(param) do
-            if self[k] then
-                self[k](self, v)
-            end
-        end
-    end
-
-    if self.__new then
-        self:__new()
-    end
-
-    return self
-end
-
-function Object.clone(mt)
-    assert(getmetatable(mt) == nil, "is mt")
-
-    local new_mt = {}
-    for k, v in pairs(mt) do
-        new_mt[k] = v
-    end
-
-    if new_mt.__clone then
-        new_mt:__clone()
-    end
-    return new_mt
-end
-
-function Object.add_attribute(mt, name)
-    assert(getmetatable(mt) == nil, "is mt")
-
-    local slot = '_' .. name
-
-    mt[name] = function(self, ...)
-        local n = select('#', ...)
-        if n == 0 then
-            return self[slot]
-        else
-            local v = ...
-            self[slot] = v
-            return v
-        end
-    end
-end
 
 return Object

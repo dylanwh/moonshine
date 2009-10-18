@@ -32,5 +32,6 @@ gpointer ms_lua_newclass(LuaState *L, const char *class, gsize size);
 
 gboolean ms_lua_require(LuaState *L, const char *name);
 void ms_lua_preload(LuaState *L, const char *name, lua_CFunction func);
+void ms_lua_module(LuaState *L, const LuaLReg functions[]);
 
 #endif

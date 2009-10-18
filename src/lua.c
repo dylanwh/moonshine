@@ -17,12 +17,11 @@ MSLuaRef *ms_lua_ref(LuaState *L, int idx)/*{{{*/
     return R;
 }/*}}}*/
 
-MSLuaRef *ms_lua_ref_checktype(LuaState *L, int narg, int type)
+MSLuaRef *ms_lua_ref_checktype(LuaState *L, int narg, int type)/*{{{*/
 {
     luaL_checktype(L, narg, type);
     return ms_lua_ref(L, narg);
-}
-
+}/*}}}*/
 
 LuaState *ms_lua_pushref(MSLuaRef *R)/*{{{*/
 {
@@ -87,6 +86,8 @@ gpointer ms_lua_newclass(LuaState *L, const char *class, gsize size)/*{{{*/
 
 void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods[], const LuaLReg meta[])/*{{{*/
 {
+    //lua_newtable(L);
+    //lua_replace(L, LUA_ENVIRONINDEX);
     lua_newtable(L);
     luaL_register(L, NULL, methods);  /* create methods table, do not add it to the globals */
 
@@ -105,6 +106,14 @@ void ms_lua_class_register(LuaState *L, const char *class, const LuaLReg methods
     lua_remove(L, -1);
 }/*}}}*/
 /*}}}*/
+
+void ms_lua_module(LuaState *L, const LuaLReg functions[])/*{{{*/
+{
+    //lua_newtable(L);
+    //lua_replace(L, LUA_ENVIRONINDEX);
+    lua_newtable(L);
+    luaL_register(L, NULL, functions);
+}/*}}}*/
 
 void ms_lua_preload(LuaState *L, const char *name, lua_CFunction func)/*{{{*/
 {
@@ -195,3 +204,5 @@ LuaState *ms_lua_newstate(void)/*{{{*/
 
     return L;
 }/*}}}*/
+
+

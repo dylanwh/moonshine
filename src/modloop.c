@@ -33,7 +33,6 @@ static LuaLReg functions[] = {/*{{{*/
 
 int luaopen_moonshine_loop(LuaState *L)/*{{{*/
 {
-    lua_newtable(L);
-    luaL_register(L, NULL, functions);
+    ms_lua_module(L, functions);
     return 1;
 }/*}}}*/

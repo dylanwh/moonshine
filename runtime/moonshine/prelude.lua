@@ -163,4 +163,7 @@ function callback(object, name, ...)
     end
 end
 
-
+function new(mod, ...)
+    local class = require(mod)
+    return class:new(...)
+end

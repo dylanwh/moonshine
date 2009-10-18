@@ -96,10 +96,7 @@ static void schedule_timer(struct luatimer *timer, gint interval)/*{{{*/
 
 static int timer_new(LuaState *L)/*{{{*/
 {
-    MSLuaRef *callback;
-
-    luaL_checktype(L, 2, LUA_TFUNCTION);
-    callback = ms_lua_ref(L, 2);
+    MSLuaRef *callback = ms_lua_ref_checktype(L, 2, LUA_TFUNCTION);
 
     struct luatimer *timer = ms_lua_newclass(L, CLASS, sizeof(*timer));
 

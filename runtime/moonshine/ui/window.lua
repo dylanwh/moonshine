@@ -1,16 +1,13 @@
-local term      = require "moonshine.ui.term"
-local Object    = require "moonshine.object"
-local Buffer    = require "moonshine.ui.buffer"
-local Statusbar = require "moonshine.ui.statusbar"
-local Window    = Object:clone()
+local term   = require "moonshine.ui.term"
+local Window = new "moonshine.object"
 
-Window:add_attribute("name")
+Window.name     = accessor('_name')
 
-function Window:__new()
+function Window:__init()
     assert(self:name(), "name required")
 
-    self._topic    = Statusbar:new("")
-    self._buffer   = Buffer:new(1014)
+    self._topic    = new("moonshine.ui.statusbar", "")
+    self._buffer   = new("moonshine.ui.buffer", 1014)
     self._activity = 0
 
     self:set_topic("Moonshine - A Haver Client")
