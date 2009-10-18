@@ -10,19 +10,7 @@ function string:split(pat)--{{{
   return splitter, self
 end--}}}
 
-function collect(f, ...)--{{{
-    local list = {}
-    for x in f(...) do
-        table.insert(list, x)
-    end
-    return list
-end--}}}
-
-function split(pat, str)--{{{
-    return collect(string.split, str, pat)
-end--}}}
-
-function join(sep, list)
+function join(sep, list)--{{{
     if #list == 0 then
         return ''
     elseif #list == 1 then
@@ -33,105 +21,9 @@ function join(sep, list)
         list[i] = tostring(list[i])
     end
     return table.concat(list, sep or '')
-end
-
-function each(x)--{{{
-    if type(x) == 'table' then
-        return ipairs(x)
-    elseif type(x) == 'string' then
-        local f = x:gmatch(".")
-        local i = 0
-        return function()
-            i = i + 1
-            local v = f()
-            if v then
-                return i, v
-            end
-        end
-    else
-        local mt = getmetatable(x)
-        if mt and mt.__each then
-            return mt.__each(x)
-        else
-            error("cannot each() over this object.")
-        end
-    end
 end--}}}
 
-function magic_table(canonize)--{{{
-    local t  = {}
-    local mt = {}
-    setmetatable(t, mt)
-
-    assert(canonize, "magic_table needs canonize function!")
-
-    function mt.__index(t, key)
-        return rawget(t, canonize(key))
-    end
-
-    function mt.__newindex(t, key, val)
-        return rawset(t, canonize(key), val)
-    end
-
-    return t
-end--}}}
-
-local hook_mt = {
-    __call = function (hook, ...)
-        if hook.pred then
-            assert(hook.pred(...))
-        end
-
-        for _, func in ipairs(hook) do
-            func(...)
-        end
-    end
-}
-
-local function get_hook(name)
-    return _G[ "on_" .. name:gsub(" ", "_") ]
-end
-
-local function set_hook(name, hook)
-    _G[ "on_" .. name:gsub(" ", "_") ] = hook
-end
-
-function def_hook(name, check)
-    local old_hook = get_hook(name)
-    local new_hook = { check = check }
-
-    if not old_hook or type(old_hook) == 'function' then
-        table.insert(new_hook, old_hook)
-    else
-        return old_hook
-    end
-
-    set_hook(name, setmetatable(new_hook, hook_mt))
-    return new_hook
-end
-
-function add_hook(name, func)
-    local hook = get_hook(name)
-    if not hook or type(hook) == 'function' then
-        hook = def_hook(name)
-    end
-    table.insert(hook, 1, func)
-end
-
-function run_hook(name, ...)
-    local hook = get_hook(name)
-    if hook then
-        return hook(...)
-    elseif on_unknown_hook then
-        return on_unknown_hook(name, { ... } )
-    end
-end
-
-function reader(slot)
-    return function(self)
-        return self[slot]
-    end
-end
+string.join = join
 
 function accessor(slot)
     return function(self, ...)
@@ -141,25 +33,6 @@ function accessor(slot)
             self[slot] = ...
             return self[slot]
         end
-    end
-end
-
-function delegate(slot, method)
-    return function(self, ...)
-        local object = self[slot]
-        return object[method](object, ...)
-    end
-end
-
-function callback(object, name, ...)
-    local cb_args = { ... }
-    
-    return function(...)
-        local args = { ... }
-        for i, arg in ipairs(cb_args) do
-            table.insert(args, i, arg)
-        end
-        return object[name](object, unpack(args))
     end
 end
 

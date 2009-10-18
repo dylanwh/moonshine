@@ -40,7 +40,16 @@ function Object:callback(name, ...)
     end
 end
 
-
-
+function Object:def_accessor(name)
+    local slot = '!' .. name
+    self[name] = function(self, ...)
+        if select('#', ...) == 0 then
+            return self[slot]
+        else
+            self[slot] = ...
+            return self[slot]
+        end
+    end
+end
 
 return Object
