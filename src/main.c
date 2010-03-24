@@ -51,6 +51,7 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud)
             }
             else {
                 lua_pop(L, 1);
+                return TRUE;
             }
         } while (ms_term_input_pending(-1));
         return TRUE;
@@ -67,9 +68,6 @@ int main(UNUSED int argc, UNUSED char *argv[])
     guint tag;
 
     ms_signal_init(); // initialize moonshine signal callback
-    ms_term_init();   // initialize the display.
-
-    g_log_set_default_handler(ms_log_handler, (gpointer)log);
 
     MS_PRELOAD_ALL(L); // preload moonshine modules.
 
@@ -99,7 +97,6 @@ int main(UNUSED int argc, UNUSED char *argv[])
 
     /* Cleanup time */
     g_io_channel_unref(input); // free memory.
-    ms_term_reset();           // reset the terminal to a sane state.
     ms_signal_reset();         // remove signal handlers and memory used.
     ms_log_free(log);          // free memory and replay any entries in the log.
     g_main_loop_unref(loop);   // free memory

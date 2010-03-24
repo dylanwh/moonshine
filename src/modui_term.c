@@ -1,11 +1,27 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
 #include <moonshine/term.h>
+#include <moonshine/log.h>
 #include <moonshine/signal.h>
 
 static int term_refresh(UNUSED LuaState *L)/*{{{*/
 {
     ms_term_refresh();
+    return 0;
+}/*}}}*/
+
+static int term_init(LuaState *L)/*{{{*/
+{
+    g_log_set_default_handler(ms_log_handler, ms_lua_stash_get(L, "log"));
+    ms_term_init();
+    return 0;
+}/*}}}*/
+
+static int term_reset(LuaState *L)/*{{{*/
+{
+    MSLog *log = ms_lua_stash_get(L, "log");
+    ms_term_reset();
+    ms_log_replay(log, g_log_default_handler, NULL);
     return 0;
 }/*}}}*/
 
@@ -39,6 +55,8 @@ static int term_getcolor(LuaState *L)/*{{{*/
 }/*}}}*/
 
 static LuaLReg functions[] = {/*{{{*/
+    {"init",          term_init    },
+    {"reset",         term_reset   },
     {"refresh",       term_refresh },
     {"resize",        term_resize  },
     {"dimensions",    term_dimensions },

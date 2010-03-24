@@ -8,27 +8,26 @@
 -- /window goto 1
 local bit     = require "bit"
 
+local function ctrl(c)
+    return string.char(bit.bxor(string.byte(string.upper(c)), 64))
+end
+
 local function keyspec(spec)
-    local function ctrl(c)
-        return string.char(bit.bxor(string.byte(string.upper(c)), 64))
-    end
     return spec:gsub("%^(.)", ctrl)
 end
 
 local Keymap = new "moonshine.object"
 
-function Keymap:__init(shell)
-    self._shell  = assert(shell, "shell parameter is required")
+function Keymap:__init()
     self._tree   = new "moonshine.tree"
     self._keybuf = ""
 end
 
 function Keymap:keypress(key)
     local tree  = self._tree
-    local shell = self._shell
     self._keybuf = self._keybuf .. key
 
-    local found_key, text, index, dirn = tree:find_near(self._keybuf)
+    local found_key, func, index, dirn = tree:find_near(self._keybuf)
     if found_key == nil then
         -- No keys defined??
         return false
@@ -36,7 +35,7 @@ function Keymap:keypress(key)
 
     if dirn == 0 then
         self._keybuf = ""
-        shell:eval(text)
+        func()
         return true
     elseif dirn > 0 then
         index     = index + 1
@@ -58,8 +57,8 @@ function Keymap:keypress(key)
     end
 end
 
-function Keymap:bind(spec, text)
-    self._tree:insert(keyspec(spec), text)
+function Keymap:bind(spec, func)
+    self._tree:insert(keyspec(spec), func)
 end
 
 return Keymap

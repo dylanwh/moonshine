@@ -12,7 +12,7 @@ ADD_EXECUTABLE(moonshine
 
     modidle.c
     modlog_core.c
-    modloop_core.c
+    modloop.c
     modnet_client.c
     modparseopt_core.c
     modui_buffer.c
