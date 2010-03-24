@@ -6,35 +6,22 @@
 #define CLASS "moonshine.ui.entry"
 
 typedef struct {
-    gchar *prompt;
     gunichar *buffer;
     gsize bufsize; /* The total size of the buffer in gunichars. Is zero iff buffer is NULL. */
     gsize bufused; /* The length of the actual string in the buffer. */
     gsize view_off; /* The index of the first visible character. May be out of range; entry_render will correct such issues. */
     gsize curs_off; /* The index of the character the cursor is on. Must not be out of range (> bufused). */
-    int dirty; /* True if the entry has been modified since the last set(), clear(), or clear_dirty() */
+    gboolean dirty; /* True if the entry has been modified since the last set(), clear(), or clear_dirty() */
 } Entry;
 
 static int entry_new(LuaState *L)
 {
-    g_print("running\n");
-    const char *prompt = luaL_optstring(L, 2, "[moonshine] ");
     Entry *e = ms_lua_newclass(L, CLASS, sizeof(Entry));
     e->buffer = NULL;
     e->bufsize = e->bufused = 0;
     e->view_off = e->curs_off = 0;
-    e->prompt   = g_strdup(prompt);
-    e->dirty    = 0;
+    e->dirty    = FALSE;
     return 1;
-}
-
-static int entry_set_prompt(LuaState *L)
-{
-    Entry *e           = ms_lua_checkclass(L, CLASS, 1);
-    const char *prompt = luaL_checkstring(L, 2);
-    g_free(e->prompt);
-    e->prompt = g_strdup(prompt);
-    return 0;
 }
 
 inline static int keypress(Entry *e, gunichar uc)
@@ -55,7 +42,7 @@ inline static int keypress(Entry *e, gunichar uc)
     e->buffer[e->curs_off] = uc;
     e->bufused++;
     e->curs_off++;
-    e->dirty = 1;
+    e->dirty = TRUE;
     return 0;
 }
 
@@ -132,7 +119,7 @@ inline static int clear(Entry *e)
         g_free(e->buffer);
         e->bufused = 0;
     }
-    e->dirty = 0;
+    e->dirty = FALSE;
     return 0;
 }
 
@@ -147,7 +134,7 @@ static int entry_set(LuaState *L)
     Entry *e         = ms_lua_checkclass(L, CLASS, 1);
     const char *line = luaL_checkstring(L, 2);
 
-    e->dirty = 0;
+    e->dirty = TRUE; // was 0 - why?
     GError *error;
     glong written;
     gunichar *buffer = g_utf8_to_ucs4(line, -1, NULL, &written, &error);
@@ -247,13 +234,15 @@ static int try_render(Entry *e, guint lmargin) {
 
 static int entry_render(LuaState *L)
 {
-    Entry *e      = ms_lua_checkclass(L, CLASS, 1);
+    Entry *e           = ms_lua_checkclass(L, CLASS, 1);
+    const char *prompt = luaL_checkstring(L, 2);
+
     g_assert(e->curs_off <= e->bufused);
 
     /* FIXME: This assumes 1 byte == 1 char */
-    guint lmargin = strlen(e->prompt);
+    guint lmargin = strlen(prompt);
     ms_term_goto(MS_TERM_LINES - 1, 0);
-    ms_term_write_chars(e->prompt);
+    ms_term_write_chars((char *)prompt);
 
     if (try_render(e, lmargin) == -1) {
         e->view_off = center_view(e, MS_TERM_COLS - lmargin);
@@ -281,7 +270,7 @@ static void erase_region(Entry *e, int start, int end)
 
     if (start == end)
         return;
-    e->dirty = 1;
+    e->dirty = TRUE;
     memmove(e->buffer + start, e->buffer + end,
             sizeof(e->buffer[0]) * (e->bufused - end));
     e->bufused -= (end - start);
@@ -368,7 +357,7 @@ static int entry_clear_dirty(LuaState *L)
 {
     Entry *e  = ms_lua_checkclass(L, CLASS, 1);
 
-    e->dirty = 0;
+    e->dirty = FALSE;
     return 0;
 }
 
@@ -383,7 +372,6 @@ static int entry_is_dirty(LuaState *L)
 static const LuaLReg entry_methods[] = {
     {"new", entry_new},
     {"keypress", entry_keypress},
-    {"set_prompt", entry_set_prompt},
     {"move", entry_move},
     {"move_to", entry_move_to},
     {"get", entry_get},
@@ -406,6 +394,5 @@ static const LuaLReg entry_meta[] = {
 int luaopen_moonshine_ui_entry(LuaState *L)
 {
     ms_lua_class_register(L, CLASS, entry_methods, entry_meta);
-    g_print("loaded entry\n");
     return 1;
 }

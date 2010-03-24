@@ -1,17 +1,18 @@
 #include "moonshine/config.h"
 #include "moonshine/lua.h"
+#include "moonshine/lua_var.h"
 
 #include <glib.h>
 
 typedef struct {
-    MSLuaRef *callback;
+    MSLuaVar *callback;
     guint idle_tag;
     guint timer_tag;
 } IdleCallContext;
 
 static gboolean on_call(IdleCallContext *ctx, guint other_tag)/*{{{*/
 {
-    LuaState *L = ms_lua_pushref(ctx->callback);
+    LuaState *L = ms_lua_var_push(ctx->callback);
 
     g_source_remove(other_tag);
 
@@ -20,7 +21,7 @@ static gboolean on_call(IdleCallContext *ctx, guint other_tag)/*{{{*/
         lua_pop(L, 1);
     }
 
-    ms_lua_unref(ctx->callback);
+    ms_lua_var_unref(ctx->callback);
     g_free(ctx);
 
     return FALSE;
@@ -44,7 +45,7 @@ static gboolean on_timeout(gpointer user_data)/*{{{*/
  */
 static int idle_call(LuaState *L)/*{{{*/
 {
-    MSLuaRef *callback = ms_lua_ref_checktype(L, 1, LUA_TFUNCTION);
+    MSLuaVar *callback = ms_lua_var_new_type(L, 1, LUA_TFUNCTION);
     int deadline       = CLAMP(luaL_optinteger(L, 2, 250), 0, 10000);
 
     if (deadline == 0) {

@@ -1,84 +1,59 @@
 -- This module provides an evaluator for moonshine commands.
--- Moonshine commands are the /foo bar baz strings that you 
--- type in the entry area.
---
--- shell.eval('/foo bar baz')
--- shell.call('foo', 'bar baz')
---
--- shell.define(name, {
---     func = function(text) assert(text == 'bar baz') end,
--- }
---
--- shell.require(name): shortcut for shell.define(name, require('moonshine.shell.' .. name))
---
--- TODO: document spec argument to shell.define.
-local parseopt = require "moonshine.parseopt"
 
-local M        = {}
-local CMD      = {}
+local Shell = new "moonshine.object"
 
-function M.call(name, arg)
-    local func = CMD[name]
-
-    if not func then
-        local ok, errmsg = pcall(M.require, name)
-        if ok then
-            func = CMD[name]
-        elseif not errmsg:match("module 'moonshine.shell." .. name .."' not found:") then
-            run_hook('shell error', errmsg)
-            return false
-        end
-    end
-
-    if func then
-        local ok, errmsg = pcall(func, arg)
-        if not ok then
-            run_hook('shell error', errmsg)
-            return false
-        else
-            return true
-        end
-    else
-        run_hook("unknown command", name, arg)
-        return nil
-    end
+function Shell:__init(namespace)
+    self._namespace = namespace or 'moonshine.shell'
+    self._command   = {}
 end
 
-function M.eval(line)
-    local name, pos = line:match("^/([%w_]+)()")
-    local arg
+function Shell:bind(name, proto)
+    local cmd = proto:new()
+    self._command[name] = cmd
+end
+
+function Shell:bind_function(name, func)
+    local cmd = new "moonshine.cmd"
+    function cmd:parse(text) return text end
+    function cmd:run(text) func(text) end
+
+    self._command[name] = cmd
+end
+
+function Shell:eval(line)
+    local name, pos = line:match("^([%w_]+)()")
+    local text
     if name then
         name = name:lower()
-        arg  = line:sub(pos+1)
+        text = line:sub(pos+1)
     else
-        name = "say"
-        arg  = line
+        name = 'say'
+        text = line
     end
 
-    return M.call(name, arg)
+    return self:_call(name, text)
 end
 
-function M.define(name, option)
-    local spec = option.spec
-    local run  = option.run
+function Shell:_call(name, text)
+    local cmd = self._command[name] or self:_autoload(name)
+    if cmd then
+        cmd:run(cmd:parse(text))
+        return true
+    else
+        return false
+    end
+end
 
-    assert(name, "name required")
-    assert(run,  "run field required")
-
-    if spec then
-        local parser = parseopt.build_parser( unpack(spec) )
-        CMD[name] = function(text)
-            run( parser(text) )
+function Shell:_autoload(name)
+    if self._namespace then
+        local mod = self._namespace .. '.' .. name
+        local ok, class = pcall(require, name)
+        if ok then
+            self:bind(name, class)
         end
-    else
-        CMD[name] = run
+        return self._command[name]
     end
 end
 
-function M.require(name)
-    local mod = require("moonshine.shell." .. name)
-    M.define(name, mod)
-    return mod
-end
 
-return M
+return Shelk

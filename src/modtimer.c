@@ -1,12 +1,13 @@
 #include "moonshine/config.h"
 #include "moonshine/lua.h"
+#include "moonshine/lua_var.h"
 
 #include <glib.h>
 
 #define CLASS "moonshine.timer"
 
 struct luatimer {
-    MSLuaRef *callback;
+    MSLuaVar *callback;
     guint tag, interval;
     /* This pointer is non-NULL if we are currently executing the timer proc.
      * If the pointed-to value is set to TRUE, the timer proc will avoid
@@ -20,12 +21,12 @@ struct luatimer {
      */
     gboolean *destroyed_flag;
     /* gbooleans are 4 bytes, so save 4 bytes or so here with a bitfield */
-    gboolean enabled : 1, 
-             /* Set to TRUE if the active timer has been recreated in glib
-              * (but not GC'd), and so we should return FALSE from the timer
-              * proc.
-              */
-             quash_active_timer : 1;
+    gboolean enabled : 1,
+    /* Set to TRUE if the active timer has been recreated in glib
+    * (but not GC'd), and so we should return FALSE from the timer
+    * proc.
+    */
+    quash_active_timer : 1;
 };
 
 static gboolean timer_cb(gpointer p_timer)/*{{{*/
@@ -33,7 +34,7 @@ static gboolean timer_cb(gpointer p_timer)/*{{{*/
     struct luatimer *timer = p_timer;
     gboolean destroyed_flag = FALSE;
 
-    LuaState *L = ms_lua_pushref(timer->callback);
+    LuaState *L = ms_lua_var_push(timer->callback);
 
     g_assert(!timer->destroyed_flag);
     timer->quash_active_timer = FALSE;
@@ -52,7 +53,7 @@ static gboolean timer_cb(gpointer p_timer)/*{{{*/
         g_assert(timer->destroyed_flag == &destroyed_flag);
         timer->destroyed_flag = NULL;
     }
-    
+
     if (!lua_isboolean(L, -1)) {
         if (lua_type(L, -1) != LUA_TNIL) {
             g_warning("bad return type from timer: %s",
@@ -71,7 +72,7 @@ static gboolean timer_cb(gpointer p_timer)/*{{{*/
         return FALSE;
 
     timer->enabled = continue_timer;
-    return timer->enabled;  
+    return timer->enabled;
 }
 
 static void clear_timer(struct luatimer *timer)/*{{{*/
@@ -96,7 +97,7 @@ static void schedule_timer(struct luatimer *timer, gint interval)/*{{{*/
 
 static int timer_new(LuaState *L)/*{{{*/
 {
-    MSLuaRef *callback = ms_lua_ref_checktype(L, 2, LUA_TFUNCTION);
+    MSLuaVar *callback = ms_lua_var_new_type(L, 2, LUA_TFUNCTION);
 
     struct luatimer *timer = ms_lua_newclass(L, CLASS, sizeof(*timer));
 
@@ -114,7 +115,7 @@ static int timer_schedule(LuaState *L)/*{{{*/
 {
     struct luatimer *timer = ms_lua_checkclass(L, CLASS, 1);
     int interval = luaL_checkinteger(L, 2);
-    
+
     if (interval <= 0) {
         return luaL_argerror(L, 2, "interval cannot be negative");
     }
@@ -176,6 +177,8 @@ static int timer_gc(LuaState *L)/*{{{*/
         g_assert(timer->quash_active_timer);
         *timer->destroyed_flag = TRUE;
     }
+
+    ms_lua_var_unref(timer->callback);
 
     return 0;
 }/*}}}*/

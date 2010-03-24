@@ -8,7 +8,7 @@ modules = {
    'moonshine.tree',
    'moonshine.ui.buffer',
    'moonshine.ui.entry',
-   'moonshine.ui.statusbar',
+   'moonshine.ui.label',
    'moonshine.ui.term',
 }
 

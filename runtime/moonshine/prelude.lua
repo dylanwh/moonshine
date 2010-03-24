@@ -25,18 +25,37 @@ end--}}}
 
 string.join = join
 
-function accessor(slot)
-    return function(self, ...)
-        if select('#', ...) == 0 then
-            return self[slot]
-        else
-            self[slot] = ...
-            return self[slot]
+function new(mod, ...)
+    local class = require(mod)
+    assert(type(class) == 'table' or type(class) == 'userdata', "module " .. mod .. " did not return object")
+    return class:new(...)
+end
+
+function map(f, list, ...)
+    local result = {}
+    if not list then
+        return result
+    end
+    for i, x in ipairs(list) do
+        result[i] = f(x, ...)
+    end
+    return result
+end
+
+function grep(f, list, ...)
+    local result = {}
+    if not list then return result end
+    local i = 1
+    for _, x in ipairs(list) do
+        if f(x, ...) then
+            result[i] = x
+            i = i + 1
         end
     end
 end
 
-function new(mod, ...)
-    local class = require(mod)
-    return class:new(...)
+function default(t, val)
+    local mt = { __index = function() return val end }
+    return setmetatable(t, mt)
 end
+

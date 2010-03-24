@@ -1,12 +1,12 @@
 -- vim: set et:
 local core  = require "moonshine.parseopt.core"
 local lpeg  = require "lpeg"
-local M     = {} 
+local M     = {}
 
 -- {{{ spec parsing stuff
 local HINTS = { s = 'string', n = 'number', t = 'table', l = 'list', b = 'boolean', i = 'counter' }
 
-local P, S, R       = lpeg.P, lpeg.S, lpeg.R  
+local P, S, R       = lpeg.P, lpeg.S, lpeg.R
 local C, Ct, Cc     = lpeg.C, lpeg.Ct, lpeg.Cc
 
 local letter        = R ("az", "AZ") + S "_-"
@@ -60,7 +60,7 @@ function M.build_parser(...)--{{{
                 options[primary] = value
                 return core.EATARG
             elseif hint == 'number' then
-                options[primary] = tonumber(value) 
+                options[primary] = tonumber(value)
                 return core.EATARG
             elseif hint == 'list' then
                 if not options[primary] then
@@ -70,7 +70,7 @@ function M.build_parser(...)--{{{
                 return core.EATARG
             end
         end
-        
+
         local rest = core.parse(text, callback)
         table.insert(args, rest)
         return options, unpack(args)

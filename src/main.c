@@ -103,6 +103,7 @@ int main(UNUSED int argc, UNUSED char *argv[])
     ms_signal_reset();         // remove signal handlers and memory used.
     ms_log_free(log);          // free memory and replay any entries in the log.
     g_main_loop_unref(loop);   // free memory
+    lua_close(L);
 
     exit(0);
 }

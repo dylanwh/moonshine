@@ -1,12 +1,13 @@
 #include "moonshine/config.h"
 #include "moonshine/log.h"
 #include "moonshine/lua.h"
+#include "moonshine/lua_var.h"
 
 #include <glib.h>
 
 static void log_default_handler(const char *log_domain, GLogLevelFlags log_level, const char *message, gpointer user_data)/*{{{*/
 {
-    LuaState *L = ms_lua_pushref((MSLuaRef *)user_data);
+    LuaState *L = ms_lua_var_push((MSLuaVar *)user_data);
 
     /* argument number 1 */
     if (log_domain)
@@ -48,19 +49,25 @@ static void log_default_handler(const char *log_domain, GLogLevelFlags log_level
     }
 }/*}}}*/
 
+/* XXX: This is pretty ugly. 
+ * We store a pointer to a MSLuaVar (which is a refernece to a lua value!)
+ * in the lua registry. We do this so we can free it later,
+ * should the user call set_default_handler() more than once. */
 static int log_set_default_handler(LuaState *L)/*{{{*/
 {
-    static gboolean did_replay = FALSE;
-    MSLuaRef *func = ms_lua_ref_checktype(L, 1, LUA_TFUNCTION);
     MSLog *log     = (MSLog *)ms_lua_stash_get(L, "log");
+    MSLuaVar *func = (MSLuaVar *)ms_lua_stash_get(L, "log_handler");
 
-    g_assert(log);
+    if (func) {
+        g_log_set_default_handler(ms_log_handler, (gpointer)log);
+        ms_lua_var_free(func);
+    }
 
-    if (!did_replay)
-        ms_log_replay(log, log_default_handler, (gpointer)func);
+    func = ms_lua_var_new_type(L, 1, LUA_TFUNCTION);
+    ms_log_replay(log, log_default_handler, (gpointer)func);
+    ms_lua_stash_set(L, "log_handler", func);
 
-    did_replay = TRUE;
-    return 0;
+    return 1;
 }/*}}}*/
 
 static int log_print(LuaState *L)
@@ -80,7 +87,7 @@ static int log_print(LuaState *L)
     else if (strcasecmp(level, "INFO") == 0)     flag = G_LOG_LEVEL_INFO;
     else if (strcasecmp(level, "DEBUG") == 0)    flag = G_LOG_LEVEL_DEBUG;
     else return luaL_error(L, "Unknown log level: %s", level);
-    
+
     g_log(domain, flag, "%s", message);
 
     return 0;

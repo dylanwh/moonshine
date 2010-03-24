@@ -1,11 +1,12 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
+#include <moonshine/lua_var.h>
 #include <gnet.h>
 
 #define CLASS "moonshine.net.client"
 #define REFS  "moonshine.net._client"
 
-/* {{{ tility functions */
+/* {{{ Utility functions */
 inline static int push_event(LuaState *L, GConnEvent *event)/*{{{*/
 {
     char *type;
@@ -40,18 +41,17 @@ inline static void push_weaktable(LuaState *L)/*{{{*/
 
 static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)/*{{{*/
 {
-    MSLuaRef *func = userdata;
-    LuaState *L    = ms_lua_pushref(func);    // push function
+    LuaState *L    = ms_lua_var_push((MSLuaVar *)userdata);    // push function
     int argc       = 1;
     lua_getfield(L, LUA_REGISTRYINDEX, REFS); // push REFS
     lua_pushlightuserdata(L, conn);           // push light ud
     lua_gettable(L, -2);                      // pop light ud, push value of REFS[ud]
-    g_assert(!lua_isnil(L, -1));    
+    g_assert(!lua_isnil(L, -1));
     lua_remove(L, -2);                        // pop REFS
     argc += push_event(L, event);             // push 1 or 2 arguments onto the stack.
 
-    // call func(client, event_type [, buffer ]). 
-    if (lua_pcall(L, argc, 0, 0)) 
+    // call func(client, event_type [, buffer ]).
+    if (lua_pcall(L, argc, 0, 0))
         g_warning("moonshine error in client callback: %s", lua_tostring(L, -1));
 }/*}}}*/
 /* }}} */
@@ -59,7 +59,7 @@ static void client_callback(GConn *conn, GConnEvent *event, gpointer userdata)/*
 /* {{{ Client Structure */
 typedef struct {
     GConn *conn;
-    MSLuaRef *callback;
+    MSLuaVar *callback;
 } Client; /* }}} */
 
 /* {{{ Methods */
@@ -68,9 +68,9 @@ static int client_new(LuaState *L)/*{{{*/
     luaL_checktype(L, 1, LUA_TTABLE);
     const char *host = luaL_checkstring(L, 2);
     guint port       = luaL_checkinteger(L, 3);
-    MSLuaRef *func   = ms_lua_ref_checktype(L, 4, LUA_TFUNCTION);
+    MSLuaVar *func   = ms_lua_var_new_type(L, 4, LUA_TFUNCTION);
     GConn  *conn     = gnet_conn_new(host, port, client_callback, func);
-    Client *client   = ms_lua_newclass(L, CLASS, sizeof(Client)); 
+    Client *client   = ms_lua_newclass(L, CLASS, sizeof(Client));
 
     client->conn     = conn;
     client->callback = func;
@@ -159,7 +159,7 @@ static int client_gc(LuaState *L)/*{{{*/
 {
     Client *client = ms_lua_toclass(L, CLASS, 1);
     gnet_conn_delete(client->conn);
-    ms_lua_unref(client->callback);
+    ms_lua_var_unref(client->callback);
 
     return 0;
 }/*}}}*/
@@ -188,6 +188,5 @@ int luaopen_moonshine_net_client(LuaState *L)/*{{{*/
     push_weaktable(L);
     lua_setfield(L, LUA_REGISTRYINDEX, REFS);
     ms_lua_class_register(L, CLASS, client_methods, client_meta);
-
     return 1;
 }/*}}}*/

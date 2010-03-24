@@ -1,5 +1,5 @@
 -- API
--- keymap:bind('^[1', '/window goto 1')
+-- keymap:bind('^[1', 'window goto 1')
 --
 -- keymap:keypress('^[')
 -- keymap:keypress('1')
@@ -17,8 +17,8 @@ end
 
 local Keymap = new "moonshine.object"
 
-function Keymap:__init(attr)
-    self._shell  = attr.shell or new "moonshine.shell"
+function Keymap:__init(shell)
+    self._shell  = assert(shell, "shell parameter is required")
     self._tree   = new "moonshine.tree"
     self._keybuf = ""
 end
@@ -39,8 +39,8 @@ function Keymap:keypress(key)
         shell:eval(text)
         return true
     elseif dirn > 0 then
-        index = index + 1
-        found_key, text = tree:lookup_index(index)
+        index     = index + 1
+        found_key = tree:lookup_index(index)
     end
 
     if found_key == nil then

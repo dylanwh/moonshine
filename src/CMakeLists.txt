@@ -5,18 +5,19 @@ ADD_EXECUTABLE(moonshine
     async-queue-source.c
     signal.c
     lua.c
+    lua_var.c
     log.c
     main.c
     parseopt.c
 
     modidle.c
     modlog_core.c
-    modloop.c
+    modloop_core.c
     modnet_client.c
     modparseopt_core.c
     modui_buffer.c
     modui_entry.c
-    modui_statusbar.c
+    modui_label.c
     modui_term.c
 
     avl/avl.c
@@ -30,6 +31,23 @@ SET_TARGET_PROPERTIES(moonshine PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${MOONSHINE_BINARY_DIR})
 
 TARGET_LINK_LIBRARIES(moonshine
+    ${SLANG_LIBRARY}
+    ${GLIB_LIBRARIES}
+    ${GNET_LIBRARIES}
+    ${LUA_LIBRARIES}
+    ${PURPLE_LIBRARIES})
+
+
+ADD_EXECUTABLE(test_lua_var
+    test_lua_var.c
+    lua.c
+    lua_var.c
+)
+
+SET_TARGET_PROPERTIES(test_lua_var PROPERTIES 
+    RUNTIME_OUTPUT_DIRECTORY ${MOONSHINE_BINARY_DIR})
+
+TARGET_LINK_LIBRARIES(test_lua_var
     ${SLANG_LIBRARY}
     ${GLIB_LIBRARIES}
     ${GNET_LIBRARIES}

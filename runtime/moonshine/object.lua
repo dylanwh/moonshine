@@ -8,21 +8,12 @@ function mt.__index(self, slot)
     end
 end
 
-function Object.new(proto, attr)
+function Object.new(proto, ...)
     local self = setmetatable( { __proto = proto }, mt)
    
-    if attr then
-        for k, v in pairs(attr) do
-            local f = self[k]
-            if f then
-                f(self, v)
-            end
-        end
-    end
-
     local init = self.__init
     if init then
-        init(self)
+        init(self, ...)
     end
 
     return self
@@ -38,6 +29,14 @@ function Object:callback(name, ...)
         end
         return self[name](self, unpack(args))
     end
+end
+
+function Object:get_slot(name)
+    return self[ '!' .. name ]
+end
+
+function Object:set_slot(name, val)
+    self['!' .. name] = val
 end
 
 function Object:def_accessor(name)

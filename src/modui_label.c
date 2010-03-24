@@ -2,31 +2,31 @@
 #include <moonshine/lua.h>
 #include <moonshine/term.h>
 
-#define CLASS "moonshine.ui.statusbar"
+#define CLASS "moonshine.ui.label"
 typedef struct {
     char *text;
-} Statusbar;
+} Label;
 
-static int statusbar_new(LuaState *L)
+static int label_new(LuaState *L)
 {
     const char *text = luaL_optstring(L, 2, ""); 
-    Statusbar *t         = ms_lua_newclass(L, CLASS, sizeof(Statusbar));
+    Label *t         = ms_lua_newclass(L, CLASS, sizeof(Label));
     t->text          = g_strdup(text);
     return 1;
 }
 
-static int statusbar_set(LuaState *L)
+static int label_set(LuaState *L)
 {
-    Statusbar *t         = ms_lua_checkclass(L, CLASS, 1);
+    Label *t         = ms_lua_checkclass(L, CLASS, 1);
     const char *text = luaL_checkstring(L, 2);
     g_free(t->text);
     t->text = g_strdup(text);
     return 0;
 }
 
-static int statusbar_render(LuaState *L)
+static int label_render(LuaState *L)
 {
-    Statusbar *t = ms_lua_checkclass(L, CLASS, 1);
+    Label *t = ms_lua_checkclass(L, CLASS, 1);
     int row = luaL_checkinteger(L, 2);
     int cols = MS_TERM_COLS;
 
@@ -53,36 +53,36 @@ static int statusbar_render(LuaState *L)
     return 0;
 }
 
-static int statusbar_tostring(LuaState *L)
+static int label_tostring(LuaState *L)
 {
     char buff[32];
     sprintf(buff, "%p", ms_lua_toclass(L, CLASS, 1));
-    lua_pushfstring(L, "Statusbar (%s)", buff);
+    lua_pushfstring(L, "Label (%s)", buff);
     return 1;
 }
 
-static int statusbar_gc(LuaState *L)
+static int label_gc(LuaState *L)
 {
-    Statusbar *t = ms_lua_toclass(L, CLASS, 1);
+    Label *t = ms_lua_toclass(L, CLASS, 1);
     g_free(t->text);
     return 0;
 }
 
-static const LuaLReg statusbar_methods[] = {
-    {"new", statusbar_new},
-    {"render", statusbar_render},
-    {"set", statusbar_set},
+static const LuaLReg label_methods[] = {
+    {"new", label_new},
+    {"render", label_render},
+    {"set", label_set},
     {0, 0}
 };
 
-static const LuaLReg statusbar_meta[] = {
-    {"__gc", statusbar_gc},
-    {"__tostring", statusbar_tostring},
+static const LuaLReg label_meta[] = {
+    {"__gc", label_gc},
+    {"__tostring", label_tostring},
     {0, 0}
 };
 
-int luaopen_moonshine_ui_statusbar(LuaState *L)
+int luaopen_moonshine_ui_label(LuaState *L)
 {
-    ms_lua_class_register(L, CLASS, statusbar_methods, statusbar_meta);
+    ms_lua_class_register(L, CLASS, label_methods, label_meta);
     return 1;
 }

@@ -1,5 +1,6 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
+#include <moonshine/lua_var.h>
 #include "avl/avl.h"
 
 #define CLASS "moonshine.tree"
@@ -7,12 +8,12 @@
 struct luatree/*{{{*/
 {
     struct avl_tree_t *avltree;
-    MSLuaRef *keycmp; /* use strcmp if null */
+    MSLuaVar *keycmp; /* use strcmp if null */
 };/*}}}*/
 
 struct luaitem/*{{{*/
 {
-    MSLuaRef *key, *value;
+    MSLuaVar *key, *value;
     struct luatree *tree;
 };/*}}}*/
 
@@ -20,8 +21,8 @@ static void free_item(void *vp_item)/*{{{*/
 {
     struct luaitem *item = vp_item;
 
-    ms_lua_unref(item->key);
-    ms_lua_unref(item->value);
+    ms_lua_var_unref(item->key);
+    ms_lua_var_unref(item->value);
 
     g_free(item);
 }/*}}}*/
@@ -34,13 +35,13 @@ static int compare_keys(const void *vp_b)/*{{{*/
     int result;
 
     if (tree->keycmp) {
-        LuaState *L = ms_lua_pushref(tree->keycmp);
+        LuaState *L = ms_lua_var_push(tree->keycmp);
         lua_pushvalue(L, -2); /* re-push key A */
-        LuaState *Lb = ms_lua_pushref(b->key);
+        LuaState *Lb = ms_lua_var_push(b->key);
         g_assert(L == Lb);
 
         lua_call(L, 2, 1);
-        
+
         if (lua_type(L, -1) != LUA_TNUMBER)
             return luaL_error(L, "tree key compare: return value from comparator is not an integer");
 
@@ -50,7 +51,7 @@ static int compare_keys(const void *vp_b)/*{{{*/
         size_t lenA, lenB;
         const char *strA, *strB;
 
-        LuaState *L = ms_lua_pushref(b->key);
+        LuaState *L = ms_lua_var_push(b->key);
 
         /* builtin strcmp */
         strA = lua_tolstring(L, -2, &lenA);
@@ -67,10 +68,10 @@ static int compare_keys(const void *vp_b)/*{{{*/
 static avl_node_t *create_node(LuaState *L, struct luatree *tree)/*{{{*/
 {
     struct luaitem *item = g_malloc(sizeof(*item));
-    item->tree = tree;
-    item->key = ms_lua_ref(L, -1);
-    item->value = ms_lua_ref(L, -2);
-    
+    item->tree  = tree;
+    item->key   = ms_lua_var_new_full(L, -1, LUA_TNONE, TRUE);
+    item->value = ms_lua_var_new_full(L, -2, LUA_TNONE, TRUE);
+
     avl_node_t *node = avl_init_node(g_malloc(sizeof(*node)), item);
 
     return node;
@@ -107,12 +108,12 @@ static void do_insert_replace(LuaState *L, struct luatree *tree)/*{{{*/
             {
                 /* Replace the existing value */
                 struct luaitem *item = node->item;
-                MSLuaRef *old_value = item->value;
-                item->value = ms_lua_ref(L, -2);
-                
+                MSLuaVar *old_value = item->value;
+                item->value = ms_lua_var_new_full(L, -2, LUA_TNONE, TRUE);
+
                 /* Clean up, then push the old value onto the stack */
                 lua_pop(L, 2);
-                ms_lua_pushref(old_value);
+                ms_lua_var_push(old_value);
                 return;
             }
     }
@@ -127,17 +128,17 @@ ret_nil:
 
 static int tree_new(LuaState *L)/*{{{*/
 {
-    MSLuaRef *keycmp = NULL;
+    MSLuaVar *keycmp = NULL;
 
     if (!lua_isnoneornil(L, 2)) {
         luaL_checktype(L, 2, LUA_TFUNCTION);
-        keycmp = ms_lua_ref(L, 2);
+        keycmp = ms_lua_var_new_full(L, 2, LUA_TNONE, TRUE);
     }
 
     struct luatree *tree = ms_lua_newclass(L, CLASS, sizeof(struct luatree));
     tree->keycmp = keycmp;
     tree->avltree = avl_alloc_tree(compare_keys, free_item);
-    
+
     return 1;
 }/*}}}*/
 
@@ -146,7 +147,7 @@ static int tree_gc(LuaState *L)/*{{{*/
     struct luatree *tree = ms_lua_checkclass(L, CLASS, 1);
     avl_free_tree(tree->avltree);
     if (tree->keycmp)
-        ms_lua_unref(tree->keycmp);
+        ms_lua_var_unref(tree->keycmp);
     return 0;
 }/*}}}*/
 
@@ -186,7 +187,7 @@ static int tree_delete(LuaState *L)/*{{{*/
     }
 
     struct luaitem *item = node->item;
-    ms_lua_pushref(item->value);
+    ms_lua_var_push(item->value);
     avl_delete_node(tree->avltree, node);
 
     return 1;
@@ -217,7 +218,7 @@ static int tree_find(LuaState *L)/*{{{*/
         lua_pushnil(L);
     } else {
         struct luaitem *item = node->item;
-        ms_lua_pushref(item->value);
+        ms_lua_var_push(item->value);
         lua_pushinteger(L, avl_index(node));
     }
 
@@ -240,8 +241,8 @@ static int tree_find_near(LuaState *L)/*{{{*/
         lua_pushnil(L);
     } else {
         struct luaitem *item = node->item;
-        ms_lua_pushref(item->key);
-        ms_lua_pushref(item->value);
+        ms_lua_var_push(item->key);
+        ms_lua_var_push(item->value);
         lua_pushinteger(L, avl_index(node));
     }
     lua_pushinteger(L, ret);
@@ -261,8 +262,8 @@ static int tree_lookup_index(LuaState *L)/*{{{*/
         lua_pushnil(L);
     } else {
         struct luaitem *item = node->item;
-        ms_lua_pushref(item->key);
-        ms_lua_pushref(item->value);
+        ms_lua_var_push(item->key);
+        ms_lua_var_push(item->value);
     }
     return 2;
 }/*}}}*/
@@ -296,6 +297,7 @@ static const LuaLReg tree_meta[] = {/*{{{*/
 
 int luaopen_moonshine_tree(LuaState *L)/*{{{*/
 {
+    ms_lua_use_env(L);
     ms_lua_class_register(L, CLASS, tree_methods, tree_meta);
     return 1;
 }/*}}}*/
