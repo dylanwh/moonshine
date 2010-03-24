@@ -10,7 +10,7 @@
         * Any characters except $ { } and whitespace.
 
     Sugar:
-        * $1         is short for $(param 1)
+        * $1         is short for $(P 1)
         * $|         is short for $(const '|')
         * $$         is short for $(const '$')
         * many other non-alphanumeric chars are also constants.
@@ -26,13 +26,14 @@ local C, Ct, Cc, Cs = lpeg.C, lpeg.Ct, lpeg.Cc, lpeg.Cs
 local match         = lpeg.match
 -- }}}
 
+-- {{{ grammar
 local letter  = R('AZ','az') + '_'
 local digit   = R '09'
 local space   = S " \t\r\n"
 
-local number  = digit^1
-              + digit^1 * '.' * digit^1
-              + '.' * digit^1
+local number  = C(digit^1 * '.' * digit^1)
+              + C(digit^1)
+              + C('.' * digit^1)
 local word    = letter * (letter + digit)^0
 local quote   = function(chr)
     local any = (P ("\\" .. chr) / chr)
@@ -41,46 +42,46 @@ local quote   = function(chr)
     return chr * Cs( any^0 ) * chr
 end
 
+local punct   = S "~!%@#^&*-+=/\\,.|<>[]():;`"
 local quoted  = quote([["]]) + quote([[']])
 local name    = C( word )
-
+local junk    = C((punct^1 + digit + letter)^1)
 local literal = C( (P(1) - '$')^1 )
-local param   = '$'  * Ct( Cc "param" * (digit / tonumber) )
-local const  = '$'  * Ct( Cc "const" * C(P(1)))
-local junk    = C((S "~!%@#^&*-+=/\\,.|<>[]():;`"^1 + digit + letter)^1)
 
--- {{{ grammar
-local format = P {
+local top = {} -- special value to represent "top" opcode.
+local template = P {
     'top',
-    top      = Ct( Cc "top" * (V 'escape' + literal)^1 ) * -1,
-    escape   = V 'macro' + param + const + ('$' * Ct(name)),
-    macro    = '${' * space^0 * Ct(name * (space^1 * V 'tokens')^-1) * space^0 * '}',
+    top      = Ct( Cc(top) * (V 'escape' + literal)^1 ) * -1,
+    escape   = V 'macro' + V 'param' + V 'const',
+    param    = '$'  * Ct( Cc 'P' * (digit^1 / tonumber) ),
+    const    = '$$' * Cc '$'
+             + '$'  * Ct( Cc 'const' * C(punct)),
+    macro    = '${' * space^0 * '}' * Cc ''
+             + '${' * space^0 * Ct(name * (space^1 * V 'tokens')^-1) * space^0 * '}'
+             + '${' * space^0 * Ct(Cc "apply" * V 'tokens') * space^0 * '}'
+             + '$'  * Ct(name),
     tokens   = V 'token' * (space^1 * V 'token') ^ 0,
-    token    = (number / tonumber) + quoted + junk + V 'escape'
+    token    = number / tonumber + name + quoted + junk + V 'escape'
 }
 --}}}
 
-local function read_str(str) return match(format, str) end
+local function read_str(str) return match(template, str) end
 
 local function read_ast(ast)
     if type(ast) == 'table' then
         local op = table.remove(ast, 1)
-        if op == 'top' then
+        if op == top then
             local code = "local P = { ... }\nreturn %s"
             local args = {}
             for i, x in ipairs(ast) do
                 args[i] = read_ast(x)
             end
             return string.format(code, table.concat(args, " .. "))
-        elseif op == 'const' then
-            return 'C[' .. read_ast(ast[1]) .. ']'
-        elseif op == 'param' then
-            if ast[1] == 0 then
-                return '_all(P)'
-            else
-                return 'P[' .. read_ast(ast[1]) .. ']'
-            end
-        elseif type(ast[1]) == 'table' and ast[1][1] == 'param' and ast[1][2] == 0 then
+        elseif op == 'P' and ast[1] == 0 then
+            return '_concat(P)'
+        elseif op == 'P' then
+            return op .. '[' .. read_ast(ast[1]) .. ']'
+        elseif type(ast[1]) == 'table' and ast[1][1] == 'P' and ast[1][2] == 0 then
             return string.format("%s(...)", op)
         else
             local code = '%s(%s)'
@@ -107,43 +108,40 @@ local function read_lua(env, lua)
     return f
 end
 
-local Format = new "moonshine.object"
+local Template = new "moonshine.object"
 
-function Format:__init()
-    self.env   = { }
-    self.env.C = {
-        ['$'] = '$',
+function Template:__init()
+    self.env   = self:_build_env()
+    self.const = self:_build_const()
+end
+
+function Template:_build_const() return { } end
+
+function Template:_build_env()
+    local env = {
+        apply   = function (name, ...) return self:apply(name, ...) end,
+        const   = function (C) return self.const[C] or C end,
+        concat  = function (...) return table.concat({ ... }, " ") end,
+        _concat = function (P) return table.concat(P, " ") end,
     }
-    self.env._all = function(P)
-        return table.concat(P, " ")
-    end
+    setmetatable(env, { __index = function () return function () return "" end end })
 
-    setmetatable(self.env,   { __index = function () return function () return "" end end })
-    setmetatable(self.env.C, { __index = function () return "" end })
+    return env
 end
 
-function Format:define(name, str)
-    self.env.C[name] = tostring(str)
-end
-
-function Format:create(name, code)
+-- add a new Template.
+function Template:define(name, code)
     self.env[name] = read_lua(self.env, read_ast(read_str(code)))
 end
 
-function Format:apply(name, ...)
-    return self.env[name](...)
+-- apply a Template to a set of arguments.
+-- recursive Template are not allowed.
+function Template:apply(name, ...)
+    local f = self.env[name]
+    self.env[name] = nil
+    local r = f(...)
+    self.env[name] = f
+    return r
 end
 
-print(read_ast(read_str('${msg $0}')))
-local f = Format:new()
-f:define('|', "pipe")
-f:create("msg", "[$1]$| $2")
-f:create("bmsg", "<b>${msg $0}</b>")
-print (f:apply("bmsg", "dylan", "hello, world!"))
-
-while true do
-    local line = io.read()
-    print(read_ast(read_str(line)))
-end
-
-return Format
+return Template
