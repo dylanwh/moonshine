@@ -95,12 +95,14 @@ int main(UNUSED int argc, UNUSED char *argv[])
     /* Start the show */
     lua_getglobal(L,  "require");
     lua_pushstring(L, "moonshine");
-    if(lua_pcall(L, 1, 0, 0) != 0)
+    if(lua_pcall(L, 1, 0, 0) != 0) {
         g_critical("lua error in require 'moonshine': %s", lua_tostring(L, -1));
+    }
 
     /* Cleanup time */
     g_io_channel_unref(input); // free memory.
     ms_signal_reset();         // remove signal handlers and memory used.
+    ms_term_reset();
     ms_log_free(log);          // free memory and replay any entries in the log.
     g_main_loop_unref(loop);   // free memory
     lua_close(L);

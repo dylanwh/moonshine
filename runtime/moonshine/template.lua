@@ -10,7 +10,7 @@
         * Any characters except $ { } and whitespace.
 
     Sugar:
-        * $1         is short for $(P 1)
+        * $1         is short for $(param 1)
         * $|         is short for $(const '|')
         * $$         is short for $(const '$')
         * many other non-alphanumeric chars are also constants.
@@ -53,7 +53,7 @@ local template = P {
     'top',
     top      = Ct( Cc(top) * (V 'escape' + literal)^1 ) * -1,
     escape   = V 'macro' + V 'param' + V 'const',
-    param    = '$'  * Ct( Cc 'P' * (digit^1 / tonumber) ),
+    param    = '$'  * Ct( Cc 'param' * (digit^1 / tonumber) ),
     const    = '$$' * Cc '$'
              + '$'  * Ct( Cc 'const' * C(punct)),
     macro    = '${' * space^0 * '}' * Cc ''
@@ -65,23 +65,23 @@ local template = P {
 }
 --}}}
 
-local function read_str(str) return match(template, str) end
+local function read(str) return match(template, str) end
 
 local function read_ast(ast)
     if type(ast) == 'table' then
         local op = table.remove(ast, 1)
         if op == top then
-            local code = "local P = { ... }\nreturn %s"
+            local code = "local param = { ... }\nreturn %s"
             local args = {}
             for i, x in ipairs(ast) do
                 args[i] = read_ast(x)
             end
             return string.format(code, table.concat(args, " .. "))
-        elseif op == 'P' and ast[1] == 0 then
-            return '_concat(P)'
-        elseif op == 'P' then
-            return op .. '[' .. read_ast(ast[1]) .. ']'
-        elseif type(ast[1]) == 'table' and ast[1][1] == 'P' and ast[1][2] == 0 then
+        elseif op == 'param' and ast[1] == 0 then
+            return '_concat(param)'
+        elseif op == 'param' then
+            return 'param[' .. read_ast(ast[1]) .. ']'
+        elseif type(ast[1]) == 'table' and ast[1][1] == 'param' and ast[1][2] == 0 then
             return string.format("%s(...)", op)
         else
             local code = '%s(%s)'
@@ -102,36 +102,29 @@ local function read_ast(ast)
     end
 end
 
-local function read_lua(env, lua)
-    local f = loadstring(lua)
-    setfenv(f, env)
-    return f
-end
-
 local Template = new "moonshine.object"
 
+Template.const = {}
+Template.env = {
+    concat  = function (...) return table.concat({ ... }, " ") end,
+    _concat = function (P) return table.concat(P, " ") end,
+}
+setmetatable(Template.env, { __index = function () return function () return "" end end })
+
 function Template:__init()
-    self.env   = self:_build_env()
-    self.const = self:_build_const()
-end
-
-function Template:_build_const() return { } end
-
-function Template:_build_env()
-    local env = {
-        apply   = function (name, ...) return self:apply(name, ...) end,
-        const   = function (C) return self.const[C] or C end,
-        concat  = function (...) return table.concat({ ... }, " ") end,
-        _concat = function (P) return table.concat(P, " ") end,
+    local base = self.__parent.env
+    self.env = {
+        const = function (C) return self.const[C] or '' end,
+        apply = function (name, ...) return self:apply(name, ...) end,
     }
-    setmetatable(env, { __index = function () return function () return "" end end })
-
-    return env
+    setmetatable(self.env, { __index = base })
 end
 
 -- add a new Template.
 function Template:define(name, code)
-    self.env[name] = read_lua(self.env, read_ast(read_str(code)))
+    local f = loadstring(read_ast(read(code)))
+    setfenv(f, self.env)
+    self.env[name] = f
 end
 
 -- apply a Template to a set of arguments.

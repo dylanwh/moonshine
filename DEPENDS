@@ -8,12 +8,12 @@ runtime deps:
 * liblua5.1-lpeg2
 * libglib2.0-0
 * libgnet2.0-0
-* libslang2
+* libncursesw5
  
 build deps:
 * cmake       
 * pkg-config 
 * libgnet-dev
 * libglib2.0-dev
-* libslang2-dev
+* libncursesw5-dev
 * re2c

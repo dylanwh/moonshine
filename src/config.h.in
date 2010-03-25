@@ -6,4 +6,6 @@
 #define UNUSED __attribute__((unused))
 #define PURE   __attribute__((pure)) 
 #define CONST   __attribute__((const)) 
+#define INLINE  inline static
 
+#cmakedefine MOONSHINE_USE_GET_WCH

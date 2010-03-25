@@ -102,7 +102,6 @@ static LuaLReg functions[] = {/*{{{*/
 int luaopen_moonshine_log_core(LuaState *L)/*{{{*/
 {
     ms_lua_module(L, functions);
-    g_debug("This is a test of the emergency broadcast system.");
     return 1;
 }/*}}}*/
 

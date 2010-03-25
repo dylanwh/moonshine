@@ -39,6 +39,9 @@ SET(MOONSHINE_VERSION "p4")
 OPTION(IRONTROUSERS 
     "Add build/modules and runtime/ into the lua package.cpath and path")
 
+OPTION(MOONSHINE_USE_GET_WCH
+    "Use get_wch() instead reading into utf8 bytes with getch()")
+
 IF (NOT IRONTROUSERS)
     MESSAGE(STATUS "Irontrousers: disabled")
     SET(MOONSHINE_PATH  "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua")

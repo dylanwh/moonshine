@@ -154,7 +154,7 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
 
     while (lines && bottom_row >= top_row) {
         ms_term_goto(bottom_row, lines->margin);
-        ms_term_color_use_id(lines->color);
+        ms_term_color_set(lines->color);
         ms_term_write_chars_to((unsigned char *)lines->start, (unsigned char *)lines->end);
 
         /* We want to make sure we advance at least once. So, the last line we

@@ -7,6 +7,8 @@
 /* for atexit() */
 #include <stdlib.h>
 
+static guint16 ms_term_color = 0;
+
 static void on_abort(UNUSED int sig)
 {
     ms_term_reset();
@@ -16,6 +18,7 @@ static void on_abort(UNUSED int sig)
 void ms_term_init(void)
 {
     initscr();
+    start_color();
     raw();
     noecho();
     nonl();
@@ -37,22 +40,22 @@ void ms_term_reset(void)
     endwin();
 }
 
-
-static unsigned char utf8_length[256] = {
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 31 */
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 63 */
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 95 */
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 127 */
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 159 */
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 191 */
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  /* - 223 */
-    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1   /* - 255 */
-};
-
-/* FIXME: I really should be able to use get_wch.
- * But for some reason that doesn't work. */
 gboolean ms_term_getkey(gunichar *rv)
 {
+#ifdef MOONSHINE_USE_GET_WCH
+    int code = get_wch(rv);
+    g_return_val_if_fail(code != ERR, FALSE);
+#else
+    static unsigned char utf8_length[256] = {
+        0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 31 */
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 63 */
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 95 */
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  /* - 127 */
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 159 */
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* - 191 */
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  /* - 223 */
+        3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1   /* - 255 */
+    };
     int ch = getch();
     g_return_val_if_fail(ch != ERR, FALSE);
     g_return_val_if_fail(ch <= 255, FALSE);
@@ -71,7 +74,7 @@ gboolean ms_term_getkey(gunichar *rv)
 
     g_return_val_if_fail(g_utf8_validate(buf, -1, NULL), FALSE);
     *rv = g_utf8_get_char(buf);
-
+#endif
     return TRUE;
 }
 
@@ -93,60 +96,23 @@ void ms_term_write_gunichar(const gunichar ch)
 {
     g_assert(sizeof(gunichar) == sizeof(wchar_t));
     cchar_t out;
-    setcchar(&out, (wchar_t *) &ch, A_NORMAL, 0, NULL);
+    setcchar(&out, (wchar_t *) &ch, A_NORMAL, ms_term_color, NULL);
     add_wch(&out);
 }
 
-void ms_term_write_chars_to(const guchar *u, const guchar *umax)
+void ms_term_color_set(guint16 id)
 {
-    g_return_if_fail(u < umax);
-    addnstr((const gchar *)u, (unsigned int) (umax - u));
+    ms_term_color = id;
+    color_set(id, NULL);
 }
 
-void ms_term_color_set(UNUSED const char *name, UNUSED const char *fg, UNUSED const char *bg)
-{
-    /*
-    g_return_if_fail(ms_term_colors);
-    int *color_idp = g_hash_table_lookup(ms_term_colors, name);
-    if (color_idp) {
-        int color_id = GPOINTER_TO_INT(color_idp);
-        SLtt_set_color( color_id, (char *)name, (char *) fg, (char *)bg);
-    } else {
-        last_id += 1;
-        g_hash_table_insert(ms_term_colors, g_strdup(name), GINT_TO_POINTER(last_id));
-        SLtt_set_color( last_id, (char *)name, (char *) fg, (char *)bg);
-    }
-    */
-}
-
-void ms_term_color_use(UNUSED const char *name)
-{
-    //SLsmg_set_color(ms_term_color_to_id(name));
-}
-
-guint16 ms_term_color_to_id(UNUSED const char *name) {/*{{{*/
-    /*
-    g_return_val_if_fail(ms_term_colors, 0);
-    gpointer color = g_hash_table_lookup(ms_term_colors, name);
-    if (color)
-        return GPOINTER_TO_INT(color);
-    else
-        return 0;
-    */
-    return 0;
-}
-
-void ms_term_color_use_id(UNUSED guint16 id)
-{
-}
-
-const char *ms_term_color_to_utf8(const char *name)
+const char *ms_term_color_to_utf8(guint16 id)
 {
     /* Per g_unichar_to_utf8 docs we need 6 chars *
      * here; add one for NUL                      */
     static char buf[7];
 
-    gunichar ch = MS_TERM_COLOR_MIN_UCS + ms_term_color_to_id(name);
+    gunichar ch = MS_TERM_COLOR_MIN_UCS + id;
     g_assert(ch <= MS_TERM_COLOR_MAX_UCS); /* XXX: handle this failure better... */
 
     gint len = g_unichar_to_utf8(ch, buf);

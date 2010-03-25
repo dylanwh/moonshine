@@ -1,5 +1,6 @@
 #include "moonshine/config.h"
 #include "moonshine/log.h"
+#include "moonshine/term.h"
 #include <glib.h>
 
 

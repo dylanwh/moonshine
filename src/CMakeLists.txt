@@ -65,12 +65,25 @@ ADD_CUSTOM_COMMAND(
     MAIN_DEPENDENCY preload.lua
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-CONFIGURE_FILE(config.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/moonshine/config.h
-    @ONLY IMMEDIATE)
-
 ADD_DEFINITIONS("-W -Wall")
 
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} ${MOONSHINE_SRC_SOURCE_DIR} )
+
+INCLUDE("CheckTypeSize")
+CHECK_TYPE_SIZE(wchar_t WCHAR_T_SIZE)
+
+SET(CMAKE_REQUIRED_INCLUDES "${GLIB_INCLUDE_DIRS}")
+SET(CMAKE_EXTRA_INCLUDE_FILES "glib.h")
+CHECK_TYPE_SIZE(gunichar GUNICHAR_SIZE)
+
+IF(${WCHAR_T_SIZE} EQUAL ${GUNICHAR_SIZE})
+    MESSAGE(STATUS "yay, sizeof(wchar_t) == sizeof(gunichar) == ${WCHAR_T_SIZE}!")
+ELSE()
+    MESSAGE(FATAL_ERROR "moonshine assumes wchar_t fits into a gunichar, which isn't the case on your platform.")
+ENDIF()
+
+CONFIGURE_FILE(config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/moonshine/config.h
+    @ONLY IMMEDIATE)
 
 INSTALL(TARGETS moonshine RUNTIME DESTINATION bin)
