@@ -558,5 +558,11 @@ static const LuaLReg buffer_meta[] = {/*{{{*/
 int luaopen_moonshine_ui_buffer(LuaState *L)/*{{{*/
 {
     ms_lua_class_register(L, CLASS, buffer_methods, buffer_meta);
+    char buf[8];
+    memset(buf, 0, sizeof(buf));
+    g_unichar_to_utf8(MS_TERM_INDENT_MARK_UCS, buf);
+    lua_pushstring(L, buf);
+    lua_setfield(L, -2, "INDENT");
+
     return 1;
 }/*}}}*/
