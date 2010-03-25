@@ -23,7 +23,6 @@ void        ms_term_reset(void);
 void        ms_term_resize(void);
 gboolean    ms_term_getkey(gunichar *rv);
 PURE int    ms_term_charwidth(gunichar ch);
-void        ms_term_write_gunichar(gunichar c);
 
 
 INLINE void ms_term_refresh()   { refresh();  }
@@ -35,7 +34,8 @@ const char *ms_term_color_to_utf8(guint16 id);
 INLINE void ms_term_init_pair(guint16 id, guint16 fg, guint16 bg) { init_pair(id, fg, bg);  }
 INLINE void ms_term_init_color(guint16 n, guint16 r, guint16 g, guint16 b) { init_color(n, r, g, b); }
 
-INLINE int ms_term_write_chars(const char *s) { return addstr(s); }
+void        ms_term_write_gunichar(gunichar c);
+INLINE int  ms_term_write_chars(const char *s) { return addstr(s); }
 INLINE void ms_term_write_chars_to(const guchar *u, const guchar *umax)
 {
     g_return_if_fail(u <= umax);

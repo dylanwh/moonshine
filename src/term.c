@@ -94,9 +94,12 @@ void ms_term_resize(void)
 
 void ms_term_write_gunichar(const gunichar ch)
 {
-    g_assert(sizeof(gunichar) == sizeof(wchar_t));
     cchar_t out;
-    setcchar(&out, (wchar_t *) &ch, A_NORMAL, ms_term_color, NULL);
+    wchar_t buf[2];
+    buf[0] = (wchar_t) ch;
+    buf[1] = L'\0';
+
+    setcchar(&out, buf, A_NORMAL, ms_term_color, NULL);
     add_wch(&out);
 }
 
