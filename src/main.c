@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 
 static void on_resize(UNUSED int sig, gpointer ud)/*{{{*/
 {
@@ -35,25 +36,26 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud)
     LuaState *L = ud;
 
     if (cond & G_IO_IN) {
-        do {
-            gunichar c = ms_term_getkey();
-            char buf[8];
-            memset(buf, 0, sizeof(buf));
-            g_unichar_to_utf8(c, buf);
-
-            lua_getglobal(L, "on_input");
-            if (!lua_isnil(L, -1)) {
+        lua_getglobal(L, "on_input");
+        if (!lua_isnil(L, -1)) {
+            gunichar ch = 0;
+            gboolean ok = ms_term_getkey(&ch);
+            if (ok) {
+                char buf[8];
+                memset(buf, 0, sizeof(buf));
+                g_unichar_to_utf8(ch, buf);
                 lua_pushstring(L, buf);
-                if (lua_pcall(L, 1, 0, 0) != 0) {
-                    g_warning("lua error in on_input(): %s", lua_tostring(L, -1));
-                    //return TRUE;
-                }
             }
             else {
-                lua_pop(L, 1);
-                return TRUE;
+                lua_pushnil(L);
             }
-        } while (ms_term_input_pending(-1));
+            if (lua_pcall(L, 1, 0, 0) != 0) {
+                g_warning("lua error in on_input(): %s", lua_tostring(L, -1));
+            }
+        }
+        else {
+            lua_pop(L, 1);
+        }
         return TRUE;
     }
     return FALSE;
@@ -67,6 +69,7 @@ int main(UNUSED int argc, UNUSED char *argv[])
     GIOChannel *input;
     guint tag;
 
+    setlocale(LC_ALL, "");
     ms_signal_init(); // initialize moonshine signal callback
 
     MS_PRELOAD_ALL(L); // preload moonshine modules.

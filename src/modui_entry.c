@@ -108,8 +108,9 @@ static int entry_get(LuaState *L)
     }
 }
 
-inline static int clear(Entry *e)
+static int entry_clear(LuaState *L)
 {
+    Entry *e  = ms_lua_checkclass(L, CLASS, 1);
     e->bufused = 0;
     e->curs_off = e->view_off = 0;
     /* If we have more than a page of buffer, free it, to prevent a single
@@ -121,12 +122,6 @@ inline static int clear(Entry *e)
     }
     e->dirty = FALSE;
     return 0;
-}
-
-static int entry_clear(LuaState *L)
-{
-    Entry *e  = ms_lua_checkclass(L, CLASS, 1);
-    return clear(e);
 }
 
 static int entry_set(LuaState *L)
@@ -242,7 +237,7 @@ static int entry_render(LuaState *L)
     /* FIXME: This assumes 1 byte == 1 char */
     guint lmargin = strlen(prompt);
     ms_term_goto(MS_TERM_LINES - 1, 0);
-    ms_term_write_chars((char *)prompt);
+    ms_term_write_chars((gchar *)prompt);
 
     if (try_render(e, lmargin) == -1) {
         e->view_off = center_view(e, MS_TERM_COLS - lmargin);
