@@ -1,21 +1,22 @@
 --[[
-    $foo           is a macro call
-    ${foo}         is a macro call
-    ${foo bar baz} is a macro call with arguments.
+    %foo           is a macro call
+    %{foo}         is a macro call
+    %{foo bar baz} is a macro call with arguments.
 
     Arguments can be:
         * macro calls
         * sugar (described below)
         * quoted strings ("foo" or 'bar')
-        * Any characters except $ { } and whitespace.
+        * bare words (foo, foo123, foo_123, foo_bar, _)
+        * numbers (5, 8.4, .3)
 
     Sugar:
-        * $1         is short for ${param 1}
-        * $|         is short for ${const '|'}
-        * $$         is short for ${const '$'}
-        * many other non-alphanumeric chars are also constants.
+        * %1         is short for %{param 1}
+        * %%         is a literal '%'
+        * %|         is short for %{const '|'}
+        * %(TEXT)    is special, it causes TEXT to be evaluated as if it was outside of any macro call.
 
-    Literals: Anything that does not begin with a '$' is a literal.
+    Literals: Anything that does not begin with a '%' is a literal.
 ]]
 require "moonshine.prelude" -- for new()
 
@@ -46,22 +47,23 @@ end
 
 local quoted  = quote([["]]) + quote([[']])
 local name    = C( word )
-local literal = C( (P(1) - '$' )^1 )
-local inject    = '$' * lpeg.P{ "(" * C(((1 - lpeg.S"()") + lpeg.V(1))^0) * ")" }
+local literal = C( (P(1) - '%' )^1 )
 
 local top   = {TOP=1} -- special value to represent "top" opcode.
 local eval  = {EVAL= 1} -- same, for code injection.
 local template = P {
     'top',
     top      = Ct( Cc(top) * (literal + V 'escape')^1 ) * -1,
-    escape   = V 'macro' + Ct(Cc(eval) * inject) + V 'param' + V 'const',
-    param    = '$'  * Ct( Cc 'param' * (digit^1 / tonumber) ),
-    const    = '$$' * Cc '$'
-             + '$'  * Ct( Cc 'const' * P(1) ),
-    macro    = '${' * sp0 * '}' * Cc ''
-             + '${' * sp0 * Ct(name * (sp1 * V 'tokens')^-1) * sp0 * '}'
-             + '${' * sp0 * Ct(Cc "apply" * V 'tokens') * sp0 * '}'
-             + '$'  * Ct(name),
+    inject   = '(' * sp0 * C(((1 - S '()') + V 'inject')^0) * sp0 * ')',
+    escape   = V 'macro' + V 'eval' + V 'param' + V 'const',
+    eval     = '%'  * Ct( Cc(eval) * V 'inject' ),
+    param    = '%'  * Ct( Cc 'param' * (digit^1 / tonumber) ),
+    const    = '%%' * Cc '%'
+             + '%'  * Ct( Cc 'const' * C(P(1)) ),
+    macro    = '%{' * sp0 * '}' * Cc ''
+             + '%{' * sp0 * Ct(name * (sp1 * V 'tokens')^-1) * sp0 * '}'
+             + '%{' * sp0 * Ct(Cc "apply" * V 'tokens') * sp0 * '}'
+             + '%'  * Ct(name),
     tokens   = V 'token' * (sp1 * V 'token') ^ 0,
     token    = V 'escape' + quoted + name + number/tonumber,
 }
@@ -143,16 +145,8 @@ function Template:apply(name, ...)
     return r
 end
 
-require "json"
-print(read_ast(read('{foo "foo bar"}')))
-print(read_ast(read('${foo "foo bar"}')))
-print(read_ast(read('${foo $foo $bar}')))
-print(read_ast(read('${foo foo bar}')))
-print(read_ast(read('()${foo 1.2 5 .8}')))
-print(read_ast(read('${foo $(regular text, woo!)}')))
-print(read_ast(read('${foo $(I want (a)... $1, please!)}')))
-
-
+--print(read_ast(read("[debug]%| %{style debug}%1")))
+--print(read_ast(read("%{debug %(we have %1 colors and %2 styles)}")))
 
 
 return Template

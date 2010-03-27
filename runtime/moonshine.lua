@@ -16,9 +16,9 @@ Format:define_color("aqua", 0, 454, 1000)
 Format:define_style("topic", "color12", "black")
 Format:define_style("debug", "blue", "black")
 
-Format:define("topic", "${style topic}$1")
-Format:define("debug", "[debug]$| ${style debug}$1")
-Format:define("info",  "${debug $(we have $1 $(colors) and $2 styles)}")
+Format:define("topic", "%{style topic}%1")
+Format:define("debug", "[debug]%| %{style debug}%1")
+Format:define("info",  "%{debug %(we have %1 colors and %2 styles)}")
 
 buffer:print(Format:apply('info', term.colors(), term.styles()))
 
