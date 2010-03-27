@@ -10,9 +10,9 @@
         * Any characters except $ { } and whitespace.
 
     Sugar:
-        * $1         is short for $(param 1)
-        * $|         is short for $(const '|')
-        * $$         is short for $(const '$')
+        * $1         is short for ${param 1}
+        * $|         is short for ${const '|'}
+        * $$         is short for ${const '$'}
         * many other non-alphanumeric chars are also constants.
 
     Literals: Anything that does not begin with a '$' is a literal.
@@ -30,6 +30,8 @@ local match         = lpeg.match
 local letter  = R('AZ','az') + '_'
 local digit   = R '09'
 local space   = S " \t\r\n"
+local sp0     = space^0
+local sp1     = space^1
 
 local number  = C(digit^1 * '.' * digit^1)
               + C(digit^1)
@@ -42,26 +44,26 @@ local quote   = function(chr)
     return chr * Cs( any^0 ) * chr
 end
 
-local punct   = S "~!%@#^&*-+=/\\,.|<>[]():;`"
 local quoted  = quote([["]]) + quote([[']])
 local name    = C( word )
-local junk    = C((punct^1 + digit + letter)^1)
-local literal = C( (P(1) - '$')^1 )
+local literal = C( (P(1) - '$' )^1 )
+local inject    = '$' * lpeg.P{ "(" * C(((1 - lpeg.S"()") + lpeg.V(1))^0) * ")" }
 
-local top = {} -- special value to represent "top" opcode.
+local top   = {TOP=1} -- special value to represent "top" opcode.
+local eval  = {EVAL= 1} -- same, for code injection.
 local template = P {
     'top',
-    top      = Ct( Cc(top) * (V 'escape' + literal)^1 ) * -1,
-    escape   = V 'macro' + V 'param' + V 'const',
+    top      = Ct( Cc(top) * (literal + V 'escape')^1 ) * -1,
+    escape   = V 'macro' + Ct(Cc(eval) * inject) + V 'param' + V 'const',
     param    = '$'  * Ct( Cc 'param' * (digit^1 / tonumber) ),
     const    = '$$' * Cc '$'
-             + '$'  * Ct( Cc 'const' * C(punct)),
-    macro    = '${' * space^0 * '}' * Cc ''
-             + '${' * space^0 * Ct(name * (space^1 * V 'tokens')^-1) * space^0 * '}'
-             + '${' * space^0 * Ct(Cc "apply" * V 'tokens') * space^0 * '}'
+             + '$'  * Ct( Cc 'const' * P(1) ),
+    macro    = '${' * sp0 * '}' * Cc ''
+             + '${' * sp0 * Ct(name * (sp1 * V 'tokens')^-1) * sp0 * '}'
+             + '${' * sp0 * Ct(Cc "apply" * V 'tokens') * sp0 * '}'
              + '$'  * Ct(name),
-    tokens   = V 'token' * (space^1 * V 'token') ^ 0,
-    token    = number / tonumber + name + quoted + junk + V 'escape'
+    tokens   = V 'token' * (sp1 * V 'token') ^ 0,
+    token    = V 'escape' + quoted + name + number/tonumber,
 }
 --}}}
 
@@ -77,6 +79,10 @@ local function read_ast(ast)
                 args[i] = read_ast(x)
             end
             return string.format(code, table.concat(args, " .. "))
+        elseif op == eval then
+            local ast = read(ast[1])
+            ast[1] = 'concat'
+            return read_ast(ast)
         elseif op == 'param' and ast[1] == 0 then
             return '_concat(param)'
         elseif op == 'param' then
@@ -136,5 +142,17 @@ function Template:apply(name, ...)
     self.env[name] = f
     return r
 end
+
+require "json"
+print(read_ast(read('{foo "foo bar"}')))
+print(read_ast(read('${foo "foo bar"}')))
+print(read_ast(read('${foo $foo $bar}')))
+print(read_ast(read('${foo foo bar}')))
+print(read_ast(read('()${foo 1.2 5 .8}')))
+print(read_ast(read('${foo $(regular text, woo!)}')))
+print(read_ast(read('${foo $(I want (a)... $1, please!)}')))
+
+
+
 
 return Template
