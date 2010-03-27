@@ -13,12 +13,16 @@ local Format = new "moonshine.ui.format"
 
 
 Format:define_color("aqua", 0, 454, 1000)
-Format:define_style("topic", "white", "aqua")
+Format:define_style("topic", "color12", "black")
+Format:define_style("debug", "blue", "black")
+
 Format:define("topic", "${style topic}$1")
+Format:define("debug", "[debug]$| ${style debug}$1")
+Format:define("info",  "${debug ${concat we have $1 colors and $2 styles}}")
+
+buffer:print(Format:apply('info', term.colors(), term.styles()))
+
 label:set(Format:apply("topic", "TACOS!"))
-
-
-buffer:print(string.format("we have %d colors and %d color pairs", term.colors(), term.color_pairs() ))
 
 local r, c = term.dimensions()
 label:render(0)

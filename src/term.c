@@ -7,7 +7,19 @@
 /* for atexit() */
 #include <stdlib.h>
 
-static guint16 ms_term_color = 0;
+static gshort     ms_term_style = 0;
+static GHashTable *ms_term_bold  = NULL;
+
+INLINE void STYLE_MARK_BOLD(gshort style)
+{
+    g_assert(ms_term_bold);
+    g_hash_table_insert(ms_term_bold, GUINT_TO_POINTER((gulong)style), GINT_TO_POINTER(1));
+}
+INLINE gboolean STYLE_IS_BOLD(gshort style)
+{
+    g_assert(ms_term_bold);
+    return g_hash_table_lookup(ms_term_bold, GUINT_TO_POINTER((gulong)style)) != NULL;
+}
 
 static void on_abort(UNUSED int sig)
 {
@@ -32,11 +44,17 @@ void ms_term_init(void)
     sa.sa_flags = 0;
     sigaction(SIGABRT, &sa, NULL);
 
+    ms_term_bold = g_hash_table_new(g_direct_hash, g_direct_equal);
     atexit(ms_term_reset);
 }
 
 void ms_term_reset(void)
 {
+    static gboolean did_free = FALSE;
+    if (!did_free) {
+        g_hash_table_destroy(ms_term_bold);
+        did_free = TRUE;
+    }
     endwin();
 }
 
@@ -99,17 +117,51 @@ void ms_term_write_gunichar(const gunichar ch)
     buf[0] = (wchar_t) ch;
     buf[1] = L'\0';
 
-    setcchar(&out, buf, A_NORMAL, ms_term_color, NULL);
+    int flag = STYLE_IS_BOLD(ms_term_style) ? A_BOLD : A_NORMAL;
+    setcchar(&out, buf, flag, ms_term_style, NULL);
     add_wch(&out);
 }
 
-void ms_term_color_set(guint16 id)
+void ms_term_style_set(gshort style)
 {
-    ms_term_color = id;
-    color_set(id, NULL);
+    ms_term_style = style;
+    color_set(style, NULL);
+    if (STYLE_IS_BOLD(style))
+        attron(A_BOLD);
+    else
+        attroff(A_BOLD);
 }
 
-const char *ms_term_color_code(guint16 id)
+void ms_term_style_init(gshort style, gshort fg, gshort bg)
+{
+    g_return_if_fail(style < MS_TERM_STYLES);
+    switch (MS_TERM_COLORS) {
+        case 8:
+            init_pair(style, fg % 8, bg % 8);
+            if (fg > 7)
+                STYLE_MARK_BOLD(style);
+            break;
+        case 16:
+        case 88:
+        case 256:
+            init_pair(style, fg, bg);
+            break;
+        default:
+            g_assert_not_reached();
+            break;
+    }
+
+}
+
+void ms_term_color_init(gshort color, gshort r, gshort g, gshort b)
+{
+    g_return_if_fail(color < MS_TERM_COLORS);
+    init_color(color, CLAMP(r, 0, 1000), CLAMP(g, 0, 1000), CLAMP(b, 0, 1000));
+}
+
+
+
+const char *ms_term_style_code(gshort id)
 {
     /* Per g_unichar_to_utf8 docs we need 6 chars *
      * here; add one for NUL                      */

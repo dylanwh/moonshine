@@ -31,14 +31,14 @@ static int label_render(LuaState *L)
     int cols = MS_TERM_COLS;
 
     ms_term_goto(row, 0);
-    ms_term_color_set(0);
+    ms_term_style_set(0);
     ms_term_erase_eol();
 
     int width = 0;
     for (char *p = t->text; *p; p = g_utf8_next_char(p)) {
         gunichar ch = g_utf8_get_char(p);
         if (ch >= MS_TERM_COLOR_MIN_UCS && ch <= MS_TERM_COLOR_MAX_UCS) {
-            ms_term_color_set(ch - MS_TERM_COLOR_MIN_UCS);
+            ms_term_style_set(ch - MS_TERM_COLOR_MIN_UCS);
         } else {
             width += ms_term_charwidth(ch);
             if (width > cols)
@@ -49,7 +49,7 @@ static int label_render(LuaState *L)
     for (; width < cols; width++)
         ms_term_write_gunichar(' ');
 
-    ms_term_color_set(0);
+    ms_term_style_set(0);
     return 0;
 }
 

@@ -38,49 +38,52 @@ static int term_dimensions(LuaState *L)
     return 2;
 }
 
-static int term_init_pair(LuaState *L)
+static int term_style_init(LuaState *L)
 {
     guint16 id = luaL_checkint(L, 1);
     guint16 fg = luaL_checkint(L, 2);
     guint16 bg = luaL_checkint(L, 3);
-    ms_term_init_pair(id, fg, bg);
+    ms_term_style_init(id, fg, bg);
     return 0;
 }
 
-static int term_init_color(LuaState *L)
+static int term_color_init(LuaState *L)
 {
     guint16 n = luaL_checkint(L, 1);
     guint16 r = luaL_checkint(L, 2);
     guint16 g = luaL_checkint(L, 3);
     guint16 b = luaL_checkint(L, 4);
-    ms_term_init_color(n, r, g, b);
+    ms_term_color_init(n, r, g, b);
     return 0;
 }
 
-static int term_color_set(LuaState *L)
+static int term_style_set(LuaState *L)
 {
     guint16 id = luaL_checkint(L, 1);
-    ms_term_color_set(id);
+    ms_term_style_set(id);
     return 0;
 }
 
-static int term_color_code(LuaState *L)
+static int term_style_code(LuaState *L)
 {
     guint16 id       = luaL_checkint(L, 1);
-    const char *code = ms_term_color_code(id);
+    const char *code = ms_term_style_code(id);
     lua_pushstring(L, code);
     return 1;
 }
 
 static int term_colors(LuaState *L)
 {
-    lua_pushinteger(L, COLORS);
+    if (MS_TERM_COLORS == 8)
+        lua_pushinteger(L, 16);
+    else
+        lua_pushinteger(L, MS_TERM_COLORS);
     return 1;
 }
 
-static int term_color_pairs(LuaState *L)
+static int term_styles(LuaState *L)
 {
-    lua_pushinteger(L, COLOR_PAIRS);
+    lua_pushinteger(L, MS_TERM_STYLES);
     return 1;
 }
 
@@ -90,12 +93,12 @@ static LuaLReg functions[] = {
     {"refresh",        term_refresh        },
     {"resize",         term_resize         },
     {"dimensions",     term_dimensions     },
-    {"init_pair",      term_init_pair      },
-    {"init_color",     term_init_color     },
-    {"color_set",      term_color_set      },
-    {"color_code",     term_color_code  },
+    {"style_init",      term_style_init      },
+    {"color_init",     term_color_init     },
+    {"style_set",      term_style_set      },
+    {"style_code",     term_style_code  },
     {"colors",         term_colors         },
-    {"color_pairs",    term_color_pairs    },
+    {"styles",         term_styles    },
     { 0, 0 },
 };
 

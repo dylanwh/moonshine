@@ -3,7 +3,7 @@ local Map      = require "moonshine.map"
 local Template = require "moonshine.template"
 
 local COLORS    = term.colors()
-local STYLES    = term.color_pairs()
+local STYLES    = term.styles()
 assert(COLORS > 0 and STYLES > 0, "moonshine.ui.term not initialized?")
 local COLOR_MAP = Map:new(COLORS)
 local STYLE_MAP = Map:new(STYLES)
@@ -43,7 +43,7 @@ function Format:define_color(color, r, g, b)
     assert(type(r) == "number", "red value must be number, not " .. type(r))
     assert(type(g) == "number", "green value must be number, not " .. type(g))
     assert(type(b) == "number", "blue value must be number!, not " .. type(b))
-    term.init_color( COLOR_MAP:find_or_assign(color), r, g, b)
+    term.color_init( COLOR_MAP:find_or_assign(color), r, g, b)
 end
 
 function Format:define_style(style, fg, bg)
@@ -52,13 +52,13 @@ function Format:define_style(style, fg, bg)
     assert(type(bg) == 'string', "bg must be string, not " .. type(bg))
     local fg_id = assert(COLOR_MAP:find(fg), "unknown color: " .. fg)
     local bg_id = assert(COLOR_MAP:find(bg), "unknown color: " .. bg)
-    term.init_pair( STYLE_MAP:find_or_assign(style), fg_id, bg_id)
+    term.style_init( STYLE_MAP:find_or_assign(style), fg_id, bg_id)
 end
 
 function Format:style_code(style)
     local style_id = STYLE_MAP:find(style)
     if style_id then
-        return term.color_code(style_id)
+        return term.style_code(style_id)
     else
         return ""
     end

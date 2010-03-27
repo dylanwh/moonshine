@@ -17,6 +17,8 @@
 
 #define MS_TERM_COLS       COLS
 #define MS_TERM_LINES      LINES
+#define MS_TERM_STYLES     COLOR_PAIRS
+#define MS_TERM_COLORS     COLORS
 
 void        ms_term_init(void);
 void        ms_term_reset(void);
@@ -29,10 +31,11 @@ INLINE void ms_term_refresh()   { refresh();  }
 INLINE void ms_term_goto(int r, int c)      { move(r, c);     }
 INLINE void ms_term_erase_eol() { clrtoeol(); }
 
-void        ms_term_color_set(guint16 id);
-const char *ms_term_color_code(guint16 id);
-INLINE void ms_term_init_pair(guint16 id, guint16 fg, guint16 bg) { init_pair(id, fg, bg);  }
-INLINE void ms_term_init_color(guint16 n, guint16 r, guint16 g, guint16 b) { init_color(n, r, g, b); }
+void        ms_term_style_set(gshort style);
+const char *ms_term_style_code(gshort style);
+void ms_term_style_init(gshort style, gshort fg, gshort bg);
+void ms_term_color_init(gshort color, gshort r, gshort g, gshort b);
+
 
 void        ms_term_write_gunichar(gunichar c);
 INLINE int  ms_term_write_chars(const char *s) { return addstr(s); }
