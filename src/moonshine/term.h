@@ -30,7 +30,7 @@ INLINE void ms_term_goto(int r, int c)      { move(r, c);     }
 INLINE void ms_term_erase_eol() { clrtoeol(); }
 
 void        ms_term_color_set(guint16 id);
-const char *ms_term_color_to_utf8(guint16 id);
+const char *ms_term_color_code(guint16 id);
 INLINE void ms_term_init_pair(guint16 id, guint16 fg, guint16 bg) { init_pair(id, fg, bg);  }
 INLINE void ms_term_init_color(guint16 n, guint16 r, guint16 g, guint16 b) { init_color(n, r, g, b); }
 

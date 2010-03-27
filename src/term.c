@@ -109,7 +109,7 @@ void ms_term_color_set(guint16 id)
     color_set(id, NULL);
 }
 
-const char *ms_term_color_to_utf8(guint16 id)
+const char *ms_term_color_code(guint16 id)
 {
     /* Per g_unichar_to_utf8 docs we need 6 chars *
      * here; add one for NUL                      */

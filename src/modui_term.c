@@ -64,10 +64,10 @@ static int term_color_set(LuaState *L)
     return 0;
 }
 
-static int term_color_to_utf8(LuaState *L)
+static int term_color_code(LuaState *L)
 {
     guint16 id       = luaL_checkint(L, 1);
-    const char *code = ms_term_color_to_utf8(id);
+    const char *code = ms_term_color_code(id);
     lua_pushstring(L, code);
     return 1;
 }
@@ -93,7 +93,7 @@ static LuaLReg functions[] = {
     {"init_pair",      term_init_pair      },
     {"init_color",     term_init_color     },
     {"color_set",      term_color_set      },
-    {"color_to_utf8",  term_color_to_utf8  },
+    {"color_code",     term_color_code  },
     {"colors",         term_colors         },
     {"color_pairs",    term_color_pairs    },
     { 0, 0 },
