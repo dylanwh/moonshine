@@ -113,9 +113,9 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
                 next_line = g_utf8_next_char(seg_end);
                 break;
             }
-            if (ch >= MS_TERM_COLOR_MIN_UCS && ch <= MS_TERM_COLOR_MAX_UCS) {
+            if (ch >= MS_TERM_STYLE_MIN_UCS && ch <= MS_TERM_STYLE_MAX_UCS) {
                 temp_margin = cur_width;
-                next_color = ch - MS_TERM_COLOR_MIN_UCS;
+                next_color = ch - MS_TERM_STYLE_MIN_UCS;
                 advance_line = FALSE;
                 next_line = g_utf8_next_char(seg_end);
                 break;

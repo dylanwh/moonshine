@@ -7,15 +7,15 @@
 /* for atexit() */
 #include <stdlib.h>
 
-static gshort     ms_term_style = 0;
+gushort ms_term_style = 0;
 static GHashTable *ms_term_bold  = NULL;
 
-INLINE void STYLE_MARK_BOLD(gshort style)
+INLINE void STYLE_MARK_BOLD(gushort style)
 {
     g_assert(ms_term_bold);
     g_hash_table_insert(ms_term_bold, GUINT_TO_POINTER((gulong)style), GINT_TO_POINTER(1));
 }
-INLINE gboolean STYLE_IS_BOLD(gshort style)
+INLINE gboolean STYLE_IS_BOLD(gushort style)
 {
     g_assert(ms_term_bold);
     return g_hash_table_lookup(ms_term_bold, GUINT_TO_POINTER((gulong)style)) != NULL;
@@ -122,7 +122,7 @@ void ms_term_write_gunichar(const gunichar ch)
     add_wch(&out);
 }
 
-void ms_term_style_set(gshort style)
+void ms_term_style_set(gushort style)
 {
     ms_term_style = style;
     color_set(style, NULL);
@@ -132,7 +132,7 @@ void ms_term_style_set(gshort style)
         attroff(A_BOLD);
 }
 
-void ms_term_style_init(gshort style, gshort fg, gshort bg)
+void ms_term_style_init(gushort style, gushort fg, gushort bg)
 {
     g_return_if_fail(style < MS_TERM_STYLES);
     switch (MS_TERM_COLORS) {
@@ -144,6 +144,8 @@ void ms_term_style_init(gshort style, gshort fg, gshort bg)
         case 16:
         case 88:
         case 256:
+            g_return_if_fail(fg < MS_TERM_COLORS);
+            g_return_if_fail(bg < MS_TERM_COLORS);
             init_pair(style, fg, bg);
             break;
         default:
@@ -153,22 +155,26 @@ void ms_term_style_init(gshort style, gshort fg, gshort bg)
 
 }
 
-void ms_term_color_init(gshort color, gshort r, gshort g, gshort b)
+void ms_term_color_init(gushort color, gushort r, gushort g, gushort b)
 {
     g_return_if_fail(color < MS_TERM_COLORS);
-    init_color(color, CLAMP(r, 0, 1000), CLAMP(g, 0, 1000), CLAMP(b, 0, 1000));
+    g_return_if_fail(r <= 1000);
+    g_return_if_fail(g <= 1000);
+    g_return_if_fail(b <= 1000);
+
+    init_color(color, r, g, b);
 }
 
 
 
-const char *ms_term_style_code(gshort id)
+const char *ms_term_style_code(gushort id)
 {
     /* Per g_unichar_to_utf8 docs we need 6 chars *
      * here; add one for NUL                      */
     static char buf[7];
 
-    gunichar ch = MS_TERM_COLOR_MIN_UCS + id;
-    g_assert(ch <= MS_TERM_COLOR_MAX_UCS); /* XXX: handle this failure better... */
+    gunichar ch = MS_TERM_STYLE_MIN_UCS + id;
+    g_assert(ch <= MS_TERM_STYLE_MAX_UCS); /* XXX: handle this failure better... */
 
     gint len = g_unichar_to_utf8(ch, buf);
     g_assert(len < (gint)(sizeof buf));

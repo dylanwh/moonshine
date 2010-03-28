@@ -13,12 +13,13 @@ local Format = new "moonshine.ui.format"
 
 
 Format:define_color("aqua", 0, 454, 1000)
-Format:define_style("topic", "color12", "black")
+Format:define_style("topic", "white", "color12")
+Format:define_style("happy", "yellow", "black")
 Format:define_style("debug", "blue", "black")
 
 Format:define("topic", "%{style topic}%1")
 Format:define("debug", "[debug]%| %{style debug}%1")
-Format:define("info",  "%{debug %(we have %1 colors and %2 styles)}")
+Format:define("info",  "%{debug %(we have %{style happy}%1%{style debug} colors and %{style happy}%2%{style debug} styles)}")
 
 buffer:print(Format:apply('info', term.colors(), term.styles()))
 

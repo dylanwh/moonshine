@@ -87,6 +87,12 @@ static int term_styles(LuaState *L)
     return 1;
 }
 
+static int term_current_style(LuaState *L)
+{
+    lua_pushinteger(L, ms_term_style);
+    return 1;
+}
+
 static LuaLReg functions[] = {
     {"init",           term_init           },
     {"reset",          term_reset          },
@@ -99,6 +105,7 @@ static LuaLReg functions[] = {
     {"style_code",     term_style_code  },
     {"colors",         term_colors         },
     {"styles",         term_styles    },
+    {"current_style",  term_current_style },
     { 0, 0 },
 };
 

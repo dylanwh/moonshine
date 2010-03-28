@@ -12,8 +12,9 @@
 
 #define MS_TERM_INDENT_MARK_UCS 0xF0000
 #define MS_TERM_INDENT_MARK_UTF "\xF3\xB0\x80\x80"
-#define MS_TERM_COLOR_MIN_UCS   0xFC000
-#define MS_TERM_COLOR_MAX_UCS   0xFCFFF
+#define MS_TERM_STYLE_RESET     0xF0001
+#define MS_TERM_STYLE_MIN_UCS   0xFC000
+#define MS_TERM_STYLE_MAX_UCS   0xFCFFF
 
 #define MS_TERM_COLS       COLS
 #define MS_TERM_LINES      LINES
@@ -31,10 +32,11 @@ INLINE void ms_term_refresh()   { refresh();  }
 INLINE void ms_term_goto(int r, int c)      { move(r, c);     }
 INLINE void ms_term_erase_eol() { clrtoeol(); }
 
-void        ms_term_style_set(gshort style);
-const char *ms_term_style_code(gshort style);
-void ms_term_style_init(gshort style, gshort fg, gshort bg);
-void ms_term_color_init(gshort color, gshort r, gshort g, gshort b);
+extern gushort ms_term_style;
+void        ms_term_style_set(gushort style);
+const char *ms_term_style_code(gushort style);
+void ms_term_style_init(gushort style, gushort fg, gushort bg);
+void ms_term_color_init(gushort color, gushort r, gushort g, gushort b);
 
 
 void        ms_term_write_gunichar(gunichar c);

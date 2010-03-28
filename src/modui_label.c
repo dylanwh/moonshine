@@ -37,8 +37,8 @@ static int label_render(LuaState *L)
     int width = 0;
     for (char *p = t->text; *p; p = g_utf8_next_char(p)) {
         gunichar ch = g_utf8_get_char(p);
-        if (ch >= MS_TERM_COLOR_MIN_UCS && ch <= MS_TERM_COLOR_MAX_UCS) {
-            ms_term_style_set(ch - MS_TERM_COLOR_MIN_UCS);
+        if (ch >= MS_TERM_STYLE_MIN_UCS && ch <= MS_TERM_STYLE_MAX_UCS) {
+            ms_term_style_set(ch - MS_TERM_STYLE_MIN_UCS);
         } else {
             width += ms_term_charwidth(ch);
             if (width > cols)
