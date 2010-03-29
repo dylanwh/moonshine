@@ -51,7 +51,7 @@ void ms_term_init(void)
 void ms_term_reset(void)
 {
     static gboolean did_free = FALSE;
-    if (!did_free) {
+    if (!did_free && ms_term_bold != NULL) {
         g_hash_table_destroy(ms_term_bold);
         did_free = TRUE;
     }

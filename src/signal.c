@@ -71,7 +71,9 @@ void ms_signal_reset(void)/*{{{*/
     close(output_fd);
     output_fd = 0;
 
-    g_hash_table_destroy(signals);
+    if (signals != NULL) {
+        g_hash_table_destroy(signals);
+    }
 }/*}}}*/
 
 void ms_signal_catch(int sig, MSSignalFunc func, gpointer data, GDestroyNotify destroy)/*{{{*/

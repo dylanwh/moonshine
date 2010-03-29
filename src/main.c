@@ -74,7 +74,6 @@ int main(UNUSED int argc, UNUSED char *argv[])
 	g_set_application_name("Moonshine");
 #endif
     setlocale(LC_ALL, "");
-    ms_signal_init(); // initialize moonshine signal callback
 
     MS_PRELOAD_ALL(L); // preload moonshine modules.
 
@@ -91,25 +90,22 @@ int main(UNUSED int argc, UNUSED char *argv[])
     tag   = g_io_add_watch_full(input, G_PRIORITY_DEFAULT, G_IO_IN, on_input, (gpointer) L, NULL);
 
     /* catch the interesting signals */
+    ms_signal_init(); // initialize moonshine signal callback
     ms_signal_catch(SIGWINCH, on_resize,  (gpointer) L, NULL);
     ms_signal_catch(SIGTERM,  on_stopsig, (gpointer) L, NULL);
     ms_signal_catch(SIGINT,   on_stopsig, (gpointer) L, NULL);
     ms_signal_catch(SIGHUP,   on_stopsig, (gpointer) L, NULL);
 
     /* Start the show */
-    lua_getglobal(L,  "require");
-    lua_pushstring(L, "moonshine");
-    if(lua_pcall(L, 1, 0, 0) != 0) {
-        g_critical("lua error in require 'moonshine': %s", lua_tostring(L, -1));
-    }
+    ms_lua_require(L, "moonshine");
 
     /* Cleanup time */
     g_io_channel_unref(input); // free memory.
-    ms_signal_reset();         // remove signal handlers and memory used.
     ms_term_reset();
     ms_log_free(log);          // free memory and replay any entries in the log.
     g_main_loop_unref(loop);   // free memory
     lua_close(L);
+    ms_signal_reset();         // remove signal handlers and memory used.
 
     exit(0);
 }

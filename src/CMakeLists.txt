@@ -19,6 +19,12 @@ ADD_EXECUTABLE(moonshine
     modui_entry.c
     modui_label.c
     modui_term.c
+    modpurple_core.c
+    modpurple_account.c
+    modpurple_conversations.c
+    modpurple_conversation.c
+    modpurple_plugins.c
+    modpurple_plugin.c
 
     avl/avl.c
     modtree.c
@@ -51,6 +57,15 @@ TARGET_LINK_LIBRARIES(test_lua_var
     ${GLIB_LIBRARIES}
     ${GNET_LIBRARIES}
     ${LUA_LIBRARIES}
+    ${PURPLE_LIBRARIES})
+
+ADD_EXECUTABLE(test_purple
+    test_purple.c)
+
+SET_TARGET_PROPERTIES(test_purple PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${MOONSHINE_BINARY_DIR})
+
+TARGET_LINK_LIBRARIES(test_purple
     ${PURPLE_LIBRARIES})
 
 ADD_CUSTOM_COMMAND(

@@ -5,6 +5,8 @@
 /* the following is for the bd_-code in push_paths() */
 #include <stdlib.h>
 
+#define MS_LUA_BACKREF "BACKREF"
+
 /* Stash-related functions {{{*/
 void ms_lua_stash_set(LuaState *L, const char *name, gpointer user_data)/*{{{*/
 {
@@ -31,6 +33,46 @@ gpointer ms_lua_stash_get(LuaState *L, const char *name)/*{{{*/
     g_free(key);
     return result;
 }/*}}}*/
+/* }}} */
+
+/* Backref-related functions {{{*/
+void ms_lua_backref_set(LuaState *L, gpointer ptr, int idx)
+{
+    lua_pushvalue(L, idx);                              // push object
+    lua_getfield(L, LUA_REGISTRYINDEX, MS_LUA_BACKREF); // push table
+    g_assert(!lua_isnil(L, -1));
+    lua_insert(L, -2);                                 // object table -- table object
+    g_assert(lua_type(L, -2) == LUA_TTABLE);
+    g_assert(lua_type(L, -1) == LUA_TUSERDATA);
+
+    lua_pushlightuserdata(L, ptr);                      // push ptr
+    lua_insert(L, -2);                                 // object ptr -- ptr object
+
+    g_assert(lua_type(L, -3) == LUA_TTABLE);
+    g_assert(lua_type(L, -2) == LUA_TLIGHTUSERDATA);
+    g_assert(lua_type(L, -1) == LUA_TUSERDATA);
+
+    lua_settable(L, -3); // table[ptr] = object
+    lua_pop(L, 1);       // remove table from stack. stack is now in original state.
+}
+
+void ms_lua_backref_push(LuaState *L, gpointer ptr)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, MS_LUA_BACKREF); // push table
+    lua_pushlightuserdata(L, ptr);                      // push ptr
+    lua_gettable(L, -2);                                // pop ptr; push table[ptr]
+    lua_remove(L, -2);                                  // remove table from stack.
+}
+
+void ms_lua_backref_unset(LuaState *L, gpointer ptr)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, MS_LUA_BACKREF); // push table
+    lua_pushlightuserdata(L, ptr);                      // push ptr
+    lua_pushnil(L);                                     // push nil
+    lua_settable(L, -3);                                // table[ptr] = nil
+    lua_pop(L, 1);                                      // pop table
+}
+
 /* }}} */
 
 /* Class-related functions {{{ */
@@ -78,11 +120,22 @@ void ms_lua_class_register(LuaState *L, const char *name, const LuaLReg methods[
 }/*}}}*/
 /*}}}*/
 
-void ms_lua_use_env(LuaState *L)
+void ms_lua_use_env(LuaState *L)/*{{{*/
 {
     lua_newtable(L);
     lua_replace(L, LUA_ENVIRONINDEX);
-}
+}/*}}}*/
+
+gboolean ms_lua_require(LuaState *L, const char *name)/*{{{*/
+{
+    int len = strlen("ms_lua_require()") + strlen(name) + 1;
+    char buf[len];
+    g_snprintf(buf, len, "ms_lua_require(%s)", name);
+
+    lua_getglobal(L, "require");
+    lua_pushstring(L, name);
+    return ms_lua_call(L, 1, 0, buf);
+}/*}}}*/
 
 void ms_lua_module(LuaState *L, const LuaLReg functions[])/*{{{*/
 {
@@ -167,6 +220,15 @@ static void init_paths(LuaState *L)/*{{{*/
     lua_pop(L, 1);
 }/*}}}*/
 
+inline static void ms_lua_newtable_weak(LuaState *L)/*{{{*/
+{
+    lua_newtable(L);               // push table (t).
+    lua_newtable(L);               // push metatable (mt).
+    lua_pushstring(L, "v");        // push "v"
+    lua_setfield(L, -2, "__mode"); // mt.__mode = "v"
+    lua_setmetatable(L, -2);       // setmetatable(t, mt)
+}/*}}}*/
+
 LuaState *ms_lua_newstate(void)/*{{{*/
 {
     LuaState *L  = luaL_newstate();
@@ -176,6 +238,9 @@ LuaState *ms_lua_newstate(void)/*{{{*/
     lua_pushstring(L, MOONSHINE_VERSION);
     lua_setglobal(L, "MOONSHINE_VERSION");
     init_paths(L);
+
+    ms_lua_newtable_weak(L);
+    lua_setfield(L, LUA_REGISTRYINDEX, MS_LUA_BACKREF);
 
     return L;
 }/*}}}*/

@@ -10,6 +10,12 @@ modules = {
    'moonshine.ui.entry',
    'moonshine.ui.label',
    'moonshine.ui.term',
+   'purple.core',
+   'purple.conversations',
+   'purple.conversation',
+   'purple.account',
+   'purple.plugins',
+   'purple.plugin',
 }
 
 print "#ifndef __MOONSHINE_PRELOAD_H__"
