@@ -36,25 +36,25 @@ ADD_DEFINITIONS(
 
 SET(MOONSHINE_VERSION "p4")
 
-OPTION(IRONTROUSERS 
+OPTION(DEVELOPER
     "Add build/modules and runtime/ into the lua package.cpath and path")
 
 OPTION(MOONSHINE_USE_GET_WCH
-    "Use get_wch() instead reading into utf8 bytes with getch()")
+    "Use get_wch() instead reading into utf8 bytes with getch()" TRUE)
 
-IF (NOT IRONTROUSERS)
-    MESSAGE(STATUS "Irontrousers: disabled")
+IF (NOT DEVELOPER)
+    MESSAGE(STATUS "Developer Mode: disabled")
     SET(MOONSHINE_PATH  "${CMAKE_INSTALL_PREFIX}/share/moonshine/?.lua")
     SET(MOONSHINE_CPATH "${CMAKE_INSTALL_PREFIX}/lib/moonshine/?${CMAKE_SHARED_MODULE_SUFFIX}")
 ELSE()
-    MESSAGE(STATUS "Irontrousers: enabled")
+    MESSAGE(STATUS "Developer Mode: enabled")
     SET(MOONSHINE_PATH  "${CMAKE_CURRENT_SOURCE_DIR}/runtime/?.lua")
     SET(MOONSHINE_CPATH "${CMAKE_CURRENT_BINARY_DIR}/modules/?.${CMAKE_SHARED_MODULE_SUFFIX}")
 ENDIF()
 
 ADD_SUBDIRECTORY(src)
 
-IF (NOT IRONTROUSERS)
+IF (NOT DEVELOPER)
     INSTALL(DIRECTORY runtime/ DESTINATION "${CMAKE_INSTALL_PREFIX}/share/moonshine/")
 ENDIF()
 
