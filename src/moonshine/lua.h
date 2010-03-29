@@ -34,6 +34,7 @@ void ms_lua_module(LuaState *L, const LuaLReg functions[]);
 void ms_lua_backref_set(LuaState *L, gpointer ptr, int idx);
 void ms_lua_backref_push(LuaState *L, gpointer ptr);
 void ms_lua_backref_unset(LuaState *L, gpointer ptr);
+void ms_lua_backref_push_or_newclass(LuaState *L, gpointer key, const char *name, gsize size);
 
 INLINE gboolean ms_lua_checkboolean(LuaState *L, int index)
 {

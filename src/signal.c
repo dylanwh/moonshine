@@ -51,6 +51,7 @@ void ms_signal_init(void)/*{{{*/
     int fildes[2];
     if (pipe(fildes) != 0) perror("pipe");
 
+    signal(SIGCHLD, SIG_IGN); // libpurple needs this.
     input_chan = channel_from_fd(fildes[0]);
     output_fd  = fildes[1];
     signals    = g_hash_table_new(NULL, NULL);

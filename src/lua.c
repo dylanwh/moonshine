@@ -56,18 +56,29 @@ void ms_lua_backref_set(LuaState *L, gpointer ptr, int idx)
     lua_pop(L, 1);       // remove table from stack. stack is now in original state.
 }
 
-void ms_lua_backref_push(LuaState *L, gpointer ptr)
+void ms_lua_backref_push_or_newclass(LuaState *L, gpointer key, const char *name, gsize size)
+{
+    ms_lua_backref_push(L, key);
+    if (lua_isnil(L, -1)) {
+        lua_pop(L, 1);
+        gpointer *ptr = ms_lua_newclass(L, name, size);
+        *ptr = key;
+        ms_lua_backref_set(L, key, -1);
+    }
+}
+
+void ms_lua_backref_push(LuaState *L, gpointer key)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, MS_LUA_BACKREF); // push table
-    lua_pushlightuserdata(L, ptr);                      // push ptr
+    lua_pushlightuserdata(L, key);                      // push ptr
     lua_gettable(L, -2);                                // pop ptr; push table[ptr]
     lua_remove(L, -2);                                  // remove table from stack.
 }
 
-void ms_lua_backref_unset(LuaState *L, gpointer ptr)
+void ms_lua_backref_unset(LuaState *L, gpointer key)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, MS_LUA_BACKREF); // push table
-    lua_pushlightuserdata(L, ptr);                      // push ptr
+    lua_pushlightuserdata(L, key);                      // push ptr
     lua_pushnil(L);                                     // push nil
     lua_settable(L, -3);                                // table[ptr] = nil
     lua_pop(L, 1);                                      // pop table

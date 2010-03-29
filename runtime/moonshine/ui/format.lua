@@ -29,11 +29,6 @@ STYLE_MAP:assign('default', 0)
 
 local Format = Template:new()
 
--- Format is a singleton.
-function Format:new()
-    return Format
-end
-
 Format.const = {
     ['|'] = term.INDENT_CODE,
     ['^'] = term.STYLE_RESET_CODE,
@@ -64,6 +59,12 @@ function Format:style_code(style)
         return ""
     end
 end
+
+function Format.env.date(fmt, time)
+    return os.date(fmt, time)
+end
+
+Format:define("timestamp", "${date '%H:%M' $1}")
 
 function Format.env.style(name, text)
     local code = Format:style_code(name)

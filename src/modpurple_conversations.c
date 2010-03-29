@@ -6,6 +6,58 @@
 
 static MSLuaVar *conversations_uiops_lua = NULL;
 
+static void on_create_conversation(PurpleConversation *conv)
+{
+    LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "create_conversation");
+    g_assert(lua_type(L, -1) == LUA_TFUNCTION);
+    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    g_assert(lua_type(L, -2) == LUA_TFUNCTION);
+    g_assert(lua_type(L, -1) == LUA_TUSERDATA);
+    ms_lua_call(L, 1, 0, "purple.conversations in uiops.create_conversation");
+}
+
+static void on_destroy_conversation(PurpleConversation *conv)
+{
+    LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "destroy_conversation");
+    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    ms_lua_call(L, 1, 0, "purple.conversations in uiops.destroy_conversation");
+    ms_lua_backref_unset(L, conv);
+}
+
+static void on_write_chat(PurpleConversation *conv,
+                          const char *name,
+                          const char *message,
+                          PurpleMessageFlags flags,
+                          time_t mtime)
+{
+    g_assert(conversations_uiops_lua);
+    LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "write_chat");
+    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    lua_pushstring(L, name);
+    lua_pushstring(L, message);
+    lua_pushinteger(L, flags);
+    lua_pushinteger(L, mtime);
+    ms_lua_call(L, 5, 0, "purple.conversations in uiops.write_chat");
+    lua_gc(L, LUA_GCCOLLECT, 0);
+}
+
+static void on_write_im(PurpleConversation *conv,
+                          const char *name,
+                          const char *message,
+                          PurpleMessageFlags flags,
+                          time_t mtime)
+{
+    g_assert(conversations_uiops_lua);
+    LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "write_im");
+    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    lua_pushstring(L, name);
+    lua_pushstring(L, message);
+    lua_pushinteger(L, flags);
+    lua_pushinteger(L, mtime);
+    ms_lua_call(L, 5, 0, "purple.conversations in uiops.write_im");
+    lua_gc(L, LUA_GCCOLLECT, 0);
+}
+
 static void on_write_conv(PurpleConversation *conv,
                           const char *name,
                           const char *alias,
@@ -15,8 +67,7 @@ static void on_write_conv(PurpleConversation *conv,
 {
     g_assert(conversations_uiops_lua);
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "write_conv");
-    PurpleConversation **ptr = ms_lua_newclass(L, "purple.conversation", sizeof(PurpleConversation *)); 
-    *ptr = conv;
+    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
     lua_pushstring(L, name);
     lua_pushstring(L, alias);
     lua_pushstring(L, message);
@@ -26,10 +77,10 @@ static void on_write_conv(PurpleConversation *conv,
 }
 
 static PurpleConversationUiOps conversations_uiops = {
-    NULL,                      /* create_conversation  */
-    NULL,                      /* destroy_conversation */
-    NULL,                      /* write_chat           */
-    NULL,                      /* write_im             */
+    on_create_conversation,    /* create_conversation  */
+    on_destroy_conversation,   /* destroy_conversation */
+    on_write_chat,             /* write_chat           */
+    on_write_im,               /* write_im             */
     on_write_conv,             /* write_conv           */
     NULL,                      /* chat_add_users       */
     NULL,                      /* chat_rename_user     */

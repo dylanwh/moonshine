@@ -79,7 +79,6 @@ static int account_gc(LuaState *L)/*{{{*/
 {
     PurpleAccount **account = ms_lua_toclass(L, CLASS, 1);
     ms_lua_backref_unset(L, *account);
-    //purple_account_destroy(*account);
     return 0;
 }/*}}}*/
 /* }}} */

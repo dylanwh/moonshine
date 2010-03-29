@@ -19,6 +19,7 @@ static int plugin_get_info(LuaState *L)/*{{{*/
 
     return 1;
 }/*}}}*/
+/*}}}*/
 
 /* {{{ Meta Methods */
 static int plugin_tostring(LuaState *L)/*{{{*/

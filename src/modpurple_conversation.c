@@ -14,6 +14,8 @@ static int conversation_new(LuaState *L)/*{{{*/
     PurpleAccount **account          = ms_lua_checkclass(L, "purple.account", 3);
     const char *name                 = luaL_checkstring(L, 4);
 
+    g_return_val_if_fail(conv_type == PURPLE_CONV_TYPE_IM || conv_type == PURPLE_CONV_TYPE_CHAT, 0);
+
     PurpleConversation **conv = ms_lua_newclass(L, CLASS, sizeof(PurpleConversation *));
     *conv  = purple_conversation_new(conv_type, *account, name);
     ms_lua_backref_set(L, *conv, -1);
@@ -23,9 +25,85 @@ static int conversation_new(LuaState *L)/*{{{*/
 static int conversation_get_name(LuaState *L)/*{{{*/
 {
     PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
+    g_return_val_if_fail(*conv, 0);
     lua_pushstring(L, purple_conversation_get_name(*conv));
     return 1;
 }/*}}}*/
+
+/* libpurple says:
+ * Writes to a conversation window.
+ *
+ * This function should not be used to write
+ * IM or chat messages. Use purple_conv_im_write() and purple_conv_chat_write()
+ * instead. Those functions will most likely call this anyway, but they may do
+ * their own formatting, sound playback, etc.
+ *
+ * This can be used to write generic messages, such as "so and so closed the conversation window."
+ * */
+static int conversation_write(LuaState *L)/*{{{*/
+{
+    PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
+    const char *who           = luaL_checkstring(L,  2);
+    const char *message       = luaL_checkstring(L,  3);
+    PurpleMessageFlags flags  = luaL_checkinteger(L, 4);
+    time_t mtime              = luaL_checkinteger(L, 5);
+    g_return_val_if_fail(*conv, 0);
+
+    purple_conversation_write(*conv, who, message, flags, mtime);
+
+    return 0;
+}/*}}}*/
+
+static int conversation_send(LuaState *L)/*{{{*/
+{
+    PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
+    const char *message       = luaL_checkstring(L,  2);
+    g_return_val_if_fail(*conv, 0);
+
+    switch (purple_conversation_get_type(*conv)) {
+        case PURPLE_CONV_TYPE_IM:
+            purple_conv_im_send(PURPLE_CONV_IM(*conv), message);
+            break;
+        case PURPLE_CONV_TYPE_CHAT:
+            purple_conv_chat_send(PURPLE_CONV_CHAT(*conv), message);
+            break;
+        default:
+            g_assert_not_reached();
+    }
+    return 0;
+}/*}}}*/
+
+static int conversation_get_type(LuaState *L)
+{
+    PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
+    g_return_val_if_fail(*conv, 0);
+
+    switch (purple_conversation_get_type(*conv)) {
+        case PURPLE_CONV_TYPE_IM:
+            lua_pushstring(L, "im");
+            break;
+        case PURPLE_CONV_TYPE_CHAT:
+            lua_pushstring(L, "chat");
+            break;
+        default:
+            lua_pushnil(L);
+            break;
+    }
+
+    return 1;
+}
+
+static int conversation_destroy(LuaState *L)
+{
+    PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
+    g_return_val_if_fail(*conv, 0);
+    purple_conversation_destroy(*conv);
+    ms_lua_backref_unset(L, *conv);
+    *conv = NULL;
+    return 0;
+}
+
+/*}}}*/
 
 /* {{{ Meta Methods */
 static int conversation_tostring(LuaState *L)/*{{{*/
@@ -45,8 +123,12 @@ static int conversation_gc(LuaState *L)/*{{{*/
 /* }}} */
 
 static const LuaLReg conversation_methods[] = {/*{{{*/
-    { "new",                          conversation_new},
-    { "get_name",                     conversation_get_name},
+    { "new",                          conversation_new      },
+    { "destroy",                      conversation_destroy  },
+    { "get_name",                     conversation_get_name },
+    { "get_type",                     conversation_get_type },
+    { "write",                        conversation_write    },
+    { "send",                         conversation_send     },
     { 0, 0 }
 };/*}}}*/
 
