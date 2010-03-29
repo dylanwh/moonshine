@@ -113,7 +113,17 @@ int luaopen_moonshine_ui_term(LuaState *L)
 {
     ms_lua_module(L, functions);
     lua_pushstring(L, MS_TERM_INDENT_MARK_UTF);
-    lua_setfield(L, -2, "INDENT_MARK");
+    lua_setfield(L, -2, "INDENT_CODE");
+
+    lua_pushstring(L, MS_TERM_STYLE_RESET_UTF);
+    /*
+    char buf[8];
+    memset(buf, 0, sizeof(buf));
+    g_unichar_to_utf8(MS_TERM_STYLE_RESET_UCS, buf);
+    lua_pushstring(L, buf);
+    */
+    lua_setfield(L, -2, "STYLE_RESET_CODE");
+
 
     return 1;
 }

@@ -71,23 +71,24 @@ static const char *skip_space(const char *in) {
     return in;
 }
 
-static guint line_render(const char *line, guint bottom_row, guint top_row) {
+static guint line_render(GSList **stack, const char *line, guint bottom_row, guint top_row) {
     typedef struct plan {
         struct plan *prev;
-        guint margin;
+        guint      margin;
         const char *start, *end;
-        gboolean advance;
-        guint color;
+        gboolean   advance;
+        gushort    style;
     } plan_t;
 
     plan_t *lines = NULL;
 
     g_assert(bottom_row >= top_row);
+    g_assert(stack != NULL);
     ms_term_goto(bottom_row, 0);
 
-    guint margin = 0;
-    guint color  = 0;
-    guint temp_margin = 0;
+    guint   margin = 0;
+    gushort style  = 0;
+    guint   temp_margin = 0;
     while (*line) {
         plan_t *thisline = alloca(sizeof *thisline);
         thisline->prev = lines;
@@ -99,25 +100,35 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
         const char *seg_end   = line;
         const char *last_word = line;
         const char *next_line = NULL;
-        const guint max_width = MS_TERM_COLS; 
+        const guint max_width = MS_TERM_COLS;
         guint cur_width       = thisline->margin;
-        guint next_color      = color;
+        gushort next_style    = style;
 
         gboolean in_word = !g_unichar_isspace(g_utf8_get_char(line));
         gboolean advance_line = TRUE;
         while (*seg_end) {
             gunichar ch = g_utf8_get_char(seg_end);
             if (ch == MS_TERM_INDENT_MARK_UCS) {
-                margin = cur_width;
+                margin       = cur_width;
                 advance_line = FALSE;
-                next_line = g_utf8_next_char(seg_end);
+                next_line    = g_utf8_next_char(seg_end);
+                break;
+            }
+            if (ch == MS_TERM_STYLE_RESET_UCS) {
+                if (*stack) *stack = g_slist_delete_link(*stack, *stack);
+
+                temp_margin  = cur_width;
+                next_style   = (*stack == NULL) ? 0 : (gushort)GPOINTER_TO_INT((*stack)->data);
+                advance_line = FALSE;
+                next_line    = g_utf8_next_char(seg_end);
                 break;
             }
             if (ch >= MS_TERM_STYLE_MIN_UCS && ch <= MS_TERM_STYLE_MAX_UCS) {
-                temp_margin = cur_width;
-                next_color = ch - MS_TERM_STYLE_MIN_UCS;
+                temp_margin  = cur_width;
+                next_style   = ch - MS_TERM_STYLE_MIN_UCS;
                 advance_line = FALSE;
-                next_line = g_utf8_next_char(seg_end);
+                next_line    = g_utf8_next_char(seg_end);
+                *stack = g_slist_prepend(*stack, GINT_TO_POINTER((gulong)next_style));
                 break;
             }
             guint ch_len = ms_term_charwidth(ch);
@@ -144,17 +155,17 @@ static guint line_render(const char *line, guint bottom_row, guint top_row) {
             next_line = skip_space(seg_end);
         line = next_line;
 
-        thisline->start     = seg_start;
-        thisline->end       = seg_end;
-        thisline->advance   = advance_line;
-        thisline->color     = color;
-        color               = next_color;
+        thisline->start   = seg_start;
+        thisline->end     = seg_end;
+        thisline->advance = advance_line;
+        thisline->style   = style;
+        style             = next_style;
 
     }
 
     while (lines && bottom_row >= top_row) {
         ms_term_goto(bottom_row, lines->margin);
-        ms_term_style_set(lines->color);
+        ms_term_style_set(lines->style);
         ms_term_write_chars_to((unsigned char *)lines->start, (unsigned char *)lines->end);
 
         /* We want to make sure we advance at least once. So, the last line we
@@ -255,10 +266,12 @@ static int buffer_render(LuaState *L)/*{{{*/
         ms_term_erase_eol();
     }
 
+    GSList *stack = NULL;
     while (ptr && bottom_row >= top_row) {
-        bottom_row = line_render(ptr->text, bottom_row, top_row);
+        bottom_row = line_render(&stack, ptr->text, bottom_row, top_row);
         ptr = ptr->prev;
     }
+    g_slist_free(stack);
 
     b->is_dirty = FALSE;
     return 0;

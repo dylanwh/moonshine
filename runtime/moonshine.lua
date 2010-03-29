@@ -18,12 +18,11 @@ Format:define_style("happy", "yellow", "black")
 Format:define_style("debug", "blue", "black")
 
 Format:define("topic", "%{style topic}%1")
-Format:define("debug", "[debug]%| %{style debug}%1")
-Format:define("info",  "%{debug %(we have %{style happy}%1%{style debug} colors and %{style happy}%2%{style debug} styles)}")
+Format:define("debug", "[debug]%| %{style debug}%1%@")
+Format:define("info",  "%{debug %(we have %{style happy}%1%@ colors and %{style happy}%2%@ styles)}...")
 
+label:set(Format:apply('info', term.colors(), term.styles()))
 buffer:print(Format:apply('info', term.colors(), term.styles()))
-
-label:set(Format:apply("topic", "TACOS!"))
 
 local r, c = term.dimensions()
 label:render(0)

@@ -10,11 +10,20 @@
 #include <glib.h>
 #include <string.h>
 
-#define MS_TERM_INDENT_MARK_UCS 0xF0000
+/* character used for indentation purposes in modui_buffer.c */
+#define MS_TERM_INDENT_MARK_UCS  0xF0000
 #define MS_TERM_INDENT_MARK_UTF "\xF3\xB0\x80\x80"
-#define MS_TERM_STYLE_RESET     0xF0001
-#define MS_TERM_STYLE_MIN_UCS   0xFC000
-#define MS_TERM_STYLE_MAX_UCS   0xFCFFF
+
+/* character used to encode "switch style" */
+#define MS_TERM_STYLE_MIN_UCS    0xFC000
+#define MS_TERM_STYLE_MAX_UCS    0xFCFFF
+
+/* character to represent "use previous style" */
+#define MS_TERM_STYLE_RESET_UCS  (MS_TERM_STYLE_MAX_UCS+1)
+#define MS_TERM_STYLE_RESET_UTF "\xF3\xBD\x80\x80"
+
+/* fake style to represent "use previous style" in modui_buffer.c */
+#define MS_TERM_RESET_STYLE     (MS_TERM_STYLE_RESET_UCS - MS_TERM_STYLE_MIN_UCS)
 
 #define MS_TERM_COLS       COLS
 #define MS_TERM_LINES      LINES

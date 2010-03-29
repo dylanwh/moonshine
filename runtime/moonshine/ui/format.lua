@@ -35,7 +35,8 @@ function Format:new()
 end
 
 Format.const = {
-    ['|'] = term.INDENT_MARK,
+    ['|'] = term.INDENT_CODE,
+    ['^'] = term.STYLE_RESET_CODE,
 }
 
 function Format:define_color(color, r, g, b)
