@@ -16,14 +16,14 @@ COLOR_MAP:assign('blue',    4)
 COLOR_MAP:assign('magenta', 5)
 COLOR_MAP:assign('cyan',    6)
 COLOR_MAP:assign('white',   7)
-COLOR_MAP:assign('color8',  8)
-COLOR_MAP:assign('color9',  9)
-COLOR_MAP:assign('color10', 10)
-COLOR_MAP:assign('color11', 11)
-COLOR_MAP:assign('color12', 12)
-COLOR_MAP:assign('color13', 13)
-COLOR_MAP:assign('color14', 14)
-COLOR_MAP:assign('color15', 15)
+COLOR_MAP:assign('black2',   8)
+COLOR_MAP:assign('red2',     9)
+COLOR_MAP:assign('green2',   10)
+COLOR_MAP:assign('yellow2',  11)
+COLOR_MAP:assign('blue2',    12)
+COLOR_MAP:assign('magenta2', 13)
+COLOR_MAP:assign('cyan2',    14)
+COLOR_MAP:assign('white2',   15)
 
 STYLE_MAP:assign('default', 0)
 
@@ -65,8 +65,18 @@ function Format:style_code(style)
     end
 end
 
-function Format.env.style(name)
-    return Format:style_code(name)
+function Format.env.style(name, text)
+    local code = Format:style_code(name)
+    if code == "" then
+        return text or ""
+    else
+        if text then
+            return code .. text .. term.STYLE_RESET_CODE
+        else
+            return code
+        end
+    end
 end
+
 
 return Format

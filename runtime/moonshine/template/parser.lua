@@ -1,7 +1,7 @@
 --[[
-    %foo           is a macro call
-    %{foo}         is a macro call
-    %{foo bar baz} is a macro call with arguments.
+    $foo           is a macro call
+    $(foo)         is a macro call
+    $(foo bar baz) is a macro call with arguments.
 
     Arguments can be:
         * macro calls
@@ -11,12 +11,12 @@
         * numbers (5, 8.4, .3)
 
     Sugar:
-        * %1         is short for %{param 1}
-        * %%         is a literal '%'
-        * %|         is short for %{const '|'}
-        * %(TEXT)    is special, it causes TEXT to be evaluated as if it was outside of any macro call.
+        * $1       is short for ${param 1}
+        * $$       is a literal '$'
+        * $|       is short for ${const '|'}
+        * $<TEXT>  is special, it causes TEXT to be evaluated as if it was outside of any macro call.
 
-    Literals: Anything that does not begin with a '%' is a literal.
+    Literals: Anything that does not begin with a '$' is a literal.
 ]]
 -- {{{ lpeg imports
 local lpeg          = require "lpeg"
@@ -53,16 +53,16 @@ end
 local template = P {
     'root',
     root    = Ct( Cc 'ROOT' * ((V 'literal' + V 'escape')^1)^-1),
-    literal = C((P(1) - '%')^1),
-    parens  = '(' * sp0 * C(((1 - S '()') + V 'parens')^0) * sp0 * ')',
-    escape  = '%'  * Ct(Cc "APPLY" * name)
-            + '%'  * Ct(Cc "APPLY" * Cc "param" * integer)
-            + '%{' * sp0 * '}'
-            + '%{' * sp0 * Ct(Cc "APPLY" * name * sp0 * V 'tokens') * sp0 * '}'
-            + '%{' * sp0 * Ct(Cc "APPLY" * V 'tokens') * sp0 * '}'
-            + '%'  * Ct(Cc "EVAL" * V 'parens')
-            + '%%' * Cc '%'
-            + '%'  * Ct(Cc "APPLY" * Cc "const" * punct),
+    literal = C((P(1) - '$')^1),
+    splice  = '<' * sp0 * C(((1 - S '<>') + V 'splice')^0) * sp0 * '>',
+    escape  = '$'  * Ct(Cc "APPLY" * name)
+            + '$'  * Ct(Cc "APPLY" * Cc "param" * integer)
+            + '$(' * sp0 * ')'
+            + '$(' * sp0 * Ct(Cc "APPLY" * name * sp0 * V 'tokens') * sp0 * ')'
+            + '$(' * sp0 * Ct(Cc "APPLY" * V 'tokens') * sp0 * ')'
+            + '$'  * Ct(Cc "EVAL" * V 'splice')
+            + '$$' * Cc '$'
+            + '$'  * Ct(Cc "APPLY" * Cc "const" * punct),
     tokens  = V 'token' * (sp1 * V 'tokens')^-1,
     token   = name + number + squote + dquote + V 'escape',
 }
@@ -163,11 +163,11 @@ function M.json(str)
 end
 
 --[[
-print(M.read("%{debug %(this is the debug text. Level: %1, Power: %2)}"))
-print(M.read("%{debug %{concat 'this is the debug text. Level: ' %1 ', Power: ' %2}}"))
-print(M.read("%{local %{'bat man' 'this is the debug text. Level: ' %1 ', Power: ' %2}}"))
-print(M.read("%{ %foo foo bar}"))
-print(M.read('%{ %(%{prefix}_%1) foo bar}'))
+print(M.read("$(debug $<this is the debug text. Level: $1, Power: $2>)"))
+print(M.read("$(debug $(concat 'this is the debug text. Level: ' $1 ', Power: ' $2))"))
+print(M.read("$(local $('bat man' 'this is the debug text. Level: ' $1 ', Power: ' $2))"))
+print(M.read("$( $foo foo bar)"))
+print(M.read('$( $<$(prefix)_$1> foo bar)'))
 ]]
 
 
