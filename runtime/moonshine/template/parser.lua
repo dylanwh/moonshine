@@ -110,9 +110,10 @@ function OP.EVAL(args)
 end
 
 local keywords = {
-    'if', 'then', 'while', 'for', 'do', 'until', 'end',
-    'local', 'function', 'return', 'break',
-    'param', 'P',
+    'if', 'elseif', 'then', 'while', 'for', 'do', 'until', 'end',
+    'local', 'function', 'return', 'break', 'repeat',
+    'true', 'false', 'nil', 'not', 'and', 'or',
+    'param', 'P'
 }
 local is_keyword = {}
 for i, k in ipairs(keywords) do is_keyword[k] = true end
