@@ -69,6 +69,10 @@ int main(UNUSED int argc, UNUSED char *argv[])
     GIOChannel *input;
     guint tag;
 
+	g_set_prgname("moonshine");
+#if GLIB_CHECK_VERSION(2,2,0)
+	g_set_application_name("Moonshine");
+#endif
     setlocale(LC_ALL, "");
     ms_signal_init(); // initialize moonshine signal callback
 
