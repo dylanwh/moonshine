@@ -1,37 +1,8 @@
 require "moonshine.prelude"
+local ui = require "moonshine.ui"
 
-
-local loop          = require "moonshine.loop"
-local core          = require "purple.core"
-local plugins       = require "purple.plugins"
-local conversations = require "purple.conversations"
-
-core.init({ui_init = function ()
-    conversations.init({
-        create_conversation = function(conv)
-            print("create", conv:get_name())
-        end,
-        destroy_conversation = function(conv)
-            print("destroy", conv:get_name())
-        end,
-        write_im = function(conv, name, alias, message, flags, mtime)
-            print("im", conv, name, message, flags, mtime)
-            print(conv:get_name())
-            conv:destroy()
-        end,
-        write_chat = function(conv, name, message, flags, mtime)
-            print("chat", conv, name, message, flags, mtime)
-            print(conv:get_name())
-        end
-    })
-end })
-
-local protocols = plugins:get_protocols()
-
-for i, protocol in ipairs(protocols) do
-    local info = protocol:get_info()
-    print(info.id, info.name)
-end
+ui.init()
+local loop = require "moonshine.loop"
 
 name = "moonshine@irc.perl.org"
 local account = new("purple.account", name, "prpl-irc")

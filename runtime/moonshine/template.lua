@@ -1,7 +1,6 @@
-require "moonshine.prelude"
-local parser   = require "moonshine.template.parser"
-local Template = new "moonshine.object"
+local parser = require "moonshine.template.parser"
 
+local Template = new "moonshine.object"
 Template.const = {}
 Template.env = {
     concat   = function (...) return table.concat({ ... }, "") end,
@@ -12,7 +11,7 @@ setmetatable(Template.env, { __index = function () return function () return "" 
 function Template:__init()
     local base = self.__parent.env
     self.env = {
-        const = function (C) return self.const[C] or '' end,
+        const = function (C) return self.const[C] or C end,
         apply = function (name, ...) return self:apply(name, ...) end,
     }
     setmetatable(self.env, { __index = base })
@@ -33,6 +32,12 @@ function Template:apply(name, ...)
     local r = f(...)
     self.env[name] = f
     return r
+end
+
+function Template:eval(text, ...)
+    local f = loadstring(parser.read(text))
+    setfenv(f, self.env)
+    return f(...)
 end
 
 return Template

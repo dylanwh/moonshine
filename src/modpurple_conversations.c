@@ -58,22 +58,21 @@ static void on_write_im(PurpleConversation *conv,
     lua_gc(L, LUA_GCCOLLECT, 0);
 }
 
-static void on_write_conv(PurpleConversation *conv,
-                          const char *name,
-                          const char *alias,
-                          const char *message,
-                          PurpleMessageFlags flags,
-                          time_t mtime)
+static gboolean on_has_focus(PurpleConversation *conv)
 {
-    g_assert(conversations_uiops_lua);
-    LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "write_conv");
+    LuaState *L = ms_lua_var_get(conversations_uiops_lua, "has_focus");
     ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
-    lua_pushstring(L, name);
-    lua_pushstring(L, alias);
-    lua_pushstring(L, message);
-    lua_pushinteger(L, flags);
-    lua_pushinteger(L, mtime);
-    ms_lua_call(L, 6, 0, "purple.conversations in uiops.write_conv");
+    ms_lua_call(L, 1, 1, "purple.conversations in uiops.has_focus");
+    gboolean rv = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+    return rv;
+}
+
+static void on_present(PurpleConversation *conv)
+{
+    LuaState *L = ms_lua_var_get(conversations_uiops_lua, "present");
+    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    ms_lua_call(L, 1, 0, "purple.conversations in uiops.present");
 }
 
 static PurpleConversationUiOps conversations_uiops = {
@@ -81,13 +80,13 @@ static PurpleConversationUiOps conversations_uiops = {
     on_destroy_conversation,   /* destroy_conversation */
     on_write_chat,             /* write_chat           */
     on_write_im,               /* write_im             */
-    on_write_conv,             /* write_conv           */
+    NULL,                      /* write_conv           */
     NULL,                      /* chat_add_users       */
     NULL,                      /* chat_rename_user     */
     NULL,                      /* chat_remove_users    */
     NULL,                      /* chat_update_user     */
-    NULL,                      /* present              */
-    NULL,                      /* has_focus            */
+    on_present,                /* present              */
+    on_has_focus,              /* has_focus            */
     NULL,                      /* custom_smiley_add    */
     NULL,                      /* custom_smiley_write  */
     NULL,                      /* custom_smiley_close  */

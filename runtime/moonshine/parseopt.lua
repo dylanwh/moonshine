@@ -22,15 +22,15 @@ local function parse_spec (s)
 end
 -- }}}
 
-function M.build_parser(...)--{{{
+function M.build_parser(spec)--{{{
     local hints = {}
     local alias = {}
 
-    for _, spec in ipairs { ... } do
-        if type(spec) == 'number' or spec:match("^%d$") then
-            hints[tonumber(spec)] = true
+    for _, x in ipairs(spec) do
+        if type(x) == 'number' or x:match("^%d$") then
+            hints[tonumber(x)] = true
         else
-            local names, hint = parse_spec(spec)
+            local names, hint = parse_spec(x)
             local primary     = table.remove(names, 1)
             hints[primary]    = hint
             alias[primary]    = primary

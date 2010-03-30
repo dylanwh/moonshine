@@ -13,7 +13,8 @@ local function ctrl(c)
 end
 
 local function keyspec(spec)
-    return spec:gsub("%^(.)", ctrl)
+    local term = require "moonshine.ui.term"
+    return spec:gsub("%^(.)", ctrl):gsub('{([%w_]+)}', term.tigetstr)
 end
 
 local Keymap = new "moonshine.object"
@@ -23,7 +24,7 @@ function Keymap:__init()
     self._keybuf = ""
 end
 
-function Keymap:keypress(key)
+function Keymap:process(key)
     local tree  = self._tree
     self._keybuf = self._keybuf .. key
 
@@ -58,6 +59,9 @@ function Keymap:keypress(key)
 end
 
 function Keymap:bind(spec, func)
+    if spec == nil then
+        return
+    end
     self._tree:insert(keyspec(spec), func)
 end
 

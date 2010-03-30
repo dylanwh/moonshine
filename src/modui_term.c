@@ -93,6 +93,18 @@ static int term_current_style(LuaState *L)
     return 1;
 }
 
+static int term_tigetstr(LuaState *L)
+{
+    const char *capname = luaL_checkstring(L, 1);
+    char *str = tigetstr(capname);
+    if (str == (char *)-1)
+        lua_pushnil(L);
+    else
+        lua_pushstring(L, str);
+
+    return 1;
+}
+
 static LuaLReg functions[] = {
     {"init",           term_init           },
     {"reset",          term_reset          },
@@ -106,6 +118,7 @@ static LuaLReg functions[] = {
     {"colors",         term_colors         },
     {"styles",         term_styles    },
     {"current_style",  term_current_style },
+    {"tigetstr",       term_tigetstr },
     { 0, 0 },
 };
 

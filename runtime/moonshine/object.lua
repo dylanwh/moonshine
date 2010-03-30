@@ -1,6 +1,8 @@
 local Object = { }
 local mt     = { }
 
+setmetatable(Object, mt)
+
 function mt.__index(self, slot)
     local parent = rawget(self, '__parent')
     if parent then
@@ -9,12 +11,23 @@ function mt.__index(self, slot)
 end
 
 function Object.new(parent, ...)
-    local self = setmetatable( { __parent = parent }, mt)
+    local self = setmetatable( { __parent = parent }, getmetatable(parent) )
 
     local init = self.__init
     if init then init(self, ...) end
 
     return self
+end
+
+function Object:new_mt()
+    local new_mt = {}
+    for k, v in pairs(getmetatable(self)) do
+        new_mt[k] = v
+    end
+
+    setmetatable(self, new_mt)
+
+    return new_mt
 end
 
 function Object:callback(name, ...)
