@@ -8,6 +8,7 @@ function View:__init(init)
 
     self._name         = assert(init.name, "name parameter is required")
     self._conversation = init.conversation
+    self._activity     = 0
 
     if self._conversation and self._conversation:get_type() == 'chat' then
         self:update_topic( self._conversation:get_topic())
@@ -24,15 +25,39 @@ function View:name()
     return self._name
 end
 
+function View:activity(level)
+    if level == nil then
+        if self._activity > 2 then
+            return 'important'
+        elseif self._activity == 2 then
+            return 'normal'
+        elseif self._activity == 1 then
+            return 'boring'
+        else
+            return nil
+        end
+    else
+        self._activity = math.max(self._activity, level)
+    end
+end
+
+function View:clear_activity()
+    self._activity = 0
+end
+
 function View:conversation()
     return self._conversation
 end
 
-function View:add_message(name, ...)
-    self._buffer:print(format.apply(name, ...))
+function View:add_message(msg)
+    self:activity( msg.level or 1 )
+    self._buffer:print(
+        format.apply(msg.name, unpack(msg.args))
+    )
 end
 
 function View:print(text, ...)
+    self:activity(1)
     self._buffer:print(format.eval(text, ...))
 end
 

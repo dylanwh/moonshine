@@ -1,6 +1,7 @@
 local term   = require "moonshine.ui.term"
 local format = require "moonshine.ui.format"
 local idle   = require "moonshine.idle"
+local log    = require "moonshine.log"
 
 local M = {}
 local P = {}
@@ -10,7 +11,7 @@ function M.init()
     P.status  = new "moonshine.ui.label"
     P.entry   = new "moonshine.ui.entry"
     P.history = new "moonshine.ui.buffer"
-    P.views   = {}
+    P.views   = { P.view }
 
     P.status_timer = new("moonshine.timer", function()
         M.render()
@@ -43,6 +44,18 @@ function M.is_focused(i)
 end
 
 function M.view_info(key) return P.view:info(key) end
+
+function M.activity()
+    local list = {}
+    for i, view in ipairs(P.views) do
+        local level = view:activity()
+        if level then
+            list[i] = level
+        end
+    end
+
+    return ipairs(list)
+end
 
 function M.update_status()
     local curr = os.date("*t")
@@ -121,6 +134,8 @@ function M.render()
     end
 
     P.render_pending = true
+
+    P.view:clear_activity()
 
     idle.call(function()
         local rows, cols = term.dimensions()

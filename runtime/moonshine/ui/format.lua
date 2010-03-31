@@ -83,15 +83,26 @@ function M.init()--{{{
     M.define('prompt',  "[$1] ")
 
     local screen = require "moonshine.ui.screen"
-
     M.define('view_info', function (key) return screen.view_info(key) end)
+
+    M.define('status_act', function()
+        local acts = {}
+        for i, level in screen.activity() do
+            acts[#acts+1] = style("act_" .. level, i .. "")
+        end
+        if #acts > 0 then
+            return status_bit('Act: ' .. concat_(',', acts))
+        else
+            return ""
+        end
+    end)
 
     M.define('topic', '$(style topic)$1')
     -- note the trailing space.
     M.define('status_bit',  '$(style status_bit $<[$(style status $1)] >)')
     M.define('status_time', '$(status_bit $(timestamp $now))')
     M.define('status_view', '$(status_bit $(view_info name))')
-    M.define('status',  '$(style status) $(status_time)$(status_view)$(status_act)')
+    M.define('status',      '$(style status) $(status_time)$(status_view)$(status_act)')
 end--}}}
 
 function M.define_color(color, r, g, b)--{{{

@@ -93,6 +93,32 @@ static int conversation_get_type(LuaState *L)
     return 1;
 }
 
+static int conversation_get_account(LuaState *L)
+{
+    PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
+    g_return_val_if_fail(*conv, 0);
+    ms_lua_backref_push_or_newclass(L, *conv, "purple.account", sizeof(PurpleAccount *));
+    return 1;
+}
+
+static int conversation_get_topic(LuaState *L)
+{
+    PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
+    g_return_val_if_fail(*conv, 0);
+    switch (purple_conversation_get_type(*conv)) {
+        case PURPLE_CONV_TYPE_IM:
+            lua_pushstring(L, "IM");
+            break;
+        case PURPLE_CONV_TYPE_CHAT:
+            lua_pushstring(L, purple_conv_chat_get_topic(PURPLE_CONV_CHAT(*conv)));
+            break;
+        default:
+            g_assert_not_reached();
+            break;
+    }
+    return 1;
+}
+
 static int conversation_destroy(LuaState *L)
 {
     PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
@@ -123,12 +149,14 @@ static int conversation_gc(LuaState *L)/*{{{*/
 /* }}} */
 
 static const LuaLReg conversation_methods[] = {/*{{{*/
-    { "new",                          conversation_new      },
-    { "destroy",                      conversation_destroy  },
-    { "get_name",                     conversation_get_name },
-    { "get_type",                     conversation_get_type },
-    { "write",                        conversation_write    },
-    { "send",                         conversation_send     },
+    { "new",                          conversation_new         },
+    { "destroy",                      conversation_destroy     },
+    { "get_name",                     conversation_get_name    },
+    { "get_type",                     conversation_get_type    },
+    { "get_account",                  conversation_get_account },
+    { "get_topic",                    conversation_get_topic   },
+    { "write",                        conversation_write       },
+    { "send",                         conversation_send        },
     { 0, 0 }
 };/*}}}*/
 

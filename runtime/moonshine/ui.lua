@@ -37,6 +37,9 @@ function H.ui_init()
     keymap:bind('{kcuf1}', function () screen.entry_move(1)            end)
     keymap:bind('{kcuu1}', function () screen.history_backward()       end)
     keymap:bind('{kcud1}', function () screen.history_forward()        end)
+    keymap:bind('^[1',     function () screen.focus_view(1)            end)
+    keymap:bind('^[2',     function () screen.focus_view(2)            end)
+    keymap:bind('^[3',     function () screen.focus_view(3)            end)
 
     local function accept(text)
         shell.accept_line(text)
@@ -53,7 +56,7 @@ end
 function H.create_conversation(conv)
     assert(TO_VIEW[conv] == nil, "conversation does not exist")
     screen.print("hello, world")
-    local view = new("moonshine.ui.view", { name = conv:get_name(), conv = conv })
+    local view = new("moonshine.ui.view", { name = conv:get_name(), conversation = conv })
     TO_VIEW[conv] = screen.add_view(view)
     screen.render()
 end
@@ -67,14 +70,24 @@ end
 function H.write_im(conv, name,  message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.find_view(TO_VIEW[conv])
-    view:add_message('private', mtime, name, message)
+    view:add_message({
+        level = 3,
+        name  = 'private',
+        args  = {mtime, name or conv:get_account():get_name(), message},
+    })
+
     screen.render()
 end
 
 function H.write_chat(conv, name, message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.find_view(TO_VIEW[conv])
-    view:add_message('public', mtime, name, message)
+    view:add_message({
+        level = 2,
+        name  = 'public',
+        args  = {mtime, name, message},
+    })
+
     screen.render()
 end
 
