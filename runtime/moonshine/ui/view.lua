@@ -6,22 +6,26 @@ function View:__init(init)
     self._topic  = new "moonshine.ui.label"
     self._buffer = new "moonshine.ui.buffer"
 
-    self._name = assert(init.name, "name parameter is required")
-    self._conv = init.conv
+    self._name         = assert(init.name, "name parameter is required")
+    self._conversation = init.conversation
 
-    self:set_topic( '[' .. self:get_name() .. ']' )
+    if self._conversation and self._conversation:get_type() == 'chat' then
+        self:update_topic( self._conversation:get_topic())
+    else
+        self:update_topic( '[' .. self:name() .. ']' )
+    end
 end
 
-function View:set_topic(text)
-    self._topic:set( format.apply('topic', text) )
+function View:update_topic(text)
+    self._topic:set( format.apply('topic', text or 'NO TOPIC') )
 end
 
-function View:get_name()
+function View:name()
     return self._name
 end
 
-function View:get_conv()
-    return self._conv
+function View:conversation()
+    return self._conversation
 end
 
 function View:add_message(name, ...)
@@ -35,6 +39,14 @@ end
 function View:render(t, b)
     self._topic:render(t)
     self._buffer:render(t+1, b)
+end
+
+function View:info(key)
+    if key == 'name' then
+        return self:name()
+    else
+        return ""
+    end
 end
 
 return View

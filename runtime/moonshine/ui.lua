@@ -9,7 +9,7 @@ local keymap = new "moonshine.keymap"
 local format = require "moonshine.ui.format"
 local screen = require "moonshine.ui.screen"
 
-local CONV_VIEW = { }
+local TO_VIEW = { }
 
 function on_input(key)
     if not keymap:process(key) then
@@ -38,9 +38,12 @@ function H.ui_init()
     keymap:bind('{kcuu1}', function () screen.history_backward()       end)
     keymap:bind('{kcud1}', function () screen.history_forward()        end)
 
-    local accept = shell.accept_line
-    keymap:bind('{kent}',  function () screen.entry_submit(accept) end)
+    local function accept(text)
+        shell.accept_line(text)
+        screen.render()
+    end
 
+    keymap:bind('{kent}',  function () screen.entry_submit(accept) end)
     -- why does urxvt not sent kent?
     keymap:bind('^M',  function () screen.entry_submit(accept) end)
 
@@ -48,35 +51,43 @@ function H.ui_init()
 end
 
 function H.create_conversation(conv)
-    assert(CONV_VIEW[conv] == nil, "conversation does not exist")
+    assert(TO_VIEW[conv] == nil, "conversation does not exist")
     screen.print("hello, world")
     local view = new("moonshine.ui.view", { name = conv:get_name(), conv = conv })
-    CONV_VIEW[conv] = screen.add_view(view)
+    TO_VIEW[conv] = screen.add_view(view)
+    screen.render()
 end
 
 function H.destroy_conversation(conv)
-    assert(CONV_VIEW[conv], "conversation exists")
-    screen.del_view( CONV_VIEW[conv] )
+    assert(TO_VIEW[conv], "conversation exists")
+    screen.del_view( TO_VIEW[conv] )
+    screen.render()
 end
 
 function H.write_im(conv, name,  message, flags, mtime)
-    assert(CONV_VIEW[conv], "conversation exists")
-    screen.focus_view(CONV_VIEW[conv])
+    assert(TO_VIEW[conv], "conversation exists")
+    local view = screen.find_view(TO_VIEW[conv])
+    view:add_message('private', mtime, name, message)
+    screen.render()
 end
 
 function H.write_chat(conv, name, message, flags, mtime)
-    assert(CONV_VIEW[conv], "conversation exists")
-    screen.focus_view(CONV_VIEW[conv])
+    assert(TO_VIEW[conv], "conversation exists")
+    local view = screen.find_view(TO_VIEW[conv])
+    view:add_message('public', mtime, name, message)
+    screen.render()
 end
 
 function H.present(conv)
-    assert(CONV_VIEW[conv], "conversation exists")
-    screen.focus_view(CONV_VIEW[conv])
+    assert(TO_VIEW[conv], "conversation exists")
+    screen.focus_view(TO_VIEW[conv])
+    screen.render()
 end
 
 function H.has_focus(conv)
-    assert(CONV_VIEW[conv], "conversation exists")
-    return screen.is_focused(CONV_VIEW[conv])
+    assert(TO_VIEW[conv], "conversation exists")
+    screen.render()
+    return screen.is_focused(TO_VIEW[conv])
 end
 
 local M = {}

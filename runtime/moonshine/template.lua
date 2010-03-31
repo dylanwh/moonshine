@@ -1,3 +1,4 @@
+local log    = require "moonshine.log"
 local parser = require "moonshine.template.parser"
 
 local Template = new "moonshine.object"
@@ -17,12 +18,35 @@ function Template:__init()
     setmetatable(self.env, { __index = base })
 end
 
+function Template:make(code)
+    if type(code) == 'string' then
+        return setfenv(loadstring(parser.read(code)), self.env)
+    else
+        if type(code) == 'function' then
+            setfenv(code, self.env)
+        end
+        return function(...)
+            local no_error, text = pcall(code, ...)
+            if no_error then
+                return text
+            else
+                log.critical("template/format error: %s", text)
+                return ""
+            end
+        end
+    end
+end
+
 -- add a new Template.
 function Template:define(name, code)
-    local f = loadstring(parser.read(code))
-    setfenv(f, self.env)
-    self.env[name] = f
+    self.env[name] = self:make(code)
 end
+
+function Template:eval(code, ...)
+    return self:make(code)(...)
+end
+
+
 
 -- apply a Template to a set of arguments.
 -- recursive Template are not allowed.
@@ -32,12 +56,6 @@ function Template:apply(name, ...)
     local r = f(...)
     self.env[name] = f
     return r
-end
-
-function Template:eval(text, ...)
-    local f = loadstring(parser.read(text))
-    setfenv(f, self.env)
-    return f(...)
 end
 
 return Template

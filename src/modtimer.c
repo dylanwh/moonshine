@@ -29,7 +29,7 @@ struct luatimer {
     quash_active_timer : 1;
 };
 
-static gboolean timer_cb(gpointer p_timer)/*{{{*/
+static gboolean timer_cb(gpointer p_timer)
 {
     struct luatimer *timer = p_timer;
     gboolean destroyed_flag = FALSE;

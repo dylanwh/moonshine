@@ -7,8 +7,8 @@ Format.const = {
     ['^'] = term.STYLE_RESET_CODE,
 }
 
-function Format.env.date(fmt, time)
-    return os.date(fmt, time)
+function Format.env.now()
+    return os.time()
 end
 
 local COLOR_MAP, STYLE_MAP
@@ -19,19 +19,6 @@ local function style_code(style)--{{{
         return term.style_code(style_id)
     else
         return ""
-    end
-end--}}}
-
-function Format.env.style(name, text)--{{{
-    local code = style_code(name)
-    if code == "" then
-        return text or ""
-    else
-        if text then
-            return code .. text .. term.STYLE_RESET_CODE
-        else
-            return code
-        end
     end
 end--}}}
 
@@ -70,12 +57,41 @@ function M.init()--{{{
     STYLE_MAP:assign('default', 0)
 
     M.define_style('topic', 'white', 'blue')
-    M.define('topic', '$(style topic)$1')
+    M.define_style('status', 'white', 'blue')
+    M.define_style('status_bit', 'cyan', 'blue')
+
+    M.define('style', function (name, text)
+        local code = style_code(name)
+        if code == "" then
+            return text or ""
+        else
+            if text then
+                return code .. text .. term.STYLE_RESET_CODE
+            else
+                return code
+            end
+        end
+    end)
+
+    local os = os
+    M.define('date', function (...) return os.date(...) end)
+    M.define('now', function (...) return os.time() end)
     M.define("timestamp", "$(date '%H:%M' $1)")
     M.define("chat",    "$(timestamp $1) <$2> $3")
     M.define("public",  "$(chat $0)")
     M.define("private", "$(chat $0)")
     M.define('prompt',  "[$1] ")
+
+    local screen = require "moonshine.ui.screen"
+
+    M.define('view_info', function (key) return screen.view_info(key) end)
+
+    M.define('topic', '$(style topic)$1')
+    -- note the trailing space.
+    M.define('status_bit',  '$(style status_bit $<[$(style status $1)] >)')
+    M.define('status_time', '$(status_bit $(timestamp $now))')
+    M.define('status_view', '$(status_bit $(view_info name))')
+    M.define('status',  '$(style status) $(status_time)$(status_view)$(status_act)')
 end--}}}
 
 function M.define_color(color, r, g, b)--{{{
