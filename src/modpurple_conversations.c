@@ -32,13 +32,14 @@ static void on_write_chat(PurpleConversation *conv,
 {
     g_assert(conversations_uiops_lua);
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "write_chat");
+    char *message2 = purple_unescape_html(message);
     ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
     lua_pushstring(L, name);
-    lua_pushstring(L, message);
+    lua_pushstring(L, message2);
     lua_pushinteger(L, flags);
     lua_pushinteger(L, mtime);
     ms_lua_call(L, 5, 0, "purple.conversations in uiops.write_chat");
-    lua_gc(L, LUA_GCCOLLECT, 0);
+    g_free(message2);
 }
 
 static void on_write_im(PurpleConversation *conv,
@@ -48,14 +49,15 @@ static void on_write_im(PurpleConversation *conv,
                           time_t mtime)
 {
     g_assert(conversations_uiops_lua);
-    LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "write_im");
+    LuaState *L    = ms_lua_var_get(conversations_uiops_lua, "write_im");
+    char *message2 = purple_unescape_html(message);
     ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
     lua_pushstring(L, name);
-    lua_pushstring(L, message);
+    lua_pushstring(L, message2);
     lua_pushinteger(L, flags);
     lua_pushinteger(L, mtime);
     ms_lua_call(L, 5, 0, "purple.conversations in uiops.write_im");
-    lua_gc(L, LUA_GCCOLLECT, 0);
+    g_free(message2);
 }
 
 static gboolean on_has_focus(PurpleConversation *conv)

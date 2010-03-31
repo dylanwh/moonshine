@@ -57,7 +57,7 @@ static int conversation_write(LuaState *L)/*{{{*/
 static int conversation_send(LuaState *L)/*{{{*/
 {
     PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
-    const char *message       = luaL_checkstring(L,  2);
+    char *message             = g_markup_escape_text(luaL_checkstring(L,  2), -1);
     g_return_val_if_fail(*conv, 0);
 
     switch (purple_conversation_get_type(*conv)) {
@@ -70,6 +70,7 @@ static int conversation_send(LuaState *L)/*{{{*/
         default:
             g_assert_not_reached();
     }
+    g_free(message);
     return 0;
 }/*}}}*/
 
