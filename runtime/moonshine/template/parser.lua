@@ -141,7 +141,7 @@ function OP.APPLY(args)
         if args[1] == 0 then
             return 'concat_0(P)'
         else
-            return string.format("P[%s]", compile(args[1]))
+            return string.format("(P[%s] or '?')", compile(args[1]))
         end
     elseif type(name) == 'table' then
         return string.format('apply(%s, %s)', compile(name), args_code)

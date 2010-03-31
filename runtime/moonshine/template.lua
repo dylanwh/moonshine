@@ -5,6 +5,7 @@ local Template = new "moonshine.object"
 Template.const = {}
 Template.env = {
     concat   = function (...) return table.concat({ ... }, "") end,
+    concat_  = function (sep, list) return table.concat(list, sep) end,
     concat_0 = function (P) return table.concat(P, " ") end,
 }
 setmetatable(Template.env, { __index = function () return function () return "" end end })
@@ -18,28 +19,32 @@ function Template:__init()
     setmetatable(self.env, { __index = base })
 end
 
-function Template:make(code)
+local function SAFE(f)
+    return function(...)
+        local no_error, text = pcall(f, ...)
+        if no_error then
+            return text
+        else
+            log.critical("template/format error: %s", text)
+            return ""
+        end
+    end
+end
+
+function Template:make(code, name)
     if type(code) == 'string' then
-        return setfenv(loadstring(parser.read(code)), self.env)
+        return SAFE(setfenv(loadstring(parser.read(code), name), self.env))
     else
         if type(code) == 'function' then
             setfenv(code, self.env)
         end
-        return function(...)
-            local no_error, text = pcall(code, ...)
-            if no_error then
-                return text
-            else
-                log.critical("template/format error: %s", text)
-                return ""
-            end
-        end
+        return SAFE(code)
     end
 end
 
 -- add a new Template.
 function Template:define(name, code)
-    self.env[name] = self:make(code)
+    self.env[name] = self:make(code, name)
 end
 
 function Template:eval(code, ...)
