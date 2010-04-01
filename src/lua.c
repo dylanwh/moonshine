@@ -162,6 +162,17 @@ void ms_lua_use_env(LuaState *L)/*{{{*/
     lua_replace(L, LUA_ENVIRONINDEX);
 }/*}}}*/
 
+gboolean ms_lua_call(LuaState *L, int argc, int retc, const char *where)
+{
+    if (lua_pcall(L, argc, retc, 0)) {
+        g_critical("moonshine error in %s: %s", where, lua_tostring(L, -1));
+        return FALSE;
+    }
+    else {
+        return TRUE;
+    }
+}
+
 gboolean ms_lua_require(LuaState *L, const char *name)/*{{{*/
 {
     int len = strlen("ms_lua_require()") + strlen(name) + 1;

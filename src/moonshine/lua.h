@@ -63,15 +63,6 @@ INLINE gboolean ms_lua_checkboolean(LuaState *L, int index)
     return lua_toboolean(L, index);
 }
 
-INLINE gboolean ms_lua_call(LuaState *L, int argc, int retc, const char *where)
-{
-    if (lua_pcall(L, argc, retc, 0)) {
-        g_critical("moonshine error in %s: %s", where, lua_tostring(L, -1));
-        return FALSE;
-    }
-    else {
-        return TRUE;
-    }
-}
+gboolean ms_lua_call(LuaState *L, int argc, int retc, const char *where);
 
 #endif
