@@ -94,6 +94,7 @@ function M.init()--{{{
         end
     end)
 
+
     local os = os
     M.define('date', function (...) return os.date(...) end)
     M.define('now', function (...) return os.time() end)
@@ -102,6 +103,9 @@ function M.init()--{{{
     M.define("public",  "$(chat $0)")
     M.define("private", "$(chat $0)")
     M.define('prompt',  "[$1] ")
+
+
+    M.define('log_message', "$(timestamp $now) [$1.$2] $3")
 
     local screen = require "moonshine.ui.screen"
     M.define('view_info', function (key) return screen.view_info(key) end)

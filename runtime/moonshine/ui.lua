@@ -21,6 +21,7 @@
 
 local purple_core          = require "purple.core"
 local purple_conversations = require "purple.conversations"
+local purple_roomlist      = require "purple.roomlist"
 
 local log    = require "moonshine.log"
 local term   = require "moonshine.ui.term"
@@ -49,9 +50,14 @@ local H = {}
 
 function H.ui_init()
     purple_conversations.init(H)
+    purple_roomlist:init(H)
     term.init()
     format.init()
     screen.init()
+
+    log.set_default_handler(function (domain, level, message)
+        screen.find_view(1):add_message( { level = 1, name = "log_message", args = { domain, level, message } } )
+    end)
 
     keymap:bind('{kbs}',   function () screen.entry_erase(-1)          end)
     keymap:bind('{kcub1}', function () screen.entry_move(-1)           end)
@@ -74,21 +80,22 @@ function H.ui_init()
     screen.render()
 end
 
-function H.create_conversation(conv)
+function H.conversation_create(conv)
     assert(TO_VIEW[conv] == nil, "conversation does not exist")
     screen.print("hello, world")
     local view = new("moonshine.ui.view", { name = conv:get_name(), conversation = conv })
     TO_VIEW[conv] = screen.add_view(view)
+    conv:get_account():get_roomlist()
     screen.render()
 end
 
-function H.destroy_conversation(conv)
+function H.conversation_destroy(conv)
     assert(TO_VIEW[conv], "conversation exists")
     screen.del_view( TO_VIEW[conv] )
     screen.render()
 end
 
-function H.write_im(conv, name,  message, flags, mtime)
+function H.conversation_write_im(conv, name,  message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.find_view(TO_VIEW[conv])
     view:add_message({
@@ -100,7 +107,7 @@ function H.write_im(conv, name,  message, flags, mtime)
     screen.render()
 end
 
-function H.write_chat(conv, name, message, flags, mtime)
+function H.conversation_write_chat(conv, name, message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.find_view(TO_VIEW[conv])
     view:add_message({
@@ -112,16 +119,36 @@ function H.write_chat(conv, name, message, flags, mtime)
     screen.render()
 end
 
-function H.present(conv)
+function H.conversation_present(conv)
     assert(TO_VIEW[conv], "conversation exists")
     screen.focus_view(TO_VIEW[conv])
     screen.render()
 end
 
-function H.has_focus(conv)
+function H.conversation_has_focus(conv)
     assert(TO_VIEW[conv], "conversation exists")
     screen.render()
     return screen.is_focused(TO_VIEW[conv])
+end
+
+function H.roomlist_create(roomlist)
+    log.debug("roomlist created")
+end
+
+function H.roomlist_destroy(roomlist)
+    log.debug("roomlist destroyed")
+end
+
+function H.roomlist_add_room(roomlist, room)
+    log.debug("room: %s", room:get_name())
+end
+
+function H.roomlist_in_progress(roomlist, bool)
+    if bool then
+        log.debug("roomlist in progress")
+    else
+        log.debug("roomlist not in progress")
+    end
 end
 
 local M = {}
