@@ -85,7 +85,6 @@ function H.conversation_create(conv)
     screen.print("hello, world")
     local view = new("moonshine.ui.view", { name = conv:get_name(), conversation = conv })
     TO_VIEW[conv] = screen.add_view(view)
-    conv:get_account():get_roomlist()
     screen.render()
 end
 
@@ -133,10 +132,6 @@ end
 
 function H.roomlist_create(roomlist)
     log.debug("roomlist created")
-end
-
-function H.roomlist_destroy(roomlist)
-    log.debug("roomlist destroyed")
 end
 
 function H.roomlist_add_room(roomlist, room)

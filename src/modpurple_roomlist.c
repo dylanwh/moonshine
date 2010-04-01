@@ -28,14 +28,19 @@ static MSLuaVar *roomlist_uiops_lua = NULL;
 static void on_roomlist_create(PurpleRoomlist *roomlist)
 {
     LuaState *L = ms_lua_var_get(roomlist_uiops_lua, "roomlist_create");
-    ms_lua_backref_push_or_newclass(L, roomlist, "purple.roomlist", sizeof(PurpleRoomlist *));
+    gboolean is_new = ms_lua_backref_push_or_newclass(L, roomlist, "purple.roomlist", sizeof(PurpleRoomlist *));
+    if (is_new) {
+        purple_roomlist_ref(roomlist);
+        purple_roomlist_ref(roomlist);
+    }
     ms_lua_call(L, 1, 0, "purple.roomlist in uiops.create");
 }
 
 static void on_roomlist_add_room(PurpleRoomlist *roomlist, PurpleRoomlistRoom *room)
 {
     LuaState *L = ms_lua_var_get(roomlist_uiops_lua, "roomlist_add_room");
-    ms_lua_backref_push_or_newclass(L, roomlist, "purple.roomlist", sizeof(PurpleRoomlist *));
+    gboolean is_new = ms_lua_backref_push_or_newclass(L, roomlist, "purple.roomlist", sizeof(PurpleRoomlist *));
+    if (is_new) purple_roomlist_ref(roomlist);
     ms_lua_backref_push_or_newclass(L, room, "purple.room", sizeof(PurpleRoomlistRoom *));
     ms_lua_call(L, 2, 0, "purple.roomlist in uiops.roomlist_add_room");
 }
@@ -43,17 +48,10 @@ static void on_roomlist_add_room(PurpleRoomlist *roomlist, PurpleRoomlistRoom *r
 static void on_roomlist_in_progress(PurpleRoomlist *roomlist, gboolean flag)
 {
     LuaState *L = ms_lua_var_get(roomlist_uiops_lua, "roomlist_in_progress");
-    ms_lua_backref_push_or_newclass(L, roomlist, "purple.roomlist", sizeof(PurpleRoomlist *));
+    gboolean is_new = ms_lua_backref_push_or_newclass(L, roomlist, "purple.roomlist", sizeof(PurpleRoomlist *));
+    if (is_new) purple_roomlist_ref(roomlist);
     lua_pushboolean(L, flag);
     ms_lua_call(L, 2, 0, "purple.roomlist in uiops.roomlist_on_progress");
-}
-
-static void on_roomlist_destroy(PurpleRoomlist *roomlist)
-{
-    LuaState *L = ms_lua_var_get(roomlist_uiops_lua, "roomlist_destroy");
-    ms_lua_backref_push_or_newclass(L, roomlist, "purple.roomlist", sizeof(PurpleRoomlist *));
-    ms_lua_call(L, 1, 0, "purple.roomlist in uiops.roomlist_destroy");
-    ms_lua_backref_unset(L, roomlist);
 }
 
 static PurpleRoomlistUiOps roomlist_uiops = {
@@ -62,7 +60,7 @@ static PurpleRoomlistUiOps roomlist_uiops = {
     NULL,
     on_roomlist_add_room,
     on_roomlist_in_progress,
-    on_roomlist_destroy,
+    NULL,
     NULL,
     NULL,
     NULL,
@@ -92,6 +90,15 @@ static int roomlist_new(LuaState *L)/*{{{*/
     ms_lua_backref_set(L, *roomlist, -1);
     return 1;
 }/*}}}*/
+
+static int roomlist_join(LuaState *L)
+{
+    PurpleRoomlist **roomlist = ms_lua_checkclass(L, "purple.roomlist", 1);
+    PurpleRoomlistRoom **room = ms_lua_checkclass(L, "purple.room", 2);
+
+    purple_roomlist_room_join(*roomlist, *room);
+    return 0;
+}
 /* }}} */
 
 /* {{{ Meta Methods */
@@ -107,12 +114,14 @@ static int roomlist_gc(LuaState *L)/*{{{*/
 {
     PurpleRoomlist **roomlist = ms_lua_toclass(L, "purple.roomlist", 1);
     ms_lua_backref_unset(L, *roomlist);
+    purple_roomlist_unref(*roomlist);
     return 0;
 }/*}}}*/
 /* }}} */
 
 static const LuaLReg roomlist_methods[] = {/*{{{*/
     { "new",                          roomlist_new   },
+    { "join",                         roomlist_join  },
     { "init",                         roomlist_init  },
     { 0, 0 }
 };/*}}}*/

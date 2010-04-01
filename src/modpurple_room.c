@@ -24,6 +24,17 @@
 #include <purple.h>
 
 /* {{{ Methods */
+static int room_new(LuaState *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+    const char *roomname = luaL_checkstring(L, 2);
+
+    PurpleRoomlistRoom **room = ms_lua_newclass(L, "purple.room", sizeof(PurpleRoomlistRoom *));
+    *room = purple_roomlist_room_new(PURPLE_ROOMLIST_ROOMTYPE_ROOM, roomname, NULL);
+
+    return 1;
+}
+
 static int room_get_name(LuaState *L)/*{{{*/
 {
     PurpleRoomlistRoom **room = ms_lua_checkclass(L, "purple.room", 1);
@@ -50,6 +61,7 @@ static int room_gc(LuaState *L)/*{{{*/
 /* }}} */
 
 static const LuaLReg room_methods[] = {/*{{{*/
+    { "new",                               room_new      },
     { "get_name",                          room_get_name },
     { 0, 0 }
 };/*}}}*/
