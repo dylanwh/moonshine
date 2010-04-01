@@ -55,7 +55,8 @@ static gboolean on_input(GIOChannel *chan, UNUSED GIOCondition c, UNUSED gpointe
 
 static void on_signal(int sig)/*{{{*/
 {
-    write(output_fd, &sig, sizeof(sig));
+    int wrote = write(output_fd, &sig, sizeof(sig));
+    g_assert(wrote == sizeof(sig));
 }/*}}}*/
 
 static GIOChannel *channel_from_fd(int fd)/*{{{*/

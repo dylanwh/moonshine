@@ -1,4 +1,4 @@
-/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
+/* vim: set ft=c expandtab ts=4 sw=4 tw=80: */
 
 /* Moonshine - a Lua-based chat client
  *
@@ -136,7 +136,7 @@ const char *ms_parseopt_parse(void *baton, const char *argstr, const MSParseOptC
 
     while (1) {
         const struct token *t = get_lookahead(&pc, 0);
-        int ret;
+        MSParseOptStatus ret;
         if (!t)
             break;
         if (pc.all_literal || t->str->str[0] != '-') {
@@ -146,6 +146,7 @@ const char *ms_parseopt_parse(void *baton, const char *argstr, const MSParseOptC
         } else if (t->str->str[1] == '-') {
             if (t->str->str[2] == '\0') {
                 pc.all_literal = 1;
+                ret = MS_PARSEOPT_NOARG;
             } else {
                 int inline_arg;
                 const char *argument;
@@ -157,7 +158,7 @@ const char *ms_parseopt_parse(void *baton, const char *argstr, const MSParseOptC
                 } else {
                     const struct token *next = get_lookahead(&pc, 1);
                     inline_arg = 0;
-                    if (next)               
+                    if (next)
                         argument = next->str->str;
                     else
                         argument = NULL;
