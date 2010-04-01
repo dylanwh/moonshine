@@ -37,6 +37,8 @@ modules = {
    'purple.account',
    'purple.plugins',
    'purple.plugin',
+   'purple.roomlist',
+   'purple.room',
 }
 
 print "#ifndef __MOONSHINE_PRELOAD_H__"

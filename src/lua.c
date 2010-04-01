@@ -76,7 +76,7 @@ void ms_lua_backref_set(LuaState *L, gpointer ptr, int idx)
     lua_pop(L, 1);       // remove table from stack. stack is now in original state.
 }
 
-void ms_lua_backref_push_or_newclass(LuaState *L, gpointer key, const char *name, gsize size)
+gboolean ms_lua_backref_push_or_newclass(LuaState *L, gpointer key, const char *name, gsize size)
 {
     ms_lua_backref_push(L, key);
     if (lua_isnil(L, -1)) {
@@ -84,6 +84,10 @@ void ms_lua_backref_push_or_newclass(LuaState *L, gpointer key, const char *name
         gpointer *ptr = ms_lua_newclass(L, name, size);
         *ptr = key;
         ms_lua_backref_set(L, key, -1);
+        return TRUE;
+    }
+    else {
+        return FALSE;
     }
 }
 
@@ -124,6 +128,7 @@ gpointer ms_lua_checkclass(LuaState *L, const char *name, int index)/*{{{*/
 
 gpointer ms_lua_newclass(LuaState *L, const char *name, gsize size)/*{{{*/
 {
+    ms_lua_require(L, name);
     gpointer p = lua_newuserdata(L, size);
     luaL_getmetatable(L, name);
     lua_setmetatable(L, -2);

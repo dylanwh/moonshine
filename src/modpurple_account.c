@@ -23,15 +23,13 @@
 #include <moonshine/lua_var.h>
 #include <account.h>
 
-#define CLASS "purple.account"
-
 /* {{{ Methods */
 static int account_new(LuaState *L)/*{{{*/
 {
     luaL_checktype(L, 1, LUA_TTABLE);
     const char *username = luaL_checkstring(L, 2);
     const char *proto_id = luaL_checkstring(L, 3);
-    PurpleAccount **account = ms_lua_newclass(L, CLASS, sizeof(PurpleAccount *));
+    PurpleAccount **account = ms_lua_newclass(L, "purple.account", sizeof(PurpleAccount *));
     *account  = purple_account_new(username, proto_id);
     ms_lua_backref_set(L, *account, -1);
     return 1;
@@ -39,14 +37,14 @@ static int account_new(LuaState *L)/*{{{*/
 
 static int account_connect(LuaState *L)/*{{{*/
 {
-    PurpleAccount **account = ms_lua_checkclass(L, CLASS, 1);
+    PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
     purple_account_connect(*account);
     return 0;
 }/*}}}*/
 
 static int account_set_password(LuaState *L)/*{{{*/
 {
-    PurpleAccount **account = ms_lua_checkclass(L, CLASS, 1);
+    PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
     const char *password    = luaL_checkstring(L, 2);
     purple_account_set_password(*account, password);
     return 0;
@@ -54,11 +52,28 @@ static int account_set_password(LuaState *L)/*{{{*/
 
 static int account_set_enabled(LuaState *L)/*{{{*/
 {
-    PurpleAccount **account = ms_lua_checkclass(L, CLASS, 1);
+    PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
     gboolean enabled        = ms_lua_checkboolean(L, 2);
     purple_account_set_enabled(*account, "moonshine", enabled);
     return 0;
 }/*}}}*/
+
+static int account_get_roomlist(LuaState *L)
+{
+    PurpleAccount **account   = ms_lua_checkclass(L, "purple.account", 1);
+    PurpleConnection *pc      = purple_account_get_connection(*account);
+    PurpleRoomlist *roomlist  = purple_roomlist_get_list(pc);
+
+    if (roomlist) {
+        PurpleRoomlist **result = ms_lua_newclass(L, "purple.roomlist", sizeof(PurpleRoomlist *));
+        *result = roomlist;
+    }
+    else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
 
 /** we fold the following methods into one set() method:
  * account_set_bool
@@ -66,7 +81,7 @@ static int account_set_enabled(LuaState *L)/*{{{*/
  * account_set_string */
 static int account_set(LuaState *L)/*{{{*/
 {
-    PurpleAccount **account = ms_lua_checkclass(L, CLASS, 1);
+    PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
     const char *key         = luaL_checkstring(L, 2);
 
     switch (lua_type(L, 3)) {
@@ -90,14 +105,14 @@ static int account_set(LuaState *L)/*{{{*/
 static int account_tostring(LuaState *L)/*{{{*/
 {
     char buff[32];
-    sprintf(buff, "%p", ms_lua_toclass(L, CLASS, 1));
-    lua_pushfstring(L, "Account (%s)", buff);
+    sprintf(buff, "%p", ms_lua_toclass(L, "purple.account", 1));
+    lua_pushfstring(L, "account (%s)", buff);
     return 1;
 }/*}}}*/
 
 static int account_gc(LuaState *L)/*{{{*/
 {
-    PurpleAccount **account = ms_lua_toclass(L, CLASS, 1);
+    PurpleAccount **account = ms_lua_toclass(L, "purple.account", 1);
     ms_lua_backref_unset(L, *account);
     return 0;
 }/*}}}*/
@@ -109,6 +124,7 @@ static const LuaLReg account_methods[] = {/*{{{*/
     { "set_password",                 account_set_password},
     { "set_enabled",                  account_set_enabled},
     { "set",                          account_set        },
+    { "get_roomlist",                 account_get_roomlist },
 #if 0
     { "add_buddy",                    account_add_buddy},
     { "get_active_status",            account_get_active_status},
@@ -156,6 +172,6 @@ static const LuaLReg account_meta[] = {/*{{{*/
 
 int luaopen_purple_account(LuaState *L)/*{{{*/
 {
-    ms_lua_class_register(L, CLASS, account_methods, account_meta);
+    ms_lua_class_register(L, "purple.account", account_methods, account_meta);
     return 1;
 }/*}}}*/

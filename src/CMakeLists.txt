@@ -25,6 +25,8 @@ ADD_EXECUTABLE(moonshine
     modpurple_conversation.c
     modpurple_plugins.c
     modpurple_plugin.c
+    modpurple_roomlist.c
+    modpurple_room.c
 
     avl/avl.c
     modtree.c

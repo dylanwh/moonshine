@@ -118,7 +118,9 @@ static int conversation_get_account(LuaState *L)
 {
     PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
     g_return_val_if_fail(*conv, 0);
-    ms_lua_backref_push_or_newclass(L, *conv, "purple.account", sizeof(PurpleAccount *));
+
+    PurpleAccount *account = purple_conversation_get_account(*conv);
+    ms_lua_backref_push_or_newclass(L, account, "purple.account", sizeof(PurpleAccount *));
     return 1;
 }
 

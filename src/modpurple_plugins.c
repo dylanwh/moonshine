@@ -44,9 +44,7 @@ static LuaLReg functions[] = {
 
 int luaopen_purple_plugins(LuaState *L)
 {
-    g_debug("luaopen_purple_plugins()");
     ms_lua_module(L, functions);
-    ms_lua_require(L, "purple.plugin");
 
     return 1;
 }
