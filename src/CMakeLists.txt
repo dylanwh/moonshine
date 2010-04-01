@@ -61,15 +61,6 @@ TARGET_LINK_LIBRARIES(test_lua_var
     ${LUA_LIBRARIES}
     ${PURPLE_LIBRARIES})
 
-ADD_EXECUTABLE(test_purple
-    test_purple.c)
-
-SET_TARGET_PROPERTIES(test_purple PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${MOONSHINE_BINARY_DIR})
-
-TARGET_LINK_LIBRARIES(test_purple
-    ${PURPLE_LIBRARIES})
-
 ADD_CUSTOM_COMMAND(
     OUTPUT            ${CMAKE_CURRENT_BINARY_DIR}/parseopt.c
     COMMAND           ${RE2C} parseopt.re2c.c > ${CMAKE_CURRENT_BINARY_DIR}/parseopt.c
