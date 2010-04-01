@@ -28,32 +28,45 @@ static MSLuaVar *conversations_uiops_lua = NULL;
 
 static void on_conversation_create(PurpleConversation *conv)
 {
-    LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "conversation_create");
-    g_assert(lua_type(L, -1) == LUA_TFUNCTION);
-    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
-    g_assert(lua_type(L, -2) == LUA_TFUNCTION);
-    g_assert(lua_type(L, -1) == LUA_TUSERDATA);
+    LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_create");
+    ms_lua_backref_push(L, conv);
+    if (lua_isnil(L, -1)) {
+        lua_pop(L, 1);
+        PurpleConversation **ptr = ms_lua_newclass(L, "purple.conversation", sizeof(PurpleConversation *));
+        *ptr = conv;
+        lua_pushlightuserdata(L, conv);
+        lua_pushvalue(L, -2);
+        lua_settable(L, LUA_REGISTRYINDEX);
+    }
+
     ms_lua_call(L, 1, 0, "purple.conversations in uiops.conversation_create");
 }
 
 static void on_conversation_destroy(PurpleConversation *conv)
 {
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "conversation_destroy");
-    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    lua_pushlightuserdata(L, conv);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    g_assert(!lua_isnil(L, -1));
     ms_lua_call(L, 1, 0, "purple.conversations in uiops.conversation_destroy");
-    ms_lua_backref_unset(L, conv);
+
+    lua_pushlightuserdata(L, conv);
+    lua_pushnil(L);
+    lua_settable(L, LUA_REGISTRYINDEX);
 }
 
 static void on_conversation_write_chat(PurpleConversation *conv,
-                          const char *name,
-                          const char *message,
-                          PurpleMessageFlags flags,
-                          time_t mtime)
+                                       const char *name,
+                                       const char *message,
+                                       PurpleMessageFlags flags,
+                                       time_t mtime)
 {
     g_assert(conversations_uiops_lua);
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "conversation_write_chat");
     char *message2 = purple_unescape_html(message);
-    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    lua_pushlightuserdata(L, conv);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    g_assert(!lua_isnil(L, -1));
     lua_pushstring(L, name);
     lua_pushstring(L, message2);
     lua_pushinteger(L, flags);
@@ -71,7 +84,9 @@ static void on_conversation_write_im(PurpleConversation *conv,
     g_assert(conversations_uiops_lua);
     LuaState *L    = ms_lua_var_get(conversations_uiops_lua, "conversation_write_im");
     char *message2 = purple_unescape_html(message);
-    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    lua_pushlightuserdata(L, conv);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    g_assert(!lua_isnil(L, -1));
     lua_pushstring(L, name);
     lua_pushstring(L, message2);
     lua_pushinteger(L, flags);
@@ -83,7 +98,9 @@ static void on_conversation_write_im(PurpleConversation *conv,
 static gboolean on_conversation_has_focus(PurpleConversation *conv)
 {
     LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_has_focus");
-    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    lua_pushlightuserdata(L, conv);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    g_assert(!lua_isnil(L, -1));
     ms_lua_call(L, 1, 1, "purple.conversations in uiops.conversation_has_focus");
     gboolean rv = lua_toboolean(L, -1);
     lua_pop(L, 1);
@@ -93,7 +110,9 @@ static gboolean on_conversation_has_focus(PurpleConversation *conv)
 static void on_conversation_present(PurpleConversation *conv)
 {
     LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_present");
-    ms_lua_backref_push_or_newclass(L, conv, "purple.conversation", sizeof(PurpleConversation *));
+    lua_pushlightuserdata(L, conv);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    g_assert(!lua_isnil(L, -1));
     ms_lua_call(L, 1, 0, "purple.conversations in uiops.conversation_present");
 }
 

@@ -21,6 +21,7 @@ ADD_EXECUTABLE(moonshine
     modui_term.c
     modpurple_core.c
     modpurple_account.c
+    modpurple_accounts.c
     modpurple_conversations.c
     modpurple_conversation.c
     modpurple_plugins.c

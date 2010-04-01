@@ -39,6 +39,7 @@ static int conversation_new(LuaState *L)/*{{{*/
     PurpleConversation **conv = ms_lua_newclass(L, CLASS, sizeof(PurpleConversation *));
     *conv  = purple_conversation_new(conv_type, *account, name);
     ms_lua_backref_set(L, *conv, -1);
+
     return 1;
 }/*}}}*/
 
@@ -147,8 +148,7 @@ static int conversation_destroy(LuaState *L)
     PurpleConversation **conv = ms_lua_checkclass(L, CLASS, 1);
     g_return_val_if_fail(*conv, 0);
     purple_conversation_destroy(*conv);
-    ms_lua_backref_unset(L, *conv);
-    *conv = NULL;
+    /* reference is removed in conversations.conversation_destroy() */
     return 0;
 }
 
@@ -163,12 +163,13 @@ static int conversation_tostring(LuaState *L)/*{{{*/
     return 1;
 }/*}}}*/
 
-static int conversation_gc(LuaState *L)/*{{{*/
+static int conversation_gc(LuaState *L)
 {
     PurpleConversation **conv = ms_lua_toclass(L, CLASS, 1);
     ms_lua_backref_unset(L, *conv);
     return 0;
-}/*}}}*/
+}
+
 /* }}} */
 
 static const LuaLReg conversation_methods[] = {/*{{{*/
@@ -184,14 +185,13 @@ static const LuaLReg conversation_methods[] = {/*{{{*/
 };/*}}}*/
 
 static const LuaLReg conversation_meta[] = {/*{{{*/
-    {"__gc",       conversation_gc},
     {"__tostring", conversation_tostring},
+    {"__gc",       conversation_gc      },
     {0, 0}
 };/*}}}*/
 
 int luaopen_purple_conversation(LuaState *L)/*{{{*/
 {
     ms_lua_class_register(L, CLASS, conversation_methods, conversation_meta);
-    ms_lua_require(L, "purple.account");
     return 1;
 }/*}}}*/

@@ -82,7 +82,7 @@ end
 
 function H.conversation_create(conv)
     assert(TO_VIEW[conv] == nil, "conversation does not exist")
-    screen.print("hello, world")
+    screen.print("new conv: $1", tostring(conv))
     local view = new("moonshine.ui.view", { name = conv:get_name(), conversation = conv })
     TO_VIEW[conv] = screen.add_view(view)
     screen.render()
@@ -97,10 +97,14 @@ end
 function H.conversation_write_im(conv, name,  message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.find_view(TO_VIEW[conv])
+    log.debug("account: %s", tostring(conv:get_account()))
+    for k, v in pairs(debug.getregistry()['purple.account'].__index) do
+        log.debug("%s = %s", tostring(k), tostring(v))
+    end
     view:add_message({
         level = 3,
         name  = 'private',
-        args  = {mtime, name or conv:get_account():get_name(), message},
+        args  = {mtime, name or conv:get_account():get_alias(), message},
     })
 
     screen.render()

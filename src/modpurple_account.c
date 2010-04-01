@@ -58,7 +58,7 @@ static int account_set_enabled(LuaState *L)/*{{{*/
     return 0;
 }/*}}}*/
 
-static int account_get_roomlist(LuaState *L)
+static int account_get_roomlist(LuaState *L)/*{{{*/
 {
     PurpleAccount **account   = ms_lua_checkclass(L, "purple.account", 1);
     PurpleConnection *pc      = purple_account_get_connection(*account);
@@ -72,6 +72,20 @@ static int account_get_roomlist(LuaState *L)
         lua_pushnil(L);
     }
 
+    return 1;
+}/*}}}*/
+
+static int account_get_username(LuaState *L)
+{
+    PurpleAccount **account   = ms_lua_checkclass(L, "purple.account", 1);
+    lua_pushstring(L, purple_account_get_username(*account));
+    return 1;
+}
+
+static int account_get_alias(LuaState *L)
+{
+    PurpleAccount **account   = ms_lua_checkclass(L, "purple.account", 1);
+    lua_pushstring(L, purple_account_get_alias(*account));
     return 1;
 }
 
@@ -113,7 +127,11 @@ static int account_tostring(LuaState *L)/*{{{*/
 static int account_gc(LuaState *L)/*{{{*/
 {
     PurpleAccount **account = ms_lua_toclass(L, "purple.account", 1);
-    ms_lua_backref_unset(L, *account);
+    if (*account) {
+        purple_account_destroy(*account);
+        ms_lua_backref_unset(L, *account);
+        *account = NULL;
+    }
     return 0;
 }/*}}}*/
 /* }}} */
@@ -125,10 +143,11 @@ static const LuaLReg account_methods[] = {/*{{{*/
     { "set_enabled",                  account_set_enabled},
     { "set",                          account_set        },
     { "get_roomlist",                 account_get_roomlist },
+    { "get_username",                 account_get_username },
+    { "get_alias",                    account_get_alias},
 #if 0
     { "add_buddy",                    account_add_buddy},
     { "get_active_status",            account_get_active_status},
-    { "get_alias",                    account_get_alias},
     { "get_bool",                     account_get_bool},
     { "get_check_mail",               account_get_check_mail},
     { "get_connection",               account_get_connection},
@@ -140,7 +159,6 @@ static const LuaLReg account_methods[] = {/*{{{*/
     { "get_remember_password",        account_get_remember_password},
     { "get_status_types",             account_get_status_types},
     { "get_string",                   account_get_string},
-    { "get_username",                 account_get_username},
     { "is_connected",                 account_is_connected},
     { "option_get_default_bool",      account_option_get_default_bool},
     { "option_get_default_int",       account_option_get_default_int},
