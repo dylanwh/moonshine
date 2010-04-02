@@ -46,8 +46,16 @@ function View:unfocus()
     self._is_focused = false
 end
 
+function View:set_index(i)
+    self._index = i
+end
+
+function View:get_index()
+    return self._index or '?'
+end
+
 function View:get_name()
-    return self._name
+    return self._name or 'unnamed'
 end
 
 function View:get_activity()
@@ -92,8 +100,10 @@ end
 function View:info(key)
     if key == 'name' then
         return self:get_name()
+    elseif key == 'index' then
+        return self:get_index()
     else
-        return ""
+        return 'info:' .. key
     end
 end
 

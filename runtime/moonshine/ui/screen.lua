@@ -34,6 +34,7 @@ function M.init()
     P.history = new "moonshine.ui.buffer"
     P.views   = { P.view }
 
+    P.view:set_index(1)
     P.view:focus()
     P.status_timer = new("moonshine.timer", function()
         M.render()
@@ -45,9 +46,10 @@ function M.print(...) P.view:print(...) end
 function M.current_view() return P.view end
 
 function M.add_view(view)
-    local next = #P.views + 1
-    P.views[ next ] = view
-    return next
+    local i = #P.views + 1
+    P.views[i] = view
+    view:set_index(i)
+    return i
 end
 
 function M.find_view(i)
@@ -67,7 +69,9 @@ function M.is_focused(i)
     return P.view == M.find_view(i)
 end
 
-function M.view_info(key) return P.view:info(key) end
+function M.view_info(key)
+    return tostring(P.view:info(key))
+end
 
 function M.activity()
     local list = {}

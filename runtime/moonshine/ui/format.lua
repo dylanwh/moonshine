@@ -127,7 +127,8 @@ function M.init()--{{{
     -- note the trailing space.
     M.define('status_bit',  '$(style status_bit $<[$(style status $1)] >)')
     M.define('status_time', '$(status_bit $(timestamp $now))')
-    M.define('status_view', '$(status_bit $(view_info name))')
+    M.define('status_desc', '$(view_info index):$(view_info name)', true)
+    M.define('status_view', '$(status_bit $(status_desc))', true)
     M.define('status',      '$(style status) $(status_time)$(status_view)$(status_act)')
 end--}}}
 
