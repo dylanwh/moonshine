@@ -21,7 +21,7 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
 #include <moonshine/lua_var.h>
-#include <account.h>
+#include <purple.h>
 
 /* {{{ Methods */
 static int account_new(LuaState *L)/*{{{*/
@@ -74,6 +74,13 @@ static int account_get_roomlist(LuaState *L)/*{{{*/
 
     return 1;
 }/*}}}*/
+
+static int account_get_protocol_id(LuaState *L)
+{
+    PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
+    lua_pushstring(L, purple_account_get_protocol_id(*account));
+    return 1;
+}
 
 static int account_get_username(LuaState *L)
 {
@@ -137,28 +144,28 @@ static int account_gc(LuaState *L)/*{{{*/
 /* }}} */
 
 static const LuaLReg account_methods[] = {/*{{{*/
-    { "new",                          account_new},
-    { "connect",                      account_connect},
-    { "set_password",                 account_set_password},
-    { "set_enabled",                  account_set_enabled},
-    { "set",                          account_set        },
-    { "get_roomlist",                 account_get_roomlist },
-    { "get_username",                 account_get_username },
-    { "get_alias",                    account_get_alias},
+    { "new",                          account_new             },
+    { "connect",                      account_connect         },
+    { "set_password",                 account_set_password    },
+    { "set_enabled",                  account_set_enabled     }, 
+    { "set",                          account_set             },
+    { "get_roomlist",                 account_get_roomlist    },
+    { "get_username",                 account_get_username    },
+    { "get_alias",                    account_get_alias       },
+    { "get_protocol_id",              account_get_protocol_id },
 #if 0
     { "add_buddy",                    account_add_buddy},
     { "get_active_status",            account_get_active_status},
-    { "get_bool",                     account_get_bool},
     { "get_check_mail",               account_get_check_mail},
     { "get_connection",               account_get_connection},
     { "get_enabled",                  account_get_enabled},
-    { "get_int",                      account_get_int},
     { "get_password",                 account_get_password},
-    { "get_protocol_id",              account_get_protocol_id},
     { "get_protocol_name",            account_get_protocol_name},
     { "get_remember_password",        account_get_remember_password},
     { "get_status_types",             account_get_status_types},
     { "get_string",                   account_get_string},
+    { "get_int",                      account_get_int},
+    { "get_bool",                     account_get_bool},
     { "is_connected",                 account_is_connected},
     { "option_get_default_bool",      account_option_get_default_bool},
     { "option_get_default_int",       account_option_get_default_int},
@@ -174,10 +181,6 @@ static const LuaLReg account_methods[] = {/*{{{*/
     { "set_protocol_id",              account_set_protocol_id},
     { "set_remember_password",        account_set_remember_password},
     { "set_username",                 account_set_username},
-    { "user_split_get_default_value", account_user_split_get_default_value},
-    { "user_split_get_reverse",       account_user_split_get_reverse},
-    { "user_split_get_separator",     account_user_split_get_separator},
-    { "user_split_get_text",          account_user_split_get_text},
 #endif
     { 0, 0 }
 };/*}}}*/
