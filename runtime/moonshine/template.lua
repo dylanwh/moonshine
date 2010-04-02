@@ -52,8 +52,12 @@ local function SAFE(f)
     end
 end
 
-function Template:make(code, name)
+function Template:make(code, name, debug)
     if type(code) == 'string' then
+        if debug then
+            require "moonshine.log"
+            log.debug("code for %s: %s", name, parser.read(code):gsub("\n", " "))
+        end
         return SAFE(setfenv(loadstring(parser.read(code), name), self.env))
     else
         if type(code) == 'function' then
@@ -64,8 +68,8 @@ function Template:make(code, name)
 end
 
 -- add a new Template.
-function Template:define(name, code)
-    self.env[name] = self:make(code, name)
+function Template:define(name, code, debug)
+    self.env[name] = self:make(code, name, debug)
 end
 
 function Template:eval(code, ...)
