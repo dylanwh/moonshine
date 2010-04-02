@@ -51,12 +51,12 @@ local H = {}
 function H.ui_init()
     purple_conversations.init(H)
     purple_roomlist:init(H)
-    term.init()
     format.init()
     screen.init()
 
     log.set_default_handler(function (domain, level, message)
         screen.find_view(1):add_message( { level = 1, name = "log_message", args = { domain, level, message } } )
+        screen.render()
     end)
 
     keymap:bind('{kbs}',   function () screen.entry_erase(-1)          end)
@@ -82,9 +82,9 @@ end
 
 function H.conversation_create(conv)
     assert(TO_VIEW[conv] == nil, "conversation does not exist")
-    screen.print("new conv: $1", tostring(conv))
-    local view = new("moonshine.ui.view", { name = conv:get_name(), conversation = conv })
+    local view = new("moonshine.ui.view", { name = conv:get_name() or 'bob' })
     TO_VIEW[conv] = screen.add_view(view)
+    screen.print("new conv: $1", TO_VIEW[conv])
     screen.render()
 end
 
@@ -97,15 +97,25 @@ end
 function H.conversation_write_im(conv, name,  message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.find_view(TO_VIEW[conv])
-    log.debug("account: %s", tostring(conv:get_account()))
-    for k, v in pairs(debug.getregistry()['purple.account'].__index) do
-        log.debug("%s = %s", tostring(k), tostring(v))
+    if name then
+        view:add_message({
+            level = 3,
+            name  = 'private',
+            args  = { mtime, name, message },
+        })
+    else
+        -- message from self?
+        local account = conv:get_account()
+        local name    = account:get_username()
+        if account:get_protocol_id() == "prpl-irc" then
+            name = name:match("(.+?)@")
+        end
+        view:add_message({
+            level = 0,
+            name  = "private_sent",
+            args  = { mtime, name, message },
+        })
     end
-    view:add_message({
-        level = 3,
-        name  = 'private',
-        args  = {mtime, name or conv:get_account():get_alias(), message},
-    })
 
     screen.render()
 end
@@ -118,7 +128,6 @@ function H.conversation_write_chat(conv, name, message, flags, mtime)
         name  = 'public',
         args  = {mtime, name, message},
     })
-
     screen.render()
 end
 
@@ -153,6 +162,7 @@ end
 local M = {}
 
 function M.init()
+    term.init()
     purple_core.init(H)
 end
 
