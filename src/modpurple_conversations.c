@@ -144,6 +144,7 @@ static int conversations_init(LuaState *L)
     conversations_uiops_lua = ms_lua_var_new_type(L, 1, LUA_TTABLE);
 
     purple_conversations_set_ui_ops(&conversations_uiops);
+    purple_conversations_init();
 
     return 0;
 }
