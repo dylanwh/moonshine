@@ -34,6 +34,7 @@ function M.init()
     P.history = new "moonshine.ui.buffer"
     P.views   = { P.view }
 
+    P.view:focus()
     P.status_timer = new("moonshine.timer", function()
         M.render()
         return false
@@ -56,6 +57,8 @@ end
 function M.focus_view(i)
     local view = M.find_view(i)
     if view then
+        P.view:unfocus()
+        view:focus()
         P.view = view
     end
 end
@@ -69,9 +72,9 @@ function M.view_info(key) return P.view:info(key) end
 function M.activity()
     local list = {}
     for i, view in ipairs(P.views) do
-        local level = view:activity()
+        local level = view:get_activity()
         if level then
-            list[i] = level
+            list[#list+1] = { index = i, level = level }
         end
     end
 
@@ -156,8 +159,6 @@ function M.render()
 
     P.render_pending = true
 
-    P.view:clear_activity()
-
     idle.call(function()
         local rows, cols = term.dimensions()
 
@@ -166,7 +167,7 @@ function M.render()
         P.view._buffer:is_dirty(true)
         P.view:render(0, rows - 3)
         P.status:render(rows - 2)
-        P.entry:render( format.apply('prompt', P.view:name() ))
+        P.entry:render( format.apply('prompt') )
 
         term.refresh()
 

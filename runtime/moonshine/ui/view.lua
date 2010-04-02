@@ -21,43 +21,49 @@
 
 local format = require "moonshine.ui.format"
 
-local View = new "moonshine.object"
+local View  = new "moonshine.object"
 
 function View:__init(init)
     self._topic  = new "moonshine.ui.label"
     self._buffer = new "moonshine.ui.buffer"
 
-    self._name         = assert(init.name, "name parameter is required")
-    self._conversation = init.conversation
-    self._activity     = 0
-
-    if self._conversation and self._conversation:get_type() == 'chat' then
-        self:update_topic( self._conversation:get_topic())
-    else
-        self:update_topic( '[' .. self:name() .. ']' )
-    end
+    self._name     = assert(init.name, "name parameter is required")
+    self._activity = 0
+    self._is_focused  = false
+    self:update_topic( "view: " .. self._name )
 end
 
 function View:update_topic(text)
-    self._topic:set( format.apply('topic', text or 'NO TOPIC') )
+    self._topic:set( format.apply('topic', text) )
 end
 
-function View:name()
+function View:focus()
+    self:clear_activity()
+    self._is_focused = true
+end
+
+function View:unfocus()
+    self._is_focused = false
+end
+
+function View:get_name()
     return self._name
 end
 
-function View:activity(level)
-    if level == nil then
-        if self._activity > 2 then
-            return 'important'
-        elseif self._activity == 2 then
-            return 'normal'
-        elseif self._activity == 1 then
-            return 'boring'
-        else
-            return nil
-        end
+function View:get_activity()
+    if self._activity > 2 then
+        return 'important'
+    elseif self._activity == 2 then
+        return 'normal'
+    elseif self._activity == 1 then
+        return 'boring'
     else
+        return nil
+    end
+end
+
+function View:set_activity(level)
+    if not self._is_focused then
         self._activity = math.max(self._activity, level)
     end
 end
@@ -66,19 +72,15 @@ function View:clear_activity()
     self._activity = 0
 end
 
-function View:conversation()
-    return self._conversation
-end
-
 function View:add_message(msg)
-    self:activity( msg.level or 1 )
+    self:set_activity( msg.level or 1 )
     self._buffer:print(
         format.apply(msg.name, unpack(msg.args))
     )
 end
 
 function View:print(text, ...)
-    self:activity(1)
+    self:set_activity(1)
     self._buffer:print(format.eval(text, ...))
 end
 
@@ -89,7 +91,7 @@ end
 
 function View:info(key)
     if key == 'name' then
-        return self:name()
+        return self:get_name()
     else
         return ""
     end

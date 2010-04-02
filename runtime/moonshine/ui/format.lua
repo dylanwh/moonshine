@@ -102,18 +102,19 @@ function M.init()--{{{
     M.define("chat",    "$(timestamp $1) <$2> $3")
     M.define("public",  "$(chat $0)")
     M.define("private", "$(chat $0)")
-    M.define('prompt',  "[$1] ")
+    M.define("private_sent", "$(chat $0)")
 
 
     M.define('log_message', "$(timestamp $now) [$1.$2] $3")
 
     local screen = require "moonshine.ui.screen"
+    local ipairs = ipairs
     M.define('view_info', function (key) return screen.view_info(key) end)
-
+    M.define('prompt',  "[$(view_info name)] ")
     M.define('status_act', function()
         local acts = {}
-        for i, level in screen.activity() do
-            acts[#acts+1] = style("act_" .. level, i .. "")
+        for i, v in screen.activity() do
+            acts[i] = style("act_" .. v.level, v.index .. "")
         end
         if #acts > 0 then
             return status_bit('Act: ' .. concat_(',', acts))
