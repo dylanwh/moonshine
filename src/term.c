@@ -53,6 +53,7 @@ void ms_term_init(void)
 {
     initscr();
     start_color();
+    use_default_colors();
     raw();
     noecho();
     nonl();
@@ -159,16 +160,16 @@ void ms_term_style_init(gushort style, gushort fg, gushort bg)
     g_return_if_fail(style < MS_TERM_STYLES);
     switch (MS_TERM_COLORS) {
         case 8:
-            init_pair(style, fg % 8, bg % 8);
+            init_pair(style, (fg % 9)-1, (bg % 9)-1);
             if (fg > 7)
                 STYLE_MARK_BOLD(style);
             break;
         case 16:
         case 88:
         case 256:
-            g_return_if_fail(fg < MS_TERM_COLORS);
-            g_return_if_fail(bg < MS_TERM_COLORS);
-            init_pair(style, fg, bg);
+            g_return_if_fail(fg <= MS_TERM_COLORS);
+            g_return_if_fail(bg <= MS_TERM_COLORS);
+            init_pair(style, fg-1, bg-1);
             break;
         default:
             g_assert_not_reached();
@@ -179,12 +180,12 @@ void ms_term_style_init(gushort style, gushort fg, gushort bg)
 
 void ms_term_color_init(gushort color, gushort r, gushort g, gushort b)
 {
-    g_return_if_fail(color < MS_TERM_COLORS);
+    g_return_if_fail(color <= MS_TERM_COLORS);
     g_return_if_fail(r <= 1000);
     g_return_if_fail(g <= 1000);
     g_return_if_fail(b <= 1000);
 
-    init_color(color, r, g, b);
+    init_color(color-1, r, g, b);
 }
 
 
