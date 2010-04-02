@@ -18,16 +18,33 @@
 -   You should have received a copy of the GNU General Public License
 -   along with Moonshine.  If not, see <http://www.gnu.org/licenses/>.
 ]]
+local log = require "moonshine.log"
 
 local M = {}
 
-local screen = require "moonshine.ui.screen"
+local DEFAULT_CMD = "say"
 
-function M.accept_line(text)
-    local view = screen.current_view()
-    local conv = view:conversation()
-    if conv then
-        conv:send(text)
+local function invoke(name, text)
+    local cmd = "cmd_" .. name
+    if not _G[cmd] then
+        require("moonshine.shell." .. name)
+    end
+    if not _G[cmd] then
+        log.warning("Unknown command: /%s", name)
+    end
+    local ok, errmsg = pcall(_G[cmd], text)
+    if not ok then
+        log.critical("Error in command /%s: %s", name, errmsg)
+    end
+end
+
+function M.execute(line)
+    local name, pos = line:match("^/([%w_]+)%s*()")
+    if name then
+        local text = string.sub(line, pos)
+        invoke(name, text)
+    else
+        invoke(DEFAULT_CMD, line)
     end
 end
 

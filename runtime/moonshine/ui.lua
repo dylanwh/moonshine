@@ -69,7 +69,7 @@ function H.ui_init()
     keymap:bind('^[3',     function () screen.focus_view(3)            end)
 
     local function accept(text)
-        shell.accept_line(text)
+        shell.execute(text)
         screen.render()
     end
 
@@ -145,10 +145,16 @@ end
 
 function H.roomlist_create(roomlist)
     log.debug("roomlist created")
+    ROOMLIST = roomlist
+    ROOM     = {}
 end
 
 function H.roomlist_add_room(roomlist, room)
     log.debug("room: %s", room:get_name())
+    if not ROOM then
+        ROOM = {}
+    end
+    ROOM[ room:get_name() ] = room
 end
 
 function H.roomlist_in_progress(roomlist, bool)

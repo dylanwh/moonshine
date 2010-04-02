@@ -73,11 +73,28 @@ static int accounts_delete(LuaState *L)
     return 0;
 }
 
+static int accounts_find(LuaState *L)
+{
+    const char *name     = luaL_checkstring(L, 1);
+    const char *protocol = luaL_checkstring(L, 2);
+    PurpleAccount *account = purple_accounts_find(name, protocol);
+    if (account) {
+        lua_pushlightuserdata(L, account);
+        lua_gettable(L, LUA_REGISTRYINDEX);
+    }
+    else {
+        lua_pushboolean(L, FALSE);
+    }
+
+    return 1;
+}
+
 static LuaLReg functions[] = {
     { "init",    accounts_init   },
     { "add",     accounts_add    },
     { "remove",  accounts_remove },
     { "delete",  accounts_delete },
+    { "find",    accounts_find   },
     { 0, 0 },
 };
 

@@ -47,8 +47,8 @@ function M.build_parser(spec)--{{{
     local alias = {}
 
     for _, x in ipairs(spec) do
-        if type(x) == 'number' or x:match("^%d$") then
-            hints[tonumber(x)] = true
+        if x == '#' then
+            hints[#hints+1] = true
         else
             local names, hint = parse_spec(x)
             local primary     = table.remove(names, 1)
