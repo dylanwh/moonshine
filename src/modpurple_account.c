@@ -31,8 +31,66 @@ static int account_new(LuaState *L)/*{{{*/
     const char *proto_id = luaL_checkstring(L, 3);
     PurpleAccount **account = ms_lua_newclass(L, "purple.account", sizeof(PurpleAccount *));
     *account  = purple_account_new(username, proto_id);
-    ms_lua_backref_set(L, *account, -1);
+
+    lua_pushlightuserdata(L, *account);
+    lua_pushvalue(L, -2);
+    lua_settable(L, LUA_REGISTRYINDEX);
+    purple_accounts_add(*account);
     return 1;
+}/*}}}*/
+
+static int account_find(LuaState *L)/*{{{*/
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+    const char *name     = luaL_checkstring(L, 2);
+    const char *protocol = luaL_checkstring(L, 3);
+    PurpleAccount *account = purple_accounts_find(name, protocol);
+    if (account) {
+        lua_pushlightuserdata(L, account);
+        lua_gettable(L, LUA_REGISTRYINDEX);
+    }
+    else {
+        lua_pushboolean(L, FALSE);
+    }
+
+    return 1;
+}/*}}}*/
+
+static int account_get_all(LuaState *L)/*{{{*/
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+    GList *accounts = purple_accounts_get_all();
+    int i = 1;
+
+    lua_newtable(L);
+    while (accounts != NULL) {
+        PurpleAccount *account = accounts->data;
+        lua_pushlightuserdata(L, account);
+        lua_gettable(L, LUA_REGISTRYINDEX);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            PurpleAccount **userdata = ms_lua_newclass(L, "purple.account", sizeof(PurpleAccount *));
+            *userdata = account;
+            lua_pushlightuserdata(L, account);
+            lua_pushvalue(L, -2);
+            lua_settable(L, LUA_REGISTRYINDEX);
+        }
+        lua_rawseti(L, -2, i++);
+        accounts = g_list_next(accounts);
+    }
+
+    return 1;
+}/*}}}*/
+
+static int account_delete(LuaState *L)/*{{{*/
+{
+    PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
+    lua_pushlightuserdata(L, *account);
+    lua_pushnil(L);
+    lua_settable(L, LUA_REGISTRYINDEX);
+    purple_accounts_delete(*account);
+    *account = NULL;
+    return 0;
 }/*}}}*/
 
 static int account_connect(LuaState *L)/*{{{*/
@@ -159,16 +217,16 @@ static int account_tostring(LuaState *L)/*{{{*/
 static int account_gc(LuaState *L)/*{{{*/
 {
     PurpleAccount **account = ms_lua_toclass(L, "purple.account", 1);
-    if (*account) {
-        ms_lua_backref_unset(L, *account);
-        *account = NULL;
-    }
+    *account = NULL;
     return 0;
 }/*}}}*/
 /* }}} */
 
 static const LuaLReg account_methods[] = {/*{{{*/
     { "new",                          account_new             },
+    { "find",                         account_find            },
+    { "get_all",                      account_get_all         },
+    { "delete",                       account_delete          },
     { "connect",                      account_connect         },
     { "set_password",                 account_set_password    },
     { "set_enabled",                  account_set_enabled     },

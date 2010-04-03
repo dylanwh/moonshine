@@ -34,7 +34,6 @@ modules = {
    'purple.core',
    'purple.conversations',
    'purple.conversation',
-   'purple.accounts',
    'purple.account',
    'purple.plugins',
    'purple.plugin',
