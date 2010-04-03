@@ -31,8 +31,12 @@ function mt.__index(self, slot)
     end
 end
 
+function Object.clone(parent)
+    return setmetatable( { __parent = parent }, getmetatable(parent) )
+end
+
 function Object.new(parent, ...)
-    local self = setmetatable( { __parent = parent }, getmetatable(parent) )
+    local self = parent:clone()
 
     local init = self.__init
     if init then init(self, ...) end

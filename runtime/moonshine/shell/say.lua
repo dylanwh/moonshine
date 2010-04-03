@@ -1,13 +1,12 @@
-local parseopt = require "moonshine.parseopt"
-local log = require "moonshine.log"
-local purple_account  = require "purple.account"
-local purple_accounts = require "purple.accounts"
-
-local parse = parseopt.build_parser {
-    "foo"
-}
+local log             = require "moonshine.log"
+local screen          = require "moonshine.ui.screen"
 
 function cmd_say(text)
-    local opt, text = parse(text)
-    log.debug("say: %s", text)
+    local view = screen.current_view()
+    if view.get_conversation then
+        local conv = view:get_conversation()
+        conv:send(text)
+    else
+        log.debug("/say %s", text)
+    end
 end

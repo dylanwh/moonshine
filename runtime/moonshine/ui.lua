@@ -59,14 +59,15 @@ function H.ui_init()
         screen.render()
     end)
 
-    keymap:bind('{kbs}',   function () screen.entry_erase(-1)          end)
-    keymap:bind('{kcub1}', function () screen.entry_move(-1)           end)
-    keymap:bind('{kcuf1}', function () screen.entry_move(1)            end)
-    keymap:bind('{kcuu1}', function () screen.history_backward()       end)
-    keymap:bind('{kcud1}', function () screen.history_forward()        end)
-    keymap:bind('^[1',     function () screen.focus_view(1)            end)
-    keymap:bind('^[2',     function () screen.focus_view(2)            end)
-    keymap:bind('^[3',     function () screen.focus_view(3)            end)
+    keymap:bind('{kbs}',   function () screen.entry_erase(-1)    end)
+    keymap:bind('{kcub1}', function () screen.entry_move(-1)     end)
+    keymap:bind('{kcuf1}', function () screen.entry_move(1)      end)
+    keymap:bind('{kcuu1}', function () screen.history_backward() end)
+    keymap:bind('{kcud1}', function () screen.history_forward()  end)
+    for i = 1, 9 do
+        keymap:bind('^[' .. i, function () screen.focus_view(i) end)
+    end
+    keymap:bind('^[0', function () screen.focus_view(10) end)
 
     local function accept(text)
         shell.execute(text)
@@ -82,7 +83,7 @@ end
 
 function H.conversation_create(conv)
     assert(TO_VIEW[conv] == nil, "conversation does not exist")
-    local view = new("moonshine.ui.view", { name = conv:get_name() or 'bob' })
+    local view = new("moonshine.ui.view.conversation", { name = conv:get_name(), conversation = conv })
     TO_VIEW[conv] = screen.add_view(view)
     screen.print("new conv: $1", TO_VIEW[conv])
     screen.render()

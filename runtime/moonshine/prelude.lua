@@ -49,6 +49,7 @@ string.join = join
 function new(mod, ...)
     local class = require(mod)
     assert(type(class) == 'table' or type(class) == 'userdata', "module " .. mod .. " did not return object")
+    assert(class.new, "module " .. mod .. " does not support :new()!")
     return class:new(...)
 end
 
