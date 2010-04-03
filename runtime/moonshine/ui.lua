@@ -21,7 +21,7 @@
 
 local purple_core          = require "purple.core"
 local purple_conversations = require "purple.conversations"
-local purple_roomlist      = require "purple.roomlist"
+local purple_account       = require "purple.account"
 
 local log    = require "moonshine.log"
 local term   = require "moonshine.ui.term"
@@ -51,7 +51,7 @@ local H = {}
 
 function H.ui_init()
     purple_conversations.init(H)
-    purple_roomlist:init(H)
+    purple_account:init(H)
     format.init()
     screen.init()
 

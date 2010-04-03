@@ -39,6 +39,13 @@ static int account_new(LuaState *L)/*{{{*/
     return 1;
 }/*}}}*/
 
+static int account_init(UNUSED LuaState *L)
+{
+    purple_accounts_init();
+    purple_accounts_get_all();
+    return 0;
+}
+
 static int account_find(LuaState *L)/*{{{*/
 {
     luaL_checktype(L, 1, LUA_TTABLE);
@@ -224,6 +231,7 @@ static int account_gc(LuaState *L)/*{{{*/
 
 static const LuaLReg account_methods[] = {/*{{{*/
     { "new",                          account_new             },
+    { "init",                         account_init            },
     { "find",                         account_find            },
     { "get_all",                      account_get_all         },
     { "delete",                       account_delete          },

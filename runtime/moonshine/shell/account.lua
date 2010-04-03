@@ -58,7 +58,8 @@ end
 function subcmd.enable(_, username, protocol)
     assert(username and protocol, "usage: /account enable [options] username protocol")
     log.debug("going to enable account %s (%s)", username, protocol)
-    local account = purple_account:find(username, protocol)
+    subcmd.list()
+    local account = assert(purple_account:find(username, protocol))
     account:set_enabled(true)
     log.debug("enabled account %s (%s)", username, protocol)
 end
