@@ -25,7 +25,7 @@ local parser = require "moonshine.template.parser"
 local Template = new "moonshine.object"
 Template.const = {}
 Template.env = {
-    concat   = function (...) return table.concat({ ... }, "") end,
+    concat   = function (sep, ...) return table.concat({ ... }, sep) end,
     concat_  = function (sep, list) return table.concat(list, sep) end,
     concat_0 = function (P) return table.concat(P, " ") end,
 }

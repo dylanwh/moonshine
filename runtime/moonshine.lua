@@ -20,8 +20,6 @@
 ]]
 
 require "moonshine.prelude"
-local ui   = require "moonshine.ui"
-local loop = require "moonshine.loop"
+local ui = require "moonshine.ui"
 
 ui.init()
-loop:run()

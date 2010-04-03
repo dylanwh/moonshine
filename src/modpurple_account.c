@@ -160,7 +160,6 @@ static int account_gc(LuaState *L)/*{{{*/
 {
     PurpleAccount **account = ms_lua_toclass(L, "purple.account", 1);
     if (*account) {
-        purple_account_destroy(*account);
         ms_lua_backref_unset(L, *account);
         *account = NULL;
     }

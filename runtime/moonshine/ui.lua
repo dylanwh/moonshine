@@ -32,6 +32,7 @@ local format = require "moonshine.ui.format"
 local screen = require "moonshine.ui.screen"
 
 local TO_VIEW = { }
+local M = {}
 
 function on_input(key)
     if not keymap:process(key) then
@@ -93,6 +94,7 @@ function H.ui_init()
     keymap:bind('^W', function () screen.entry_word_delete() end)
     keymap:bind('^A', function () screen.entry_move_to(0) end)
     keymap:bind('^E', function () screen.entry_move_to(-1) end)
+    keymap:bind('^C', function () M.quit() end)
 
     screen.render()
 end
@@ -148,6 +150,17 @@ function H.conversation_write_chat(conv, name, message, flags, mtime)
     screen.render()
 end
 
+function H.conversation_write(conv, name, alias, message, flags, mtime)
+    assert(TO_VIEW[conv], "conversation exists")
+    local view = screen.find_view(TO_VIEW[conv])
+    view:add_message({
+        level = 1,
+        name  = 'chat',
+        args  = {mtime, name, message},
+    })
+    screen.render()
+end
+
 function H.conversation_present(conv)
     assert(TO_VIEW[conv], "conversation exists")
     screen.focus_view(TO_VIEW[conv])
@@ -160,33 +173,16 @@ function H.conversation_has_focus(conv)
     return screen.is_focused(TO_VIEW[conv])
 end
 
-function H.roomlist_create(roomlist)
-    log.debug("roomlist created")
-    ROOMLIST = roomlist
-    ROOM     = {}
-end
-
-function H.roomlist_add_room(roomlist, room)
-    log.debug("room: %s", room:get_name())
-    if not ROOM then
-        ROOM = {}
-    end
-    ROOM[ room:get_name() ] = room
-end
-
-function H.roomlist_in_progress(roomlist, bool)
-    if bool then
-        log.debug("roomlist in progress")
-    else
-        log.debug("roomlist not in progress")
-    end
-end
-
-local M = {}
+local loop = require "moonshine.loop"
 
 function M.init()
     term.init()
     purple_core.init(H)
+    loop.run()
+end
+
+function M.quit()
+    loop.quit()
 end
 
 return M

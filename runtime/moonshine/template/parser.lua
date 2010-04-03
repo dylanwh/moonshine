@@ -127,6 +127,7 @@ function OP.EVAL(args)
     local op = parse(code)
     op[1] = 'APPLY'
     table.insert(op, 2, "concat")
+    table.insert(op, 3, "")
     return compile(op)
 end
 

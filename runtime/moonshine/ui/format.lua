@@ -28,10 +28,6 @@ Format.const = {
     ['^'] = term.STYLE_RESET_CODE,
 }
 
-function Format.env.now()
-    return os.time()
-end
-
 local COLOR_MAP, STYLE_MAP
 
 local function style_code(style)--{{{
@@ -99,14 +95,16 @@ function M.init()--{{{
 
     local os = os
     M.define('date', function (...) return os.date(...) end)
-    M.define('now', function (...) return os.time() end)
+    M.define('now',  function (...) return os.time()    end)
+
     M.define("timestamp", "$(date '%H:%M' $1)")
+
     M.define("chat",    "$(timestamp $1) $|<$2> $3")
     M.define("public",  "$(chat $0)")
     M.define("private", "$(chat $0)")
     M.define("private_sent", "$(chat $0)")
 
-    M.define('log_message', "$(timestamp $now) [$1.$2] $3")
+    M.define('log_message', "$(timestamp $now) $|[$2] $3")
 
     local screen = require "moonshine.ui.screen"
     local ipairs = ipairs

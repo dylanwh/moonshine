@@ -26,7 +26,7 @@
 
 static MSLuaVar *conversations_uiops_lua = NULL;
 
-static void on_conversation_create(PurpleConversation *conv)
+static void on_create(PurpleConversation *conv)/*{{{*/
 {
     LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_create");
     ms_lua_backref_push(L, conv);
@@ -40,9 +40,9 @@ static void on_conversation_create(PurpleConversation *conv)
     }
 
     ms_lua_call(L, 1, 0, "purple.conversations in uiops.conversation_create");
-}
+}/*}}}*/
 
-static void on_conversation_destroy(PurpleConversation *conv)
+static void on_destroy(PurpleConversation *conv)/*{{{*/
 {
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "conversation_destroy");
     lua_pushlightuserdata(L, conv);
@@ -53,13 +53,13 @@ static void on_conversation_destroy(PurpleConversation *conv)
     lua_pushlightuserdata(L, conv);
     lua_pushnil(L);
     lua_settable(L, LUA_REGISTRYINDEX);
-}
+}/*}}}*/
 
-static void on_conversation_write_chat(PurpleConversation *conv,
-                                       const char *name,
-                                       const char *message,
-                                       PurpleMessageFlags flags,
-                                       time_t mtime)
+static void on_write_chat(PurpleConversation *conv,
+                           const char *name,
+                           const char *message,
+                           PurpleMessageFlags flags,
+                           time_t mtime)
 {
     g_assert(conversations_uiops_lua);
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "conversation_write_chat");
@@ -75,11 +75,11 @@ static void on_conversation_write_chat(PurpleConversation *conv,
     g_free(message2);
 }
 
-static void on_conversation_write_im(PurpleConversation *conv,
-                          const char *name,
-                          const char *message,
-                          PurpleMessageFlags flags,
-                          time_t mtime)
+static void on_write_im(PurpleConversation *conv,
+                        const char *name,
+                        const char *message,
+                        PurpleMessageFlags flags,
+                        time_t mtime)
 {
     g_assert(conversations_uiops_lua);
     LuaState *L    = ms_lua_var_get(conversations_uiops_lua, "conversation_write_im");
@@ -95,7 +95,29 @@ static void on_conversation_write_im(PurpleConversation *conv,
     g_free(message2);
 }
 
-static gboolean on_conversation_has_focus(PurpleConversation *conv)
+static void on_write(PurpleConversation *conv,
+                     const char *name,
+                     const char *alias,
+                     const char *message,
+                     PurpleMessageFlags flags,
+                     time_t mtime)
+{
+    g_assert(conversations_uiops_lua);
+    LuaState *L    = ms_lua_var_get(conversations_uiops_lua, "conversation_write");
+    char *message2 = purple_unescape_html(message);
+    lua_pushlightuserdata(L, conv);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    g_assert(!lua_isnil(L, -1));
+    lua_pushstring(L, name);
+    lua_pushstring(L, alias);
+    lua_pushstring(L, message2);
+    lua_pushinteger(L, flags);
+    lua_pushinteger(L, mtime);
+    ms_lua_call(L, 6, 0, "purple.conversations in uiops.conversation_write");
+    g_free(message2);
+}
+
+static gboolean on_has_focus(PurpleConversation *conv)
 {
     LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_has_focus");
     lua_pushlightuserdata(L, conv);
@@ -107,7 +129,7 @@ static gboolean on_conversation_has_focus(PurpleConversation *conv)
     return rv;
 }
 
-static void on_conversation_present(PurpleConversation *conv)
+static void on_present(PurpleConversation *conv)
 {
     LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_present");
     lua_pushlightuserdata(L, conv);
@@ -117,17 +139,17 @@ static void on_conversation_present(PurpleConversation *conv)
 }
 
 static PurpleConversationUiOps conversations_uiops = {
-    on_conversation_create,
-    on_conversation_destroy,
-    on_conversation_write_chat,
-    on_conversation_write_im,
-    NULL,                      /* write_conv           */
+    on_create,
+    on_destroy,
+    on_write_chat,
+    on_write_im,
+    on_write,
     NULL,                      /* chat_add_users       */
     NULL,                      /* chat_rename_user     */
     NULL,                      /* chat_remove_users    */
     NULL,                      /* chat_update_user     */
-    on_conversation_present,
-    on_conversation_has_focus,
+    on_present,
+    on_has_focus,
     NULL,                      /* custom_smiley_add    */
     NULL,                      /* custom_smiley_write  */
     NULL,                      /* custom_smiley_close  */

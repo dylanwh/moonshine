@@ -89,12 +89,38 @@ static int accounts_find(LuaState *L)
     return 1;
 }
 
+static int accounts_get_all(LuaState *L)
+{
+    GList *accounts = purple_accounts_get_all();
+    int i = 1;
+
+    lua_newtable(L);
+    while (accounts != NULL) {
+        PurpleAccount *account = accounts->data;
+        lua_pushlightuserdata(L, account);
+        lua_gettable(L, LUA_REGISTRYINDEX);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            PurpleAccount **userdata = ms_lua_newclass(L, "purple.account", sizeof(PurpleAccount *));
+            *userdata = account;
+            lua_pushlightuserdata(L, account);
+            lua_pushvalue(L, -2);
+            lua_settable(L, LUA_REGISTRYINDEX);
+        }
+        lua_rawseti(L, -2, i++);
+        accounts = g_list_next(accounts);
+    }
+
+    return 1;
+}
+
 static LuaLReg functions[] = {
-    { "init",    accounts_init   },
-    { "add",     accounts_add    },
-    { "remove",  accounts_remove },
-    { "delete",  accounts_delete },
-    { "find",    accounts_find   },
+    { "init",    accounts_init    },
+    { "add",     accounts_add     },
+    { "remove",  accounts_remove  },
+    { "delete",  accounts_delete  },
+    { "find",    accounts_find    },
+    { "get_all", accounts_get_all },
     { 0, 0 },
 };
 
