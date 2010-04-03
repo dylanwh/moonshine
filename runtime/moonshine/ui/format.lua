@@ -101,7 +101,7 @@ function M.init()--{{{
     M.define('date', function (...) return os.date(...) end)
     M.define('now', function (...) return os.time() end)
     M.define("timestamp", "$(date '%H:%M' $1)")
-    M.define("chat",    "$(timestamp $1)$| <$2> $3")
+    M.define("chat",    "$(timestamp $1) $|<$2> $3")
     M.define("public",  "$(chat $0)")
     M.define("private", "$(chat $0)")
     M.define("private_sent", "$(chat $0)")
