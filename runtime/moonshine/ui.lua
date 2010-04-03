@@ -59,11 +59,17 @@ function H.ui_init()
         screen.render()
     end)
 
+    -- backspace:
     keymap:bind('{kbs}',   function () screen.entry_erase(-1)    end)
+    -- left, right, up, down:
     keymap:bind('{kcub1}', function () screen.entry_move(-1)     end)
     keymap:bind('{kcuf1}', function () screen.entry_move(1)      end)
     keymap:bind('{kcuu1}', function () screen.history_backward() end)
     keymap:bind('{kcud1}', function () screen.history_forward()  end)
+    -- shift+left, shift+right
+    keymap:bind('{kLFT}',  screen.entry_word_left)
+    keymap:bind('{kRIT}',  screen.entry_word_right)
+    -- home/end
     keymap:bind('{khome}', function () screen.entry_move_to(0)   end)
     keymap:bind('{kend}',  function () screen.entry_move_to(-1)  end)
     -- kpp = page up, knp = page down
