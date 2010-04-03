@@ -27,8 +27,8 @@ function View:__init(init)
     self._topic  = new "moonshine.ui.label"
     self._buffer = new "moonshine.ui.buffer"
 
-    self._name     = assert(init.name, "name parameter is required")
-    self._activity = 0
+    self._name        = assert(init.name, "name parameter is required")
+    self._activity    = 0
     self._is_focused  = false
     self:update_topic( "view: " .. self._name )
 end
@@ -95,6 +95,10 @@ end
 function View:render(t, b)
     self._topic:render(t)
     self._buffer:render(t+1, b)
+end
+
+function View:scroll(x)
+    self._buffer:scroll(x)
 end
 
 function View:info(key)

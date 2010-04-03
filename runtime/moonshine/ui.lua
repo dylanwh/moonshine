@@ -64,6 +64,12 @@ function H.ui_init()
     keymap:bind('{kcuf1}', function () screen.entry_move(1)      end)
     keymap:bind('{kcuu1}', function () screen.history_backward() end)
     keymap:bind('{kcud1}', function () screen.history_forward()  end)
+    keymap:bind('{khome}', function () screen.entry_move_to(0)   end)
+    keymap:bind('{kend}',  function () screen.entry_move_to(-1)  end)
+    -- kpp = page up, knp = page down
+    keymap:bind('{kpp}',   function () screen.view_scroll(5)     end)
+    keymap:bind('{knp}',   function () screen.view_scroll(-5)    end)
+
     for i = 1, 9 do
         keymap:bind('^[' .. i, function () screen.focus_view(i) end)
     end
@@ -77,6 +83,10 @@ function H.ui_init()
     keymap:bind('{kent}',  function () screen.entry_submit(accept) end)
     -- why does urxvt not sent kent?
     keymap:bind('^M',  function () screen.entry_submit(accept) end)
+
+    keymap:bind('^W', function () screen.entry_word_delete() end)
+    keymap:bind('^A', function () screen.entry_move_to(0) end)
+    keymap:bind('^E', function () screen.entry_move_to(-1) end)
 
     screen.render()
 end

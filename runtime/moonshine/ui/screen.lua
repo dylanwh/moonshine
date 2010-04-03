@@ -185,8 +185,25 @@ function M.resize()
 end
 
 function M.entry_keypress(key) P.entry:keypress(key) end
-function M.entry_erase(...) P.entry:erase(...) end
-function M.entry_move(...) P.entry:move(...) end
+function M.entry_erase(...)    P.entry:erase(...)    end
+function M.entry_move(...)     P.entry:move(...)     end
+function M.entry_move_to(...)  P.entry:move_to(...)  end
+function M.view_scroll(x)      P.view:scroll(x)      end
+
+function M.entry_word_delete()
+    local wlback, wlfwd = P.entry:wordlen()
+    P.entry:erase(-wlback)
+end
+
+function M.entry_word_left()
+    local wlback, wlfwd = P.entry:wordlen()
+    P.entry:move(-wlback)
+end
+
+function M.entry_word_right()
+    local wlback, wlfwd = P.entry:wordlen()
+    P.entry:move(wlfwd)
+end
 
 -- pay it forward.
 function M.entry_submit(f)
