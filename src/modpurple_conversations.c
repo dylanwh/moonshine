@@ -18,11 +18,11 @@
  * along with Moonshine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <moonshine/config.h>
 #include <moonshine/lua.h>
 #include <moonshine/lua_var.h>
 #include <moonshine/signal.h>
-#include <purple.h>
+#include <moonshine/purple.h>
+#include <moonshine/config.h>
 
 static MSLuaVar *conversations_uiops_lua = NULL;
 
@@ -119,6 +119,7 @@ static void on_write(PurpleConversation *conv,
 
 static gboolean on_has_focus(PurpleConversation *conv)
 {
+    g_assert(conversations_uiops_lua);
     LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_has_focus");
     lua_pushlightuserdata(L, conv);
     lua_gettable(L, LUA_REGISTRYINDEX);
@@ -131,6 +132,7 @@ static gboolean on_has_focus(PurpleConversation *conv)
 
 static void on_present(PurpleConversation *conv)
 {
+    g_assert(conversations_uiops_lua);
     LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_present");
     lua_pushlightuserdata(L, conv);
     lua_gettable(L, LUA_REGISTRYINDEX);
@@ -138,13 +140,35 @@ static void on_present(PurpleConversation *conv)
     ms_lua_call(L, 1, 0, "purple.conversations in uiops.conversation_present");
 }
 
+
+
+static void on_chat_add_users(PurpleConversation *conv, GList *cbuddies, gboolean new_arrivals)
+{
+    g_assert(conversations_uiops_lua);
+    LuaState *L = ms_lua_var_get(conversations_uiops_lua, "conversation_chat_add_users");
+    lua_pushlightuserdata(L, conv);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    g_assert(!lua_isnil(L, -1));
+
+    lua_newtable(L);
+    int i = 1;
+    for (GList *buddy = cbuddies; buddy; buddy = g_list_next(buddy), i++) {
+        ms_purple_push_cbuddy(L, (PurpleConvChatBuddy *)buddy->data);
+        lua_rawseti(L, -2, i);
+    }
+
+    lua_pushboolean(L, new_arrivals);
+    ms_lua_call(L, 3, 0, "purple.conversations in uiops.conversation_chat_add_users");
+}
+
+
 static PurpleConversationUiOps conversations_uiops = {
     on_create,
     on_destroy,
     on_write_chat,
     on_write_im,
     on_write,
-    NULL,                      /* chat_add_users       */
+    on_chat_add_users,
     NULL,                      /* chat_rename_user     */
     NULL,                      /* chat_remove_users    */
     NULL,                      /* chat_update_user     */

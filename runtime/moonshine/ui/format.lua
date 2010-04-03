@@ -98,8 +98,11 @@ function M.init()--{{{
     M.define('now',  function (...) return os.time()    end)
 
     M.define("timestamp", "$(date '%H:%M' $1)")
+    M.define('clock', '$(timestamp $now)')
 
-    M.define("chat",    "$(timestamp $1) $|<$2> $3")
+    M.define_style('username_bit', 'black2', 'default')
+    M.define('username_bit', "$(style username_bit)<$^$1$(style username_bit)>$^")
+    M.define("chat",    "$(timestamp $1) $(username_bit $2) $|$3")
     M.define("public",  "$(chat $0)")
     M.define("private", "$(chat $0)")
     M.define("private_sent", "$(chat $0)")
@@ -125,10 +128,39 @@ function M.init()--{{{
     M.define('topic', '$(style topic)$1')
     -- note the trailing space.
     M.define('status_bit',  '$(style status_bit $<[$(style status $1)] >)')
-    M.define('status_time', '$(status_bit $(timestamp $now))')
-    M.define('status_desc', '$(view_info index):$(view_info name)', true)
-    M.define('status_view', '$(status_bit $(status_desc))', true)
+    M.define('status_time', '$(status_bit $(clock))')
+    M.define('status_desc', '$(view_info index):$(view_info name)')
+    M.define('status_view', '$(status_bit $(status_desc))')
     M.define('status',      '$(style status) $(status_time)$(status_view)$(status_act)')
+
+    M.define_style('bold', 'white2', 'default')
+    M.define_style('blue', 'blue2', 'default')
+
+    M.define('bip', '$(style blue $<-$(style bold "!")->)')
+
+    M.define_style('green',   'green',  'default')
+    M.define_style('greener', 'green2', 'default')
+    M.define_style('userlist_bit', 'black2', 'default')
+    M.define_style('userlist_txt', 'default', 'default')
+
+    M.define('userlist_bit',  '$(style userlist_bit $<[$(style userlist_txt $1)]>)')
+    -- $(userlist_head $room)
+    M.define('userlist_head', "$(clock) $|$(userlist_bit $<$(style green 'Users') $(style greener $1)>)")
+
+    -- $(userlist_foot $room $total_users $ops $halfops $voices $normal)
+    M.define('userlist_foot', '$(clock) $bip $|Moonshine: $1: Total $2 nicks [$3 ops, $4 halfops, $5 voices, $6 normal]')
+    M.define('userlist_flag', function (flag)
+        if flag.op          then return '@'
+        elseif flag.halfop  then return '%'
+        elseif flag.voice   then return '+'
+        elseif flag.founder then return '&'
+        else                     return ' '
+        end
+    end)
+
+    -- $(userlist_item $flags $name)
+    M.define('userlist_item', '$(userlist_bit $<$(userlist_flag $1)$2>)')
+    M.define('userlist_line', '$(clock) $|$0')
 end--}}}
 
 function M.define_color(color, r, g, b)--{{{
@@ -139,6 +171,7 @@ function M.define_color(color, r, g, b)--{{{
     term.color_init( COLOR_MAP:find_or_assign(color), r, g, b)
 end--}}}
 
+-- FIXME: don't allocate duplicate (fg, bg) styles, instead make an alias.
 function M.define_style(style, fg, bg)--{{{
     assert(type(style) == 'string', "style must be string, not " .. type(style))
     assert(type(fg) == 'string', "fg must be string, not " .. type(fg))

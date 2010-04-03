@@ -31,6 +31,8 @@ local keymap = new "moonshine.keymap"
 local format = require "moonshine.ui.format"
 local screen = require "moonshine.ui.screen"
 
+require "moonshine.ui.view"
+
 local TO_VIEW = { }
 local M = {}
 
@@ -171,6 +173,18 @@ function H.conversation_has_focus(conv)
     assert(TO_VIEW[conv], "conversation exists")
     screen.render()
     return screen.is_focused(TO_VIEW[conv])
+end
+
+function H.conversation_chat_add_users(conv, users, new_arrivals)
+    assert(TO_VIEW[conv], "conversation exists")
+    local view = screen.find_view(TO_VIEW[conv])
+
+    if new_arrivals then
+        log.debug("users are new")
+    else
+        view:show_userlist(conv:get_name(), users)
+    end
+    screen.render()
 end
 
 local loop = require "moonshine.loop"

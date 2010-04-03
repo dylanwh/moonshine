@@ -64,7 +64,7 @@ local quote   = function(chr)
     return chr * Cs( any^0 ) * chr
 end
 local squote = quote([[']])
-local dquote = quote([[']])
+local dquote = quote([["]])
 
 function label(n, p)
     return Ct(Cc(n) * p)

@@ -9,6 +9,7 @@ ADD_EXECUTABLE(moonshine
     log.c
     main.c
     parseopt.c
+    purple.c
 
     modidle.c
     modlog_core.c

@@ -82,14 +82,69 @@ end
 
 function View:add_message(msg)
     self:set_activity( msg.level or 1 )
-    self._buffer:print(
+    self:_buffer_print(
         format.apply(msg.name, unpack(msg.args))
     )
 end
 
 function View:print(text, ...)
     self:set_activity(1)
-    self._buffer:print(format.eval(text, ...))
+    self:_buffer_print(format.eval(text, ...))
+end
+
+local function userlist_columnify(users)
+    local T = #users
+    local C = 6 -- FIXME: irssi picks a number from 1 to 6 based on terminal width.
+    local R = math.ceil(T/C)+1
+    local function f(i) return math.floor(i/R)+1, i%R end
+
+    local cols = {}
+    local max  = {}
+    for i, user in ipairs(users) do
+        local r, c = f(i)
+        if not cols[c] then
+            cols[c] = {}
+        end
+        if not max[r] or max[r] < #user.name then
+            max[r] = #user.name
+        end
+        cols[c][r] = user
+    end
+
+    return cols, max
+end
+
+function View:show_userlist(room, users)
+    local ops, halfops, voices, normals = 0,0,0,0
+    for _, user in ipairs(users) do
+        if user.flags.op then
+            ops = ops + 1
+        elseif user.flags.halfop then
+            halfops = halfops + 1
+        elseif user.flags.voice then
+            voices = voices + 1
+        else
+            normals = normals + 1
+        end
+    end
+
+    local total = ops + halfops + voices + normals
+    self:_buffer_print( format.apply("userlist_head", room) )
+
+    local cols, max = userlist_columnify(users)
+    for _, col in ipairs(cols) do
+        for r, row in ipairs(col) do
+            local name = string.format("%-" .. max[r] .. "s", row.name)
+            col[r] = format.apply('userlist_item', row.flags, name)
+        end
+        self:_buffer_print( format.apply('userlist_line', unpack(col)) )
+    end
+    self:_buffer_print( format.apply("userlist_foot", room, total, ops, halfops, voices, normals) )
+
+end
+
+function View:_buffer_print(line)
+    self._buffer:print(line:gsub("\n", " ") )
 end
 
 function View:render(t, b)
