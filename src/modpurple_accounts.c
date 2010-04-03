@@ -65,11 +65,11 @@ static int accounts_delete(LuaState *L)
 {
     PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
     g_return_val_if_fail(*account != NULL, 0);
+    purple_accounts_delete(*account);
+    *account = NULL;
     lua_pushlightuserdata(L, *account);
     lua_pushnil(L);
     lua_settable(L, LUA_REGISTRYINDEX);
-    purple_accounts_delete(*account);
-    *account = NULL;
     return 0;
 }
 

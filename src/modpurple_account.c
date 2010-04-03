@@ -58,42 +58,67 @@ static int account_set_enabled(LuaState *L)/*{{{*/
     return 0;
 }/*}}}*/
 
-static int account_get_roomlist(LuaState *L)/*{{{*/
-{
-    PurpleAccount **account   = ms_lua_checkclass(L, "purple.account", 1);
-    PurpleConnection *pc      = purple_account_get_connection(*account);
-    PurpleRoomlist *roomlist  = purple_roomlist_get_list(pc);
-
-    if (roomlist) {
-        PurpleRoomlist **result = ms_lua_newclass(L, "purple.roomlist", sizeof(PurpleRoomlist *));
-        *result = roomlist;
-    }
-    else {
-        lua_pushnil(L);
-    }
-
-    return 1;
-}/*}}}*/
-
-static int account_get_protocol_id(LuaState *L)
+static int account_get_protocol_id(LuaState *L)/*{{{*/
 {
     PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
     lua_pushstring(L, purple_account_get_protocol_id(*account));
     return 1;
-}
+}/*}}}*/
 
-static int account_get_username(LuaState *L)
+static int account_get_username(LuaState *L)/*{{{*/
 {
     PurpleAccount **account   = ms_lua_checkclass(L, "purple.account", 1);
     lua_pushstring(L, purple_account_get_username(*account));
     return 1;
-}
+}/*}}}*/
 
-static int account_get_alias(LuaState *L)
+static int account_get_alias(LuaState *L)/*{{{*/
 {
     PurpleAccount **account   = ms_lua_checkclass(L, "purple.account", 1);
     lua_pushstring(L, purple_account_get_alias(*account));
     return 1;
+}/*}}}*/
+
+static int account_join_chat(LuaState *L)
+{
+    PurpleAccount **account = ms_lua_checkclass(L, "purple.account", 1);
+    const char *name         = luaL_checkstring(L, 2);
+
+    g_return_val_if_fail(purple_account_is_connected(*account), 0);
+
+    PurpleConnection *pc = purple_account_get_connection(*account);
+    PurpleConversation *conv = purple_find_conversation_with_account(
+            PURPLE_CONV_TYPE_CHAT,
+            name,
+            *account);
+
+    if (conv) {
+        purple_conversation_present(conv);
+    }
+    else {
+        conv = purple_conversation_new(
+                PURPLE_CONV_TYPE_CHAT,
+                *account,
+                name);
+        purple_conv_chat_left(PURPLE_CONV_CHAT(conv));
+    }
+
+    GHashTable *hash;
+    PurpleChat *chat = purple_blist_find_chat(*account, name);
+    if (chat == NULL) {
+        PurplePluginProtocolInfo *info = PURPLE_PLUGIN_PROTOCOL_INFO(
+                purple_connection_get_prpl(pc));
+        if (info->chat_info_defaults != NULL)
+            hash = info->chat_info_defaults(pc, name);
+    } else {
+        hash = purple_chat_get_components(chat);
+    }
+
+    serv_join_chat(pc, hash);
+    if (chat == NULL && hash != NULL)
+        g_hash_table_destroy(hash);
+
+    return 0;
 }
 
 /** we fold the following methods into one set() method:
@@ -147,12 +172,12 @@ static const LuaLReg account_methods[] = {/*{{{*/
     { "new",                          account_new             },
     { "connect",                      account_connect         },
     { "set_password",                 account_set_password    },
-    { "set_enabled",                  account_set_enabled     }, 
+    { "set_enabled",                  account_set_enabled     },
     { "set",                          account_set             },
-    { "get_roomlist",                 account_get_roomlist    },
     { "get_username",                 account_get_username    },
     { "get_alias",                    account_get_alias       },
     { "get_protocol_id",              account_get_protocol_id },
+    { "join_chat",                    account_join_chat       },
 #if 0
     { "add_buddy",                    account_add_buddy},
     { "get_active_status",            account_get_active_status},

@@ -19,6 +19,5 @@ function cmd_account(text)
     end
     purple_accounts.add(account)
     account:set_enabled(true)
-    account:get_roomlist()
     log.debug("account added: %s", tostring(account))
 end
