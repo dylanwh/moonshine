@@ -92,26 +92,27 @@ function View:print(text, ...)
     self:_buffer_print(format.eval(text, ...))
 end
 
-local function userlist_columnify(users)
+local function userlist_tabularize(users)
     local T = #users
-    local C = 6 -- FIXME: irssi picks a number from 1 to 6 based on terminal width.
-    local R = math.ceil(T/C)+1
-    local function f(i) return math.floor(i/R)+1, i%R end
+    local C = 5 -- FIXME: irssi picks a number from 1 to $CAP based on terminal width.
+    local R = math.ceil(T/C)
 
-    local cols = {}
+    local function f(x) return 1+(x-1)%R, math.ceil(x/R) end
+
+    local data = {}
     local max  = {}
     for i, user in ipairs(users) do
         local r, c = f(i)
-        if not cols[c] then
-            cols[c] = {}
+        if not data[r] then
+            data[r] = {}
         end
-        if not max[r] or max[r] < #user.name then
-            max[r] = #user.name
+        if not max[c] or max[c] < #user.name then
+            max[c] = #user.name
         end
-        cols[c][r] = user
+        data[r][c] = user
     end
 
-    return cols, max
+    return data, max
 end
 
 function View:show_userlist(room, users)
@@ -131,13 +132,13 @@ function View:show_userlist(room, users)
     local total = ops + halfops + voices + normals
     self:_buffer_print( format.apply("userlist_head", room) )
 
-    local cols, max = userlist_columnify(users)
-    for _, col in ipairs(cols) do
-        for r, row in ipairs(col) do
-            local name = string.format("%-" .. max[r] .. "s", row.name)
-            col[r] = format.apply('userlist_item', row.flags, name)
+    local tab, max = userlist_tabularize(users)
+    for _, line in ipairs(tab) do
+        for i, item in ipairs(line) do
+            local name = string.format("%-" .. max[i] .. "s", item.name)
+            line[i] = format.apply('userlist_item', item.flags, name)
         end
-        self:_buffer_print( format.apply('userlist_line', unpack(col)) )
+        self:_buffer_print( format.apply('userlist_line', unpack(line)) )
     end
     self:_buffer_print( format.apply("userlist_foot", room, total, ops, halfops, voices, normals) )
 
