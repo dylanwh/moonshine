@@ -20,6 +20,8 @@
 ]]
 
 local format = require "moonshine.ui.format"
+local term   = require "moonshine.ui.term"
+local log    = require "moonshine.log"
 
 local View  = new "moonshine.object"
 
@@ -93,56 +95,94 @@ function View:print(text, ...)
     self:_buffer_print(format.eval(text, ...))
 end
 
-local function userlist_tabularize(users)
+local function userlist_tabularize(users)--{{{
     local T = #users
-    local C = 5 -- FIXME: irssi picks a number from 1 to $CAP based on terminal width.
-    local R = math.ceil(T/C)
 
-    local function f(x) return 1+(x-1)%R, math.ceil(x/R) end
+    local function build(C)
+        local R = math.ceil(T/C)
+        local function f(x) return 1+(x-1)%R, math.ceil(x/R) end
 
-    local data = {}
-    local max  = {}
-    for i, user in ipairs(users) do
-        local r, c = f(i)
-        if not data[r] then
-            data[r] = {}
+        local data = {}
+        local size = {}
+        for i, user in ipairs(users) do
+            local r, c = f(i)
+            if not data[r] then
+                data[r] = {}
+            end
+            if not size[c] or size[c] < #user.name then
+                size[c] = #user.name
+            end
+            data[r][c] = user
         end
-        if not max[c] or max[c] < #user.name then
-            max[c] = #user.name
-        end
-        data[r][c] = user
+
+        return data, size
     end
 
-    return data, max
+    local _, max_width      = term.dimensions()
+    local max_columns       = 6
+    local line_overhead     = term.string_width(format.apply('userlist_line', ''))
+    local item_sep_overhead = term.string_width(format.apply('userlist_line', 'foo', 'bar')) - line_overhead - 6
+    local item_overhead     = term.string_width(format.apply('userlist_item', { op = true }, ''))
+    local data, size
+
+    repeat
+        data, size = build(max_columns)
+        local width = line_overhead
+        for _, x in ipairs(size) do
+            width = width + x + item_overhead
+        end
+        width = width + (item_sep_overhead * (#size-1))
+        max_columns = max_columns - 1
+    until max_columns == 0 or width < max_width
+
+    return data, size
+end--}}}
+
+local function user_level(user)
+    if user.flags.founder    then return 0
+    elseif user.flags.op     then return 1
+    elseif user.flags.halfop then return 2
+    elseif user.flags.voice  then return 3
+    else                          return 4
+    end
 end
 
-function View:show_userlist(room, users)
-    local ops, halfops, voices, normals = 0,0,0,0
-    for _, user in ipairs(users) do
-        if user.flags.op then
-            ops = ops + 1
-        elseif user.flags.halfop then
-            halfops = halfops + 1
-        elseif user.flags.voice then
-            voices = voices + 1
+local function user_sort(users)
+    table.sort(users, function (a, b)
+        local al, bl = user_level(a), user_level(b)
+        if al == bl then
+            return a.name:lower() < b.name:lower()
         else
-            normals = normals + 1
+            return al < bl
         end
-    end
+    end)
+end
 
-    local total = ops + halfops + voices + normals
-    self:_buffer_print( format.apply("userlist_head", room) )
 
-    local tab, max = userlist_tabularize(users)
+function View:show_userlist(users)
+    self:_buffer_print( format.apply("userlist_head", self:get_name()) )
+    user_sort(users)
+    local tab, size = userlist_tabularize(users)
+
     for _, line in ipairs(tab) do
-        for i, item in ipairs(line) do
-            local name = string.format("%-" .. max[i] .. "s", item.name)
-            line[i] = format.apply('userlist_item', item.flags, name)
+        for c, item in ipairs(line) do
+            local name = string.format("%-" .. size[c] .. "s", item.name)
+            line[c] = format.apply('userlist_item', item.flags, name)
         end
         self:_buffer_print( format.apply('userlist_line', unpack(line)) )
     end
-    self:_buffer_print( format.apply("userlist_foot", room, total, ops, halfops, voices, normals) )
 
+    local ops, halfops, voices, normals = 0,0,0,0
+    for _, user in ipairs(users) do
+        if user.flags.op         then ops     = ops     + 1
+        elseif user.flags.halfop then halfops = halfops + 1
+        elseif user.flags.voice  then voices  = voices  + 1
+        else                          normals = normals + 1
+        end
+    end
+    local total = ops + halfops + voices + normals
+
+    self:_buffer_print( format.apply("userlist_foot", self:get_name(), total, ops, halfops, voices, normals) )
 end
 
 function View:_buffer_print(line)

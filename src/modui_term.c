@@ -127,20 +127,39 @@ static int term_tigetstr(LuaState *L)
     return 1;
 }
 
+/* Class method */
+static int term_string_width(LuaState *L)
+{
+    const char *str = luaL_checkstring(L, 1);
+
+    if (!g_utf8_validate(str, -1, NULL))
+        return luaL_argerror(L, 1, "invalid utf8 data");
+
+    guint width = 0;
+    for ( ; *str != '\0'; str = g_utf8_next_char(str)) {
+        gunichar ch = g_utf8_get_char(str);
+        int w = 0;
+        width += (w = ms_term_charwidth(ch));
+    }
+    lua_pushinteger(L, width);
+    return 1;
+}
+
 static LuaLReg functions[] = {
-    {"init",           term_init           },
-    {"reset",          term_reset          },
-    {"refresh",        term_refresh        },
-    {"resize",         term_resize         },
-    {"dimensions",     term_dimensions     },
-    {"style_init",      term_style_init      },
-    {"color_init",     term_color_init     },
-    {"style_set",      term_style_set      },
-    {"style_code",     term_style_code  },
-    {"colors",         term_colors         },
-    {"styles",         term_styles    },
-    {"current_style",  term_current_style },
-    {"tigetstr",       term_tigetstr },
+    { "init",           term_init           },
+    { "reset",          term_reset          },
+    { "refresh",        term_refresh        },
+    { "resize",         term_resize         },
+    { "dimensions",     term_dimensions     },
+    { "style_init",     term_style_init     },
+    { "color_init",     term_color_init     },
+    { "style_set",      term_style_set      },
+    { "style_code",     term_style_code     },
+    { "colors",         term_colors         },
+    { "styles",         term_styles         },
+    { "current_style",  term_current_style  },
+    { "tigetstr",       term_tigetstr       },
+    { "string_width",   term_string_width   },
     { 0, 0 },
 };
 

@@ -179,7 +179,7 @@ function H.conversation_chat_add_users(conv, users, new_arrivals)
     if new_arrivals then
         log.debug("users are new")
     else
-        view:show_userlist(conv:get_name(), users)
+        view:show_userlist(users)
     end
     screen.render()
 end

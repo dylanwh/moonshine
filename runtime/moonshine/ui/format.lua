@@ -150,10 +150,10 @@ function M.init()--{{{
     -- $(userlist_foot $room $total_users $ops $halfops $voices $normal)
     M.define('userlist_foot', '$(clock) $bip $|Moonshine: $1: Total $2 nicks [$3 ops, $4 halfops, $5 voices, $6 normal]')
     M.define('userlist_flag', function (flag)
-        if flag.op          then return '@'
+        if flag.founder     then return '&'
+        elseif flag.op      then return '@'
         elseif flag.halfop  then return '%'
         elseif flag.voice   then return '+'
-        elseif flag.founder then return '&'
         else                     return ' '
         end
     end)

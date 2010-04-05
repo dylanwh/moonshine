@@ -1,4 +1,4 @@
-/* vim: set ft=c noexpandtab ts=4 sw=4 tw=80: */
+/* vim: set ft=c expandtab ts=4 sw=4 tw=80: */
 
 /* Moonshine - a Lua-based chat client
  *
@@ -121,10 +121,24 @@ gboolean ms_term_getkey(gunichar *rv)
 
 PURE int ms_term_charwidth(gunichar ch)
 {
-    if (g_unichar_iswide(ch) || g_unichar_iscntrl(ch))
-        return 2;
-    else
-        return 1;
+    switch (ch) {
+        case '\t':
+            return 8;
+        case MS_TERM_INDENT_MARK_UCS:
+        case MS_TERM_STYLE_RESET_UCS:
+            return 0;
+        default:
+            if ( ch >= MS_TERM_STYLE_MIN_UCS && ch <= MS_TERM_STYLE_MAX_UCS )
+                return 0;
+            else if (g_unichar_iszerowidth(ch))
+                return 0;
+            else if (g_unichar_iswide(ch) || g_unichar_iscntrl(ch))
+                return 2;
+            else
+                return 1;
+            break;
+    }
+    g_assert_not_reached();
 }
 
 void ms_term_resize(void)
