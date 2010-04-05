@@ -47,9 +47,24 @@ function M.current_view() return P.view end
 
 function M.add_view(view)
     local i = #P.views + 1
+    return M.attach_view(i, view)
+end
+
+function M.attach_view(i, view)
     P.views[i] = view
     view:set_index(i)
     return i
+end
+
+function M.detach_view(i)
+    local view = M.find_view(i)
+    if view then
+        if P.view == view then
+            M.focus_view(i-1)
+        end
+        P.views[i] = nil
+        return view
+    end
 end
 
 function M.find_view(i)

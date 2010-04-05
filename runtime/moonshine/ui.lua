@@ -103,16 +103,18 @@ end
 
 function H.conversation_create(conv)
     assert(TO_VIEW[conv] == nil, "conversation does not exist")
-    local view = new("moonshine.ui.view.conversation", { name = conv:get_name(), conversation = conv })
+    local view    = new("moonshine.ui.view.conversation", { conversation = conv })
     TO_VIEW[conv] = screen.add_view(view)
-    screen.print("new conv: $1", TO_VIEW[conv])
+    screen.print("new conv, title = $1, nick = $2, name = $3", conv:get_title(), conv:get_nick(), conv:get_name())
     screen.render()
 end
 
 function H.conversation_destroy(conv)
     assert(TO_VIEW[conv], "conversation exists")
-    screen.del_view( TO_VIEW[conv] )
+    local view    = screen.detach_view( TO_VIEW[conv] )
+    TO_VIEW[conv] = nil
     screen.render()
+    log.debug("destroyed conv for %s", view:get_name())
 end
 
 function H.conversation_write_im(conv, name,  message, flags, mtime)
@@ -126,15 +128,10 @@ function H.conversation_write_im(conv, name,  message, flags, mtime)
         })
     else
         -- message from self?
-        local account = conv:get_account()
-        local name    = account:get_username()
-        if account:get_protocol_id() == "prpl-irc" then
-            name = name:match("(.+?)@")
-        end
         view:add_message({
             level = 0,
             name  = "private_sent",
-            args  = { mtime, name, message },
+            args  = { mtime, conv:get_nick(), message },
         })
     end
 
@@ -147,7 +144,7 @@ function H.conversation_write_chat(conv, name, message, flags, mtime)
     view:add_message({
         level = 2,
         name  = 'public',
-        args  = {mtime, name, message},
+        args  = { mtime, name, message },
     })
     screen.render()
 end
@@ -158,7 +155,7 @@ function H.conversation_write(conv, name, alias, message, flags, mtime)
     view:add_message({
         level = 1,
         name  = 'chat',
-        args  = {mtime, name, message},
+        args  = { mtime, name, message },
     })
     screen.render()
 end

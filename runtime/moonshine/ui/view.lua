@@ -24,12 +24,12 @@ local format = require "moonshine.ui.format"
 local View  = new "moonshine.object"
 
 function View:__init(init)
-    self._topic  = new "moonshine.ui.label"
-    self._buffer = new "moonshine.ui.buffer"
+    self._topic      = new "moonshine.ui.label"
+    self._buffer     = new "moonshine.ui.buffer"
+    self._name       = assert(init.name, "name parameter is required")
+    self._activity   = 0
+    self._is_focused = false
 
-    self._name        = assert(init.name, "name parameter is required")
-    self._activity    = 0
-    self._is_focused  = false
     self:update_topic( "view: " .. self._name )
 end
 
@@ -38,25 +38,36 @@ function View:update_topic(text)
 end
 
 function View:focus()
-    self:clear_activity()
     self._is_focused = true
+    self:clear_activity()
 end
 
 function View:unfocus()
     self._is_focused = false
 end
 
-function View:set_index(i)
-    self._index = i
+-- by default, view 1 cannot be closed.
+function View:can_close() return self._index and not self._index == 1 end
+
+-- the screen calls this method when the view is closed.
+function View:close()
+    self:set_index(nil)
+    self:unfocus()
 end
 
-function View:get_index()
-    return self._index or '?'
+function View:set_index(i)   self._index = i    end
+function View:get_index()    return self._index end
+
+function View:set_name(name) self._name = name  end
+function View:get_name()     return self._name  end
+
+function View:set_activity(level)
+    if not self._is_focused then
+        self._activity = math.max(self._activity, level)
+    end
 end
 
-function View:get_name()
-    return self._name or 'unnamed'
-end
+function View:clear_activity() self._activity = 0 end
 
 function View:get_activity()
     if self._activity > 2 then
@@ -68,16 +79,6 @@ function View:get_activity()
     else
         return nil
     end
-end
-
-function View:set_activity(level)
-    if not self._is_focused then
-        self._activity = math.max(self._activity, level)
-    end
-end
-
-function View:clear_activity()
-    self._activity = 0
 end
 
 function View:add_message(msg)
