@@ -21,6 +21,7 @@
 #include <moonshine/config.h>
 #include <moonshine/lua.h>
 #include <moonshine/lua_var.h>
+#include <moonshine/purple.h>
 #include <purple.h>
 
 /* {{{ Methods */
@@ -120,7 +121,7 @@ static int conversation_send(LuaState *L)/*{{{*/
     return 0;
 }/*}}}*/
 
-static int conversation_get_type(LuaState *L)
+static int conversation_get_type(LuaState *L)/*{{{*/
 {
     PurpleConversation **conv = ms_lua_checkclass(L, "purple.conversation", 1);
     g_return_val_if_fail(*conv, 0);
@@ -138,9 +139,9 @@ static int conversation_get_type(LuaState *L)
     }
 
     return 1;
-}
+}/*}}}*/
 
-static int conversation_get_account(LuaState *L)
+static int conversation_get_account(LuaState *L)/*{{{*/
 {
     PurpleConversation **conv = ms_lua_checkclass(L, "purple.conversation", 1);
     g_return_val_if_fail(*conv, 0);
@@ -148,9 +149,9 @@ static int conversation_get_account(LuaState *L)
     PurpleAccount *account = purple_conversation_get_account(*conv);
     ms_lua_backref_push_or_newclass(L, account, "purple.account", sizeof(PurpleAccount *));
     return 1;
-}
+}/*}}}*/
 
-static int conversation_get_topic(LuaState *L)
+static int conversation_get_topic(LuaState *L)/*{{{*/
 {
     PurpleConversation **conv = ms_lua_checkclass(L, "purple.conversation", 1);
     g_return_val_if_fail(*conv, 0);
@@ -166,15 +167,40 @@ static int conversation_get_topic(LuaState *L)
             break;
     }
     return 1;
-}
+}/*}}}*/
 
-static int conversation_destroy(LuaState *L)
+static int conversation_destroy(LuaState *L)/*{{{*/
 {
     PurpleConversation **conv = ms_lua_checkclass(L, "purple.conversation", 1);
     g_return_val_if_fail(*conv, 0);
     purple_conversation_destroy(*conv);
     /* reference is removed in conversations.conversation_destroy() */
     return 0;
+}/*}}}*/
+
+static int conversation_get_userlist(LuaState *L)
+{
+    PurpleConversation **conv = ms_lua_checkclass(L, "purple.conversation", 1);
+    g_return_val_if_fail(*conv, 0);
+    switch (purple_conversation_get_type(*conv)) {
+        case PURPLE_CONV_TYPE_IM:
+            lua_pushnil(L);
+            break;
+        case PURPLE_CONV_TYPE_CHAT: {
+            PurpleConvChat *chat = PURPLE_CONV_CHAT(*conv);
+            int i = 1;
+            lua_newtable(L);
+            for (GList *buddy = chat->in_room; buddy; buddy = g_list_next(buddy), i++) {
+                ms_purple_push_cbuddy(L, (PurpleConvChatBuddy *)buddy->data);
+                lua_rawseti(L, -2, i);
+            }
+            break;
+        }
+        default:
+            g_assert_not_reached();
+            break;
+    }
+    return 1;
 }
 
 /*}}}*/
@@ -208,6 +234,7 @@ static const LuaLReg conversation_methods[] = {/*{{{*/
     { "get_topic",                    conversation_get_topic   },
     { "write",                        conversation_write       },
     { "send",                         conversation_send        },
+    { "get_userlist",                 conversation_get_userlist},
     { 0, 0 }
 };/*}}}*/
 
