@@ -58,7 +58,7 @@ function H.ui_init()
     screen.init()
 
     log.set_default_handler(function (domain, level, message)
-        screen.find_view(1):add_message( { level = 1, name = "log_message", args = { domain, level, message } } )
+        screen.get_view(1):add_message( { level = 1, name = "log_message", args = { domain, level, message } } )
         screen.render()
     end)
 
@@ -119,7 +119,7 @@ end
 
 function H.conversation_write_im(conv, name,  message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
-    local view = screen.find_view(TO_VIEW[conv])
+    local view = screen.get_view(TO_VIEW[conv])
     if name then
         view:add_message({
             level = 3,
@@ -140,7 +140,7 @@ end
 
 function H.conversation_write_chat(conv, name, message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
-    local view = screen.find_view(TO_VIEW[conv])
+    local view = screen.get_view(TO_VIEW[conv])
     view:add_message({
         level = 2,
         name  = 'public',
@@ -151,7 +151,7 @@ end
 
 function H.conversation_write(conv, name, alias, message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
-    local view = screen.find_view(TO_VIEW[conv])
+    local view = screen.get_view(TO_VIEW[conv])
     view:add_message({
         level = 1,
         name  = 'chat',
@@ -174,7 +174,7 @@ end
 
 function H.conversation_chat_add_users(conv, users, new_arrivals)
     assert(TO_VIEW[conv], "conversation exists")
-    local view = screen.find_view(TO_VIEW[conv])
+    local view = screen.get_view(TO_VIEW[conv])
 
     if new_arrivals then
         log.debug("users are new")

@@ -57,7 +57,7 @@ function M.attach_view(i, view)
 end
 
 function M.detach_view(i)
-    local view = M.find_view(i)
+    local view = M.get_view(i)
     if view then
         if P.view == view then
             M.focus_view(i-1)
@@ -67,12 +67,12 @@ function M.detach_view(i)
     end
 end
 
-function M.find_view(i)
+function M.get_view(i)
     return P.views[i]
 end
 
 function M.focus_view(i)
-    local view = M.find_view(i)
+    local view = M.get_view(i)
     if view then
         P.view:unfocus()
         view:focus()
@@ -81,7 +81,7 @@ function M.focus_view(i)
 end
 
 function M.is_focused(i)
-    return P.view == M.find_view(i)
+    return P.view == M.get_view(i)
 end
 
 function M.view_info(key)
