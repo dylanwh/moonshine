@@ -58,7 +58,7 @@ function H.ui_init()
     screen.init()
 
     log.set_default_handler(function (domain, level, message)
-        screen.get_view(1):add_message( { level = 1, name = "log_message", args = { domain, level, message } } )
+        screen.get_view(1):print_message( { level = 1, name = "log_message", args = { domain, level, message } } )
         screen.render()
     end)
 
@@ -121,14 +121,14 @@ function H.conversation_write_im(conv, name,  message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.get_view(TO_VIEW[conv])
     if name then
-        view:add_message({
+        view:print_message({
             level = 3,
             name  = 'private',
             args  = { mtime, name, message },
         })
     else
         -- message from self?
-        view:add_message({
+        view:print_message({
             level = 0,
             name  = "private_sent",
             args  = { mtime, conv:get_nick(), message },
@@ -141,7 +141,7 @@ end
 function H.conversation_write_chat(conv, name, message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.get_view(TO_VIEW[conv])
-    view:add_message({
+    view:print_message({
         level = 2,
         name  = 'public',
         args  = { mtime, name, message },
@@ -152,7 +152,7 @@ end
 function H.conversation_write(conv, name, alias, message, flags, mtime)
     assert(TO_VIEW[conv], "conversation exists")
     local view = screen.get_view(TO_VIEW[conv])
-    view:add_message({
+    view:print_message({
         level = 1,
         name  = 'chat',
         args  = { mtime, name, message },
@@ -179,7 +179,7 @@ function H.conversation_chat_add_users(conv, users, new_arrivals)
     if new_arrivals then
         log.debug("users are new")
     else
-        view:show_userlist(users)
+        view:print_userlist(users)
     end
     screen.render()
 end

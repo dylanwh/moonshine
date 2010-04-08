@@ -83,8 +83,9 @@ function View:get_activity()
     end
 end
 
-function View:add_message(msg)
+function View:print_message(msg)
     self:set_activity( msg.level or 1 )
+    self._buffer:set_group_id(0)
     self:_buffer_print(
         format.apply(msg.name, unpack(msg.args))
     )
@@ -92,6 +93,7 @@ end
 
 function View:print(text, ...)
     self:set_activity(1)
+    self._buffer:set_group_id(0)
     self:_buffer_print(format.eval(text, ...))
 end
 
@@ -159,7 +161,7 @@ local function user_sort(users)
 end
 
 
-function View:show_userlist(users)
+function View:print_userlist(users)
     self:_buffer_print( format.apply("userlist_head", self:get_name()) )
     user_sort(users)
     local tab, size = userlist_tabularize(users)
@@ -197,6 +199,22 @@ end
 function View:scroll(x)
     self._buffer:scroll(x)
 end
+
+function View:lastlog_clear()
+    self._buffer:clear_group_id(1)
+end
+
+function View:lastlog_search(f, max)
+    local buffer = self._buffer
+
+    self:set_activity(1)
+    buffer:set_group_id(1)
+    buffer:print("Lastlog:")
+    buffer:reprint(f, 0, max)
+    buffer:print("End of Lastlog")
+    buffer:set_group_id(0)
+end
+
 
 function View:info(key)
     if key == 'name' then
