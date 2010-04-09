@@ -416,6 +416,17 @@ static int buffer_clear_group_id(LuaState *L)/*{{{*/
             belowview = 0;
         }
         if (l->group == gid) {
+            /* First, remove it from the linked list */
+            if (l->prev)
+                l->prev->next = l->next;
+            if (l->next)
+                l->next->prev = l->prev;
+
+            /* If we're one of the anchors, make sure to update them
+             * appropriately (as well as scroll position counters)
+             */
+            if (b->head == l)
+                b->head = l->next;
             if (b->tail == l)
                 b->tail = prev;
             if (b->view == l)
@@ -430,7 +441,7 @@ static int buffer_clear_group_id(LuaState *L)/*{{{*/
         l = prev;
     }
     if (b->tail == NULL) {
-        b->head = NULL;
+        g_assert(b->head == NULL);
         g_assert(b->view == NULL);
     }
 
