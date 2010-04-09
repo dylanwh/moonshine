@@ -162,6 +162,8 @@ end
 
 
 function View:print_userlist(users)
+    self._buffer:clear_group_id(2)
+    self._buffer:set_group_id(2)
     self:_buffer_print( format.apply("userlist_head", self:get_name()) )
     user_sort(users)
     local tab, size = userlist_tabularize(users)
@@ -185,6 +187,7 @@ function View:print_userlist(users)
     local total = ops + halfops + voices + normals
 
     self:_buffer_print( format.apply("userlist_foot", self:get_name(), total, ops, halfops, voices, normals) )
+    self._buffer:set_group_id(0)
 end
 
 function View:_buffer_print(line)
