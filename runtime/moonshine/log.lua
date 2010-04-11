@@ -31,7 +31,7 @@ function M.print(level, fmt, ...)
 
     local ok, str = pcall(string.format, fmt, ...)
     if not ok then
-        log_core.print(M.DOMAIN, "error", string.format("string.format(%s) error: %s", fmt, str))
+        log_core.print(M.DOMAIN, "critical", string.format("string.format(%s) error: %s", fmt, str))
     else
         log_core.print(M.DOMAIN, alias[level:lower()] or level, str)
     end
