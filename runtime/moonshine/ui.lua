@@ -29,6 +29,7 @@ local shell  = require "moonshine.shell"
 local keymap = new "moonshine.keymap"
 
 local format = require "moonshine.ui.format"
+local theme  = require "moonshine.ui.theme"
 local screen = require "moonshine.ui.screen"
 
 require "moonshine.ui.view"
@@ -55,9 +56,13 @@ function H.ui_init()
     purple_conversations.init(H)
     purple_account:init(H)
     format.init()
+    theme.apply('default')
     screen.init()
 
     log.set_default_handler(function (domain, level, message)
+        local f = io.open('moonshine.log', 'a')
+        f:write(message .. "\n")
+        f:close()
         screen.get_view(1):print_message( { level = 1, name = "log_message", args = { domain, level, message } } )
         screen.render()
     end)

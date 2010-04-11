@@ -19,8 +19,8 @@
 -   along with Moonshine.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local term     = require "moonshine.ui.term"
-local log      = require "moonshine.log"
+local term = require "moonshine.ui.term"
+local log  = require "moonshine.log"
 
 local Format = new "moonshine.template"
 Format.const = {
@@ -54,15 +54,15 @@ function M.init()--{{{
     COLOR_MAP = new("moonshine.map", colors)
     STYLE_MAP = new("moonshine.map", styles)
 
-    COLOR_MAP:assign('default', 0)
-    COLOR_MAP:assign('black',   1)
-    COLOR_MAP:assign('red',     2)
-    COLOR_MAP:assign('green',   3)
-    COLOR_MAP:assign('yellow',  4)
-    COLOR_MAP:assign('blue',    5)
-    COLOR_MAP:assign('magenta', 6)
-    COLOR_MAP:assign('cyan',    7)
-    COLOR_MAP:assign('white',   8)
+    COLOR_MAP:assign('default',  0)
+    COLOR_MAP:assign('black',    1)
+    COLOR_MAP:assign('red',      2)
+    COLOR_MAP:assign('green',    3)
+    COLOR_MAP:assign('yellow',   4)
+    COLOR_MAP:assign('blue',     5)
+    COLOR_MAP:assign('magenta',  6)
+    COLOR_MAP:assign('cyan',     7)
+    COLOR_MAP:assign('white',    8)
     COLOR_MAP:assign('black2',   9)
     COLOR_MAP:assign('red2',     10)
     COLOR_MAP:assign('green2',   11)
@@ -72,12 +72,8 @@ function M.init()--{{{
     COLOR_MAP:assign('cyan2',    15)
     COLOR_MAP:assign('white2',   16)
 
-    STYLE_MAP:assign('default', 0)
-
-    M.define_style('default', 'default', 'default')
-    M.define_style('topic', 'white', 'blue')
-    M.define_style('status', 'white', 'blue')
-    M.define_style('status_bit', 'cyan', 'blue')
+    STYLE_MAP:assign('default',  0)
+    term.style_init(0, 0, 0)
 
     M.define('style', function (name, text)
         local code = style_code(name)
@@ -92,75 +88,12 @@ function M.init()--{{{
         end
     end)
 
-
-    local os = os
+        local os = os
     M.define('date', function (...) return os.date(...) end)
     M.define('now',  function (...) return os.time()    end)
 
-    M.define("timestamp", "$(date '%H:%M' $1)")
-    M.define('clock', '$(timestamp $now)')
-
-    M.define_style('username_bit', 'black2', 'default')
-    M.define('username_bit', "$(style username_bit)<$^$1$(style username_bit)>$^")
-    M.define("chat",    "$(timestamp $1) $(username_bit $2) $|$3")
-    M.define("public",  "$(chat $0)")
-    M.define("private", "$(chat $0)")
-    M.define("private_sent", "$(chat $0)")
-
-    M.define('log_message', "$(timestamp $now) $|[$2] $3")
-
-    local screen = require "moonshine.ui.screen"
-    local ipairs = ipairs
-    M.define('view_info', function (key) return screen.view_info(key) end)
-    M.define('prompt',  "[$(view_info name)] ")
-    M.define('status_act', function()
-        local acts = {}
-        for i, v in screen.activity() do
-            acts[i] = style("act_" .. v.level, v.index .. "")
-        end
-        if #acts > 0 then
-            return status_bit('Act: ' .. concat_(',', acts))
-        else
-            return ""
-        end
-    end)
-
-    M.define('topic', '$(style topic)$1')
-    -- note the trailing space.
-    M.define('status_bit',  '$(style status_bit $<[$(style status $1)] >)')
-    M.define('status_time', '$(status_bit $(clock))')
-    M.define('status_desc', '$(view_info index):$(view_info name)')
-    M.define('status_view', '$(status_bit $(status_desc))')
-    M.define('status',      '$(style status) $(status_time)$(status_view)$(status_act)')
-
-    M.define_style('bold', 'white2', 'default')
-    M.define_style('blue', 'blue2', 'default')
-
-    M.define('bip', '$(style blue $<-$(style bold "!")->)')
-
-    M.define_style('green',   'green',  'default')
-    M.define_style('greener', 'green2', 'default')
-    M.define_style('userlist_bit', 'black2', 'default')
-    M.define_style('userlist_txt', 'default', 'default')
-
-    M.define('userlist_bit',  '$(style userlist_bit $<[$(style userlist_txt $1)]>)')
-    -- $(userlist_head $room)
-    M.define('userlist_head', "$(clock) $|$(userlist_bit $<$(style green 'Users') $(style greener $1)>)")
-
-    -- $(userlist_foot $room $total_users $ops $halfops $voices $normal)
-    M.define('userlist_foot', '$(clock) $bip $|Moonshine: $1: Total $2 nicks [$3 ops, $4 halfops, $5 voices, $6 normal]')
-    M.define('userlist_flag', function (flag)
-        if flag.founder     then return '&'
-        elseif flag.op      then return '@'
-        elseif flag.halfop  then return '%'
-        elseif flag.voice   then return '+'
-        else                     return ' '
-        end
-    end)
-
-    -- $(userlist_item $flags $name)
-    M.define('userlist_item', '$(userlist_bit $<$(userlist_flag $1)$2>)')
-    M.define('userlist_line', '$(clock) $|$0')
+    -- this is split off into a seperate file for sanity's sake.
+    require "moonshine.ui.format.markup"
 end--}}}
 
 function M.define_color(color, r, g, b)--{{{
@@ -180,6 +113,5 @@ function M.define_style(style, fg, bg)--{{{
     local bg_id = assert(COLOR_MAP:find(bg), "unknown color: " .. bg)
     term.style_init( STYLE_MAP:find_or_assign(style), fg_id, bg_id)
 end--}}}
-
 
 return M

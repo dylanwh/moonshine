@@ -63,16 +63,14 @@ static void on_write_chat(PurpleConversation *conv,
 {
     g_assert(conversations_uiops_lua);
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "conversation_write_chat");
-    char *message2 = purple_unescape_html(message);
     lua_pushlightuserdata(L, conv);
     lua_gettable(L, LUA_REGISTRYINDEX);
     g_assert(!lua_isnil(L, -1));
     lua_pushstring(L, name);
-    lua_pushstring(L, message2);
+    lua_pushstring(L, message);
     lua_pushinteger(L, flags);
     lua_pushinteger(L, mtime);
     ms_lua_call(L, 5, 0, "purple.conversations in uiops.conversation_write_chat");
-    g_free(message2);
 }
 
 static void on_write_im(PurpleConversation *conv,
@@ -83,16 +81,14 @@ static void on_write_im(PurpleConversation *conv,
 {
     g_assert(conversations_uiops_lua);
     LuaState *L    = ms_lua_var_get(conversations_uiops_lua, "conversation_write_im");
-    char *message2 = purple_unescape_html(message);
     lua_pushlightuserdata(L, conv);
     lua_gettable(L, LUA_REGISTRYINDEX);
     g_assert(!lua_isnil(L, -1));
     lua_pushstring(L, name);
-    lua_pushstring(L, message2);
+    lua_pushstring(L, message);
     lua_pushinteger(L, flags);
     lua_pushinteger(L, mtime);
     ms_lua_call(L, 5, 0, "purple.conversations in uiops.conversation_write_im");
-    g_free(message2);
 }
 
 static void on_write(PurpleConversation *conv,
@@ -104,17 +100,15 @@ static void on_write(PurpleConversation *conv,
 {
     g_assert(conversations_uiops_lua);
     LuaState *L    = ms_lua_var_get(conversations_uiops_lua, "conversation_write");
-    char *message2 = purple_unescape_html(message);
     lua_pushlightuserdata(L, conv);
     lua_gettable(L, LUA_REGISTRYINDEX);
     g_assert(!lua_isnil(L, -1));
     lua_pushstring(L, name);
     lua_pushstring(L, alias);
-    lua_pushstring(L, message2);
+    lua_pushstring(L, message);
     lua_pushinteger(L, flags);
     lua_pushinteger(L, mtime);
     ms_lua_call(L, 6, 0, "purple.conversations in uiops.conversation_write");
-    g_free(message2);
 }
 
 static gboolean on_has_focus(PurpleConversation *conv)
