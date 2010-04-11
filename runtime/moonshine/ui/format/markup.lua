@@ -58,9 +58,12 @@ end
 local markup = P {
     'text',
     text    = Cs( (cdata + entity + V 'markup')^1 ),
-    markup  = V 'link' + V 'bold',
+    markup  = V 'link' + V 'bold' + V 'other',
     link    = Ct (I '<a' * space^1 * I 'href' * '=' * quoted * space^0 * '>' * V 'text' * I '</a>') / link,
-    bold    = I '<b>' * C(V 'text') * I '</b>' / bold,
+    bold    = I '<b>'      * C(V 'text') * I '</b>' / bold
+            + I '<bold>'   * C(V 'text') * I '</bold>' / bold
+            + I '<strong>' * C(V 'text') * I '</strong>' / bold,
+    other = '<' * name * (P(1) - S '<>')^0 * '>' * V 'text' * '</' * name * '>',
 }
 
 format.define('markup', function(text)
