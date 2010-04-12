@@ -28,7 +28,7 @@ Format.const = {
     ['^'] = term.STYLE_RESET_CODE,
 }
 
-local COLOR_MAP, STYLE_MAP
+-- COLOR_MAP, STYLE_MAP
 
 local function style_code(style)--{{{
     local style_id = STYLE_MAP:find(style)
@@ -72,7 +72,9 @@ function M.init()--{{{
     COLOR_MAP:assign('cyan2',    15)
     COLOR_MAP:assign('white2',   16)
 
+    STYLE_MAP:assign('0:0',  0)
     STYLE_MAP:assign('default',  0)
+
     term.style_init(0, 0, 0)
 
     M.define('style', function (name, text)
@@ -88,7 +90,7 @@ function M.init()--{{{
         end
     end)
 
-        local os = os
+    local os = os
     M.define('date', function (...) return os.date(...) end)
     M.define('now',  function (...) return os.time()    end)
 
@@ -109,9 +111,22 @@ function M.define_style(style, fg, bg)--{{{
     assert(type(style) == 'string', "style must be string, not " .. type(style))
     assert(type(fg) == 'string', "fg must be string, not " .. type(fg))
     assert(type(bg) == 'string', "bg must be string, not " .. type(bg))
-    local fg_id = assert(COLOR_MAP:find(fg), "unknown color: " .. fg)
-    local bg_id = assert(COLOR_MAP:find(bg), "unknown color: " .. bg)
-    term.style_init( STYLE_MAP:find_or_assign(style), fg_id, bg_id)
+
+    local fg_id = COLOR_MAP:find(fg)
+    local bg_id = COLOR_MAP:find(bg)
+    if not fg_id then fg_id = 0 log.warn("unknown fg color: %s", fg) end
+    if not bg_id then bg_id = 0 log.warn("unknown bg color: %s", bg) end
+
+    local key      = fg_id .. ":" .. bg_id
+    local style_id = STYLE_MAP:find(key)
+
+    if not style_id then
+        style_id = STYLE_MAP:assign(key)
+        STYLE_MAP:assign(style, style_id)
+        term.style_init( style_id, fg_id, bg_id)
+    else
+        STYLE_MAP:assign(style, style_id)
+    end
 end--}}}
 
 return M

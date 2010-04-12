@@ -22,35 +22,62 @@
 -- maps between limited integers and strings.
 local Map = new "moonshine.object"
 
-function Map:__init(max)
-    self._to_id   = {}
-    self._to_name = {}
-    self._max   = max
+function Map:__init(limit)
+    self._names = {}
+    self._refs  = {}
+    self._limit = limit
+end
+
+function Map:_ref(id)
+    self._refs[id] = (self._refs[id] or 0) + 1
+end
+
+function Map:_unref(id)
+    local c = self._refs[id] - 1
+    if c == 0 then
+        -- no longer referenced
+        c = nil
+    end
+    self._refs[id] = c
+end
+
+function Map:_next_id()
+    return #self._refs + 1
 end
 
 function Map:assign(name, id)
     if id == nil then
-        id = self:next_id()
+        id = self:_next_id()
     end
 
     assert(name ~= nil, "name must not be nil")
-    assert(id <= self._max, "cannot assign id larger than " .. self._max)
+    assert(id <= self._limit, "cannot assign id larger than " .. self._limit)
 
-    self._to_id[name] = id
-    self._to_name[id] = name
+    self:_ref(id, name)
+
+    --if self._names[name] then
+    --    self:_unref( self._names[name] )
+    --end
+
+    self._names[name] = id
+
     return id
 end
 
 function Map:find(name)
-    return self._to_id[name]
+    return self._names[name]
 end
 
 function Map:find_or_assign(name)
     return self:find(name) or self:assign(name)
 end
 
-function Map:next_id()
-    return #self._to_name + 1
+function Map:data()
+    return {
+        refs = self._refs,
+        limit = self._limit,
+        names = self._names,
+    }
 end
 
 return Map
