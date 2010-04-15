@@ -4,6 +4,7 @@ local format = require "moonshine.ui.format"
 local M = {}
 
 function M.setup()
+    format.define_style('error', 'red2', 'default')
 
     format.define_style('topic', 'white', 'blue')
     format.define_style('status', 'white', 'blue')
@@ -19,7 +20,7 @@ function M.setup()
     format.define("private", "$(chat $0)")
     format.define("private_sent", "$(chat $0)")
 
-    format.define('log_message', "$(timestamp $now) $|[$2] $3")
+    format.define('log_message', "$(timestamp $now) $|[$(style error $2)] $3")
 
     -- note that functions passed to define() can only access lexical
     -- scope, not globals.

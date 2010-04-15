@@ -169,13 +169,27 @@ void ms_term_style_set(gushort style)
         attroff(A_BOLD);
 }
 
+PURE INLINE gshort remap_to_8_colors(gshort color)
+{
+    if (color == -1)
+        return -1;
+
+    if (color > 7) {
+        color = (color % 8);
+        return color;
+    }
+    else
+        return color;
+}
+
 void ms_term_style_init(gushort style, gushort fg, gushort bg)
 {
     g_return_if_fail(style < MS_TERM_STYLES);
     switch (MS_TERM_COLORS) {
         case 8:
-            init_pair(style, (fg % 9)-1, (bg % 9)-1);
-            if (fg > 7)
+            g_debug("init_pair(style, %d, %d) = %d, %d", fg-1, bg-1, remap_to_8_colors(fg-1), remap_to_8_colors(bg-1));
+            init_pair(style, remap_to_8_colors(fg-1), remap_to_8_colors(bg-1));
+            if (fg > 8)
                 STYLE_MARK_BOLD(style);
             break;
         case 16:
