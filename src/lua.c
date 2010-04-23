@@ -281,7 +281,6 @@ LuaState *ms_lua_newstate(void)/*{{{*/
     LuaState *L  = luaL_newstate();
     luaL_openlibs(L);
 
-    lua_newtable(L);
     lua_pushstring(L, MOONSHINE_VERSION);
     lua_setglobal(L, "MOONSHINE_VERSION");
     init_paths(L);
