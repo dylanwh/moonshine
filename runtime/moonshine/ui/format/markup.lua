@@ -66,7 +66,7 @@ local markup = P {
     other = '<' * name * (P(1) - S '<>')^0 * '>' * V 'text' * '</' * name * '>',
 }
 
-format.define('markup', function(text)
+return function(text)
+    -- NOTE: this is used as a macro, so it only can access lexicals.
     return match(markup, text)
-end)
-
+end

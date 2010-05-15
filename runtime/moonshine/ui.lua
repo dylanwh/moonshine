@@ -29,7 +29,7 @@ local shell  = require "moonshine.shell"
 local keymap = new "moonshine.keymap"
 
 local format = require "moonshine.ui.format"
-local theme  = require "moonshine.ui.theme"
+local theme = require "moonshine.ui.theme"
 local screen = require "moonshine.ui.screen"
 
 require "moonshine.ui.view"

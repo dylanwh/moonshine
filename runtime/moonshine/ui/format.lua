@@ -95,7 +95,7 @@ function M.init()--{{{
     M.define('now',  function (...) return os.time()    end)
 
     -- this is split off into a seperate file for sanity's sake.
-    require "moonshine.ui.format.markup"
+    M.define("markup", require "moonshine.ui.format.markup")
 end--}}}
 
 function M.define_color(color, r, g, b)--{{{
