@@ -22,7 +22,6 @@
 modules = {
    'moonshine.idle',
    'moonshine.log.core',
-   'moonshine.loop',
    'moonshine.net.client',
    'moonshine.parseopt.core',
    'moonshine.timer',

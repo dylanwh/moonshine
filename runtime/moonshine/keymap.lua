@@ -19,7 +19,7 @@
 -   along with Moonshine.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local bit     = require "bit"
+local bit = require "bit"
 
 local function ctrl(c)
     return string.char(bit.bxor(string.byte(string.upper(c)), 64))

@@ -21,5 +21,5 @@
 
 require "moonshine.prelude"
 local ui = require "moonshine.ui"
-
 ui.init()
+

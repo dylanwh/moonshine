@@ -81,6 +81,14 @@ static gboolean on_input(UNUSED GIOChannel *src, GIOCondition cond, gpointer ud)
     return FALSE;
 }/* }}} */
 
+static int loop_quit(LuaState *L)/*{{{*/
+{
+    GMainLoop *loop = ms_lua_stash_get(L, "loop");
+	g_return_val_if_fail(loop != NULL, 0);
+    g_main_loop_quit(loop);
+	return 0;
+}/*}}}*/
+
 int main(UNUSED int argc, UNUSED char *argv[])
 {
     LuaState *L     = ms_lua_newstate();
@@ -105,27 +113,41 @@ int main(UNUSED int argc, UNUSED char *argv[])
     lua_pushstring(L, MOONSHINE_VERSION);
     lua_setglobal(L, "VERSION");
 
+	/* Add quit() builtin, which exists the implicit event loop */
+    lua_pushcfunction(L, loop_quit);
+    lua_setglobal(L, "quit");
+
     /* watch stdin */
     input = g_io_channel_unix_new(fileno(stdin));
     tag   = g_io_add_watch_full(input, G_PRIORITY_DEFAULT, G_IO_IN, on_input, (gpointer) L, NULL);
 
     /* catch the interesting signals */
     ms_signal_init(); // initialize moonshine signal callback
-    ms_signal_catch(SIGWINCH, on_resize,  (gpointer) L, NULL);
-    ms_signal_catch(SIGTERM,  on_stopsig, (gpointer) L, NULL);
-    ms_signal_catch(SIGINT,   on_stopsig, (gpointer) L, NULL);
-    ms_signal_catch(SIGHUP,   on_stopsig, (gpointer) L, NULL);
+    ms_signal_catch(SIGWINCH, on_resize,  (gpointer)L, NULL);
+    ms_signal_catch(SIGTERM,  on_stopsig, (gpointer)L, NULL);
+    ms_signal_catch(SIGINT,   on_stopsig, (gpointer)L, NULL);
+    ms_signal_catch(SIGHUP,   on_stopsig, (gpointer)L, NULL);
 
     /* Start the show */
     ms_lua_require(L, "moonshine");
+    g_main_loop_run(loop);
+
+	lua_getglobal(L, "on_quit");
+    if (!lua_isnil(L, -1)) {
+        if (lua_pcall(L, 0, 0, 0) != -1)
+            g_warning("lua error in on_quit(): %s", lua_tostring(L, -1));
+    }
+    else {
+        lua_pop(L, 1);
+    }
 
     /* Cleanup time */
     g_io_channel_unref(input); // free memory.
-    ms_term_reset();
-    ms_log_free(log);          // free memory and replay any entries in the log.
     g_main_loop_unref(loop);   // free memory
-    lua_close(L);
     ms_signal_reset();         // remove signal handlers and memory used.
+    lua_close(L);              // close lua.
+    ms_term_reset();           // reset term here, so we can print to the screen (to replay the log)
+    ms_log_free(log);          // free memory and replay any entries in the log.
 
     exit(0);
 }

@@ -23,13 +23,12 @@ local purple_core          = require "purple.core"
 local purple_conversations = require "purple.conversations"
 local purple_account       = require "purple.account"
 
+local keymap = new "moonshine.keymap"
 local log    = require "moonshine.log"
 local term   = require "moonshine.ui.term"
 local shell  = require "moonshine.shell"
-local keymap = new "moonshine.keymap"
-
 local format = require "moonshine.ui.format"
-local theme = require "moonshine.ui.theme"
+local theme  = require "moonshine.ui.theme"
 local screen = require "moonshine.ui.screen"
 
 require "moonshine.ui.view"
@@ -95,13 +94,13 @@ function H.ui_init()
     end
 
     keymap:bind('{kent}',  function () screen.entry_submit(accept) end)
-    -- why does urxvt not sent kent?
+    -- why does urxvt not send kent?
     keymap:bind('^M',  function () screen.entry_submit(accept) end)
 
     keymap:bind('^W', function () screen.entry_word_delete() end)
     keymap:bind('^A', function () screen.entry_move_to(0) end)
     keymap:bind('^E', function () screen.entry_move_to(-1) end)
-    keymap:bind('^C', function () M.quit() end)
+    keymap:bind('^C', function () quit() end)
 
     screen.render()
 end
@@ -189,16 +188,9 @@ function H.conversation_chat_add_users(conv, users, new_arrivals)
     screen.render()
 end
 
-local loop = require "moonshine.loop"
-
 function M.init()
     term.init()
     purple_core.init(H)
-    loop.run()
-end
-
-function M.quit()
-    loop.quit()
 end
 
 return M

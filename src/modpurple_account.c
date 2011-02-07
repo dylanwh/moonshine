@@ -39,18 +39,19 @@ static int account_new(LuaState *L)/*{{{*/
     return 1;
 }/*}}}*/
 
-static int account_init(UNUSED LuaState *L)
+static int account_init(UNUSED LuaState *L)/*{{{*/
 {
     purple_accounts_init();
     purple_accounts_get_all();
     return 0;
-}
+}/*}}}*/
 
 static int account_find(LuaState *L)/*{{{*/
 {
     luaL_checktype(L, 1, LUA_TTABLE);
     const char *name     = luaL_checkstring(L, 2);
     const char *protocol = luaL_checkstring(L, 3);
+
     PurpleAccount *account = purple_accounts_find(name, protocol);
     if (account) {
         lua_pushlightuserdata(L, account);

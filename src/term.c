@@ -37,6 +37,7 @@ INLINE void STYLE_MARK_BOLD(gushort style)
     g_assert(ms_term_bold);
     g_hash_table_insert(ms_term_bold, GUINT_TO_POINTER((gulong)style), GINT_TO_POINTER(1));
 }
+
 INLINE gboolean STYLE_IS_BOLD(gushort style)
 {
     g_assert(ms_term_bold);

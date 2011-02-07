@@ -56,10 +56,10 @@ static void on_destroy(PurpleConversation *conv)/*{{{*/
 }/*}}}*/
 
 static void on_write_chat(PurpleConversation *conv,
-                           const char *name,
-                           const char *message,
-                           PurpleMessageFlags flags,
-                           time_t mtime)
+                          const char *name,
+                          const char *message,
+                          PurpleMessageFlags flags,
+                          time_t mtime)
 {
     g_assert(conversations_uiops_lua);
     LuaState *L  = ms_lua_var_get(conversations_uiops_lua, "conversation_write_chat");

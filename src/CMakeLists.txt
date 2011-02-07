@@ -13,13 +13,14 @@ ADD_EXECUTABLE(moonshine
 
     modidle.c
     modlog_core.c
-    modloop.c
     modnet_client.c
+
     modparseopt_core.c
     modui_buffer.c
     modui_entry.c
     modui_label.c
     modui_term.c
+
     modpurple_core.c
     modpurple_account.c
     modpurple_conversations.c
