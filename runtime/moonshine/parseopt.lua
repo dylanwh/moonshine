@@ -1,100 +1,97 @@
---[[ vim: set ft=lua sw=4 ts=4 expandtab:
--   Moonshine - a Lua-based chat client
--
--   Copyright (C) 2010 Dylan William Hardison
--
--   This file is part of Moonshine.
--
--   Moonshine is free software: you can redistribute it and/or modify
--   it under the terms of the GNU General Public License as published by
--   the Free Software Foundation, either version 3 of the License, or
--   (at your option) any later version.
--
--   Moonshine is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--   GNU General Public License for more details.
--
--   You should have received a copy of the GNU General Public License
--   along with Moonshine.  If not, see <http://www.gnu.org/licenses/>.
-]]
+local core        = require "moonshine.parseopt.core"
+local types       = require "moonshine.parseopt.types"
+local spec_parser = require "moonshine.parseopt.spec_parser"
 
-local core  = require "moonshine.parseopt.core"
-local lpeg  = require "lpeg"
-local M     = {}
+local NOARG, EATARG, STOP = core.NOARG, core.EATARG, core.STOP
 
--- {{{ spec parsing stuff
-local HINTS = { s = 'string', n = 'number', t = 'table', l = 'list', b = 'boolean', i = 'counter' }
-
-local P, S, R       = lpeg.P, lpeg.S, lpeg.R
-local C, Ct, Cc     = lpeg.C, lpeg.Ct, lpeg.Cc
-
-local letter        = R ("az", "AZ") + S "_-"
-local word          = letter ^ 1
-local option_name   = C ( word )
-local option_hint   = S "sntlbc" / HINTS
-local option_rest   = (P "|" * option_name) ^ 0
-local option_names  = Ct (option_name * option_rest)
-local option        = option_names * ( (P "=" * option_hint) + Cc 'boolean' )
-
-local function parse_spec (s)
-    return lpeg.match(option, s)
+function prefix_match(str, prefix)
+	return #prefix <= #str and str:sub(1, #prefix) == prefix
 end
--- }}}
 
-function M.build_parser(spec)--{{{
-    local hints = {}
-    local alias = {}
+local function find(keys, alias_keys, name, seen)
+	seen = seen or {}
+	seen[name] = true
 
-    for _, x in ipairs(spec) do
-        if x == '#' then
-            hints[#hints+1] = true
-        else
-            local names, hint = parse_spec(x)
-            local primary     = table.remove(names, 1)
-            hints[primary]    = hint
-            alias[primary]    = primary
-            for _, name in ipairs (names) do
-                alias[name] = primary
-            end
-        end
-    end
+	if alias_keys[name] and not seen[alias_keys[name]] then
+		return find(keys, alias_keys, alias_keys[name], seen)
+	elseif keys[name] then
+		return name, keys[name]
+	elseif #name > 1 then
+		-- for more than one letter options, we attempt to match
+		-- by prefix.
+		local matches = {}
+		for k, v in pairs(alias_keys) do
+			if prefix_match(k, name) then
+				table.insert(matches, v)
+			end
+		end
 
-    return function(text)
-        local options = {}
-        local args    = {}
-        local function callback(name, value)
-            local primary = alias[name or '']
-            local hint    = hints[primary]
-            if primary == nil then
-                if hints[ #args + 1 ] then
-                    table.insert(args, value)
-                    return core.NOARG
-                else
-                    return core.STOP
-                end
-            elseif hint == 'boolean' then
-                options[primary] = true
-                return core.NOARG
-            elseif hint == 'string' then
-                options[primary] = value
-                return core.EATARG
-            elseif hint == 'number' then
-                options[primary] = tonumber(value)
-                return core.EATARG
-            elseif hint == 'list' then
-                if not options[primary] then
-                    options[primary] = {}
-                end
-                table.insert(options[primary], value)
-                return core.EATARG
-            end
-        end
+		for k, v in pairs(keys) do
+			if prefix_match(k, name) then
+				table.insert(matches, k)
+			end
+		end
 
-        local rest = core.parse(text, callback)
-        table.insert(args, rest)
-        return options, unpack(args)
-    end
-end--}}}
+		if #matches == 1 then
+			return find(keys, alias_keys, matches[1], seen)
+		else
+			return nil
+		end
+	end
+end
 
-return M
+-- --options and arguments
+
+local function parse(spec, text)
+	assert(type(spec) == 'table')
+	local argc       = spec.argc
+	local keys       = spec.keys
+	local alias_keys = spec.alias_keys
+
+	local vars = {}
+	local args = {}
+	local unknown_option
+	local function callback(name, value)
+		if name == nil then
+			if argc < 0 or #args < argc then
+				table.insert(args, value)
+				return EATARG
+			else
+				return STOP
+			end
+		else
+			local key, f = find(keys, alias_keys, name)
+			if key then
+				local flag
+				flag, vars[key] = f(value, vars[key])
+				return flag
+			else
+				print("unknown option: ", name)
+				return STOP
+			end
+		end
+	end
+
+	local rest = core.parse(text, callback)
+	if argc >= 0 then
+		table.insert(args, rest)
+	end
+	return vars, unpack(args)
+end
+
+local function build_parser(spec)
+	if type(spec) == 'string' then
+		spec = spec_parser.parse(spec)
+	end
+
+	return function(text)
+		return parse(spec, text)
+	end
+end
+
+return {
+	parse_spec   = spec_parser.parse,
+	types        = types,
+	parse        = parse,
+	build_parser = build_parser,
+}
